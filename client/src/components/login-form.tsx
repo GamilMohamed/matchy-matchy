@@ -38,8 +38,8 @@ const LoginForm = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-			email: formData.email,
-			password: formData.password,
+			    email: formData.email,
+			    password: formData.password,
         }),
       });
 
@@ -67,18 +67,17 @@ const LoginForm = () => {
 
   const handleSignup = async (e) => {
     e.preventDefault();
-
-	try {
+	  try {
       const response = await fetch('http://localhost:3000/login/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-			email: formData.email,
-			password: formData.password,
-			firstname: formData.firstname,
-			lastname: formData.lastname,
+			    email: formData.email,
+			    password: formData.password,
+			    firstname: formData.firstname,
+			    lastname: formData.lastname,
         }),
       });
 
@@ -142,28 +141,6 @@ const LoginForm = () => {
                       onChange={handleInputChange}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="firstname">Mot de passe</Label>
-                    <Input
-                      id="firstname"
-                      name="firstname"
-                      type="firstname"
-                      required
-                      value={formData.firstname}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastname">Mot de passe</Label>
-                    <Input
-                      id="lastname"
-                      name="lastname"
-                      type="lastname"
-                      required
-                      value={formData.lastname}
-                      onChange={handleInputChange}
-                    />
-                  </div>
                   <Button type="submit" className="w-full">
                     Se connecter
                   </Button>
@@ -203,13 +180,24 @@ const LoginForm = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirmer le mot de passe</Label>
+                    <Label htmlFor="firstname">Prénom</Label>
                     <Input
-                      id="confirm-password"
-                      name="confirmPassword"
-                      type="password"
+                      id="firstname"
+                      name="firstname"
+                      type="firstname"
                       required
-                      value={formData.confirmPassword}
+                      value={formData.firstname}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastname">Nom</Label>
+                    <Input
+                      id="lastname"
+                      name="lastname"
+                      type="lastname"
+                      required
+                      value={formData.lastname}
                       onChange={handleInputChange}
                     />
                   </div>
