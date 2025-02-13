@@ -1,12 +1,12 @@
 import Nav from './Nav';
 
-function Profil() {
+function Settings() {
 	return (
 		<div>
 			<Nav />
-			<h1>Profil</h1>
+			<h1>Settings</h1>
 		</div>
 	)
 }
 
-export default Profil
+export default Settings

@@ -6,9 +6,13 @@ const Nav = () => {
 	  window.location.href = '/login';
 	};
 
-	// const handleHome = () => {
-	// 	window.location.href = '/';
-	//   };
+	const handleSettings = () => {
+		window.location.href = '/settings';
+	  };
+
+	const handleProfil = () => {
+		window.location.href = '/profil';
+	  };
 
 	return (
     	<nav className="fixed top-0 left-0 right-0 bg-white shadow-sm border-b z-50">
@@ -16,9 +20,7 @@ const Nav = () => {
     	    <div className="flex justify-center h-16 items-center">
     	      <div className="flex items-center space-x-8">
     	        <a href="/" className="flex items-center">
-					{/* <Button variant="ghost" onClick={handleHome}> */}
 						<Home className="h-6 w-6 text-blue-600" />
-					{/* </Button> */}
 					<span className="ml-2 text-xl font-bold text-gray-900">Matchy matchy</span>
 				</a>
     	        <div className="flex space-x-6">
@@ -31,10 +33,10 @@ const Nav = () => {
     	        </div>
 
     	        <div className="flex items-center space-x-4">
-    	          <Button variant="ghost" size="icon">
+    	          <Button variant="ghost" size="icon" onClick={handleSettings}>
     	            <Settings className="h-5 w-5" />
     	          </Button>
-    	          <Button variant="ghost" size="icon">
+    	          <Button variant="ghost" size="icon" onClick={handleProfil}>
     	            <UserCircle className="h-5 w-5" />
     	          </Button>
     	          <Button variant="ghost" size="icon" onClick={handleLogout}>

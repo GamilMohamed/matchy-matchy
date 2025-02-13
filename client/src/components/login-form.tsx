@@ -22,14 +22,14 @@ const LoginForm = () => {
     lastname: '',
   });
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
 
-  const handleLogin = async (e) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       const response = await fetch('http://localhost:3000/login/signin', {
@@ -65,7 +65,7 @@ const LoginForm = () => {
     }
   };
 
-  const handleSignup = async (e) => {
+  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 	  try {
       const response = await fetch('http://localhost:3000/login/signup', {
