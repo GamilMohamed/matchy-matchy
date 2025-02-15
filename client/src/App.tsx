@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router';
 import { LoginForm } from "@/components/login-form"
 import { Toaster } from "./components/ui/toaster";
-import Welcome from './components/welcome';
+import Home from './components/home';
 import About from './components/about-us';
 import Settings from './components/settings';
 import Profil from './components/profil';
@@ -10,14 +10,14 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={
+        <Route path="/" element={
           <main className="flex flex-col items-center justify-center h-screen">
               <LoginForm />
           </main>
         } />
-        <Route path="/" element={
+        <Route path="/home" element={
           <main className="flex flex-col items-center justify-center h-screen">
-            <Welcome />
+            <Home />
           </main>
         } />
         <Route path="/about-us" element={

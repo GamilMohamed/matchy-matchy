@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Nav from './Nav';
 import { X } from 'lucide-react';
+import Footer from './Footer';
 
 interface ProfileData {
   gender: string;
@@ -79,7 +80,7 @@ function Profile() {
   return (
     <div className="flex flex-col min-h-screen">
       <Nav />
-      <main className="flex-1 pt-20">
+      <main className="flex-1 pt-20 pb-52">
         <div className="max-w-4xl mx-auto p-6">
           <div className="bg-white rounded-lg shadow-lg p-8">
             <h2 className="text-3xl font-bold mb-8 text-gray-800">Edit Profile</h2>
@@ -220,6 +221,7 @@ function Profile() {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

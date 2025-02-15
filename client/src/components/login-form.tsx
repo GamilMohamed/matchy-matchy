@@ -17,9 +17,10 @@ const LoginForm = () => {
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
+    pseudo: '',
     firstname: '',
     lastname: '',
+    password: '',
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,9 +76,10 @@ const LoginForm = () => {
         },
         body: JSON.stringify({
 			    email: formData.email,
-			    password: formData.password,
+          pseudo: formData.pseudo,
 			    firstname: formData.firstname,
 			    lastname: formData.lastname,
+			    password: formData.password,
         }),
       });
 
@@ -169,13 +171,13 @@ const LoginForm = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Mot de passe</Label>
+                    <Label htmlFor="username">Pseudo</Label>
                     <Input
-                      id="signup-password"
-                      name="password"
-                      type="password"
+                      id="username"
+                      name="username"
+                      type="username"
                       required
-                      value={formData.password}
+                      value={formData.firstname}
                       onChange={handleInputChange}
                     />
                   </div>
@@ -198,6 +200,17 @@ const LoginForm = () => {
                       type="lastname"
                       required
                       value={formData.lastname}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-password">Mot de passe</Label>
+                    <Input
+                      id="signup-password"
+                      name="password"
+                      type="password"
+                      required
+                      value={formData.password}
                       onChange={handleInputChange}
                     />
                   </div>

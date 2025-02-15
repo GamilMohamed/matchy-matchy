@@ -1,14 +1,14 @@
 import Footer from './Footer';
 import Nav from './Nav';
 
-function About() {
+function Home() {
 	return (
 		<div>
 			<Nav />
-			<a href="https://github.com/mvachera" target="_blank">mvachera</a>
+			<h1>Home</h1>
 			<Footer />
 		</div>
 	)
 }
 
-export default About
+export default Home
