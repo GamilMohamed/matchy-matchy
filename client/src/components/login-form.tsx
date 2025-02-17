@@ -11,8 +11,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { Toaster } from '@/components/ui/toaster';
+import Cookies from 'js-cookie';
+import { useAuth } from '@/context/auth-context';
 
 const LoginForm = () => {
+  const { isAuth, setIsAuth } = useAuth();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -39,18 +42,22 @@ const LoginForm = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-			    email: formData.email,
-			    password: formData.password,
+          email: formData.email,
+          password: formData.password,
         }),
       });
-
+      const data = await response.json();
+      // set cookies to data
       if (response.ok) {
+        Cookies.set('token', data);
+        setIsAuth(true);
         toast({
           title: "Succès",
           description: "Connexion réussie!",
         });
         setIsLoginOpen(false);
       } else {
+
         toast({
           title: "Erreur",
           description: "Échec de la connexion",
@@ -68,18 +75,18 @@ const LoginForm = () => {
 
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-	  try {
+    try {
       const response = await fetch('http://localhost:3000/login/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-			    email: formData.email,
+          email: formData.email,
           pseudo: formData.pseudo,
-			    firstname: formData.firstname,
-			    lastname: formData.lastname,
-			    password: formData.password,
+          firstname: formData.firstname,
+          lastname: formData.lastname,
+          password: formData.password,
         }),
       });
 
@@ -110,7 +117,7 @@ const LoginForm = () => {
       <div className="w-full max-w-md space-y-4">
         <div className="bg-white p-8 rounded-lg shadow-lg space-y-4">
           <h1 className="text-2xl font-bold text-center text-gray-900">Bienvenue</h1>
-          
+
           <div className="flex flex-col sm:flex-row gap-4">
             <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
               <DialogTrigger asChild>
@@ -171,17 +178,6 @@ const LoginForm = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="username">Pseudo</Label>
-                    <Input
-                      id="username"
-                      name="username"
-                      type="username"
-                      required
-                      value={formData.firstname}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
                     <Label htmlFor="firstname">Prénom</Label>
                     <Input
                       id="firstname"
@@ -228,4 +224,4 @@ const LoginForm = () => {
   );
 };
 
-export  {LoginForm};
+export { LoginForm };

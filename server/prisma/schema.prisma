@@ -20,5 +20,6 @@ model User {
   firstname  String
   lastname  String
   password  String
+  profileComplete Boolean @default(false)
 }
 
