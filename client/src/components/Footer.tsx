@@ -1,11 +1,11 @@
-import React from 'react';
+// import React from 'react';
 import { Facebook, Twitter, Instagram, Mail, Phone, MapPin } from 'lucide-react';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 bg-gray-900 text-gray-300 z-50">
+    <footer className="bottom-0 left-0 right-0 bg-gray-900/40 text-gray-300 z-50 w-full">
       {/* Main Footer Content */}
       <div className="w-full px-4 py-4">
         <div className="max-w-7xl mx-auto">
