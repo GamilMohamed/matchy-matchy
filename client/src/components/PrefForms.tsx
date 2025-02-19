@@ -87,7 +87,7 @@ function PreferencesForms() {
         profilePicture: profileData.profilePicture/
         additionalPicture: profileData.additionalPicture/
     	}
-    	const json = JSON.stringify(newFilters);
+    	const json = JSON.stringify(profileData);
     	*/
     e.preventDefault();
     console.log('Updated user info:', profileData);

@@ -22,7 +22,7 @@ function ContactForms() {
     		firstname: formData.firstname,
     		lastname: formData.lastname,
     	}
-    	const json = JSON.stringify(newFilters);
+    	const json = JSON.stringify(formData);
     	*/
 		e.preventDefault();
 		console.log('Updated user info:', formData);
