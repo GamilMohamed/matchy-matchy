@@ -16,6 +16,14 @@ function ContactForms() {
 	};
 
 	const handleSubmit = (e: React.FormEvent) => {
+		/*
+    	JSON {
+			email: formData.email
+    		firstname: formData.firstname,
+    		lastname: formData.lastname,
+    	}
+    	const json = JSON.stringify(newFilters);
+    	*/
 		e.preventDefault();
 		console.log('Updated user info:', formData);
 		// Ici, tu peux ajouter une requête API pour mettre à jour les informations utilisateur
