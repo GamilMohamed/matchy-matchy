@@ -19,6 +19,12 @@ async function alreadyInDatabase(email) {
 	return user;
 }
 
+router.post('/signinx', async function (req, res, next) {
+	return res.status(200).json({token: 'token', user: {email: 'email', id: 'id'}});
+}
+);
+
+
 router.post('/signup', async function (req, res, next) {
 	try {
 		console.log(req.body);
@@ -56,6 +62,8 @@ router.post('/signup', async function (req, res, next) {
 });
 
 router.post('/signin', async function (req, res, next) {
+	console.log("hello world");
+
 	try {
 		console.log(req.body);
 		const requiredFields = ['email', 'password'];
@@ -85,12 +93,13 @@ router.post('/signin', async function (req, res, next) {
 			id: user.id,
 			date: new Date(),
 		}
+
 		const jwtExpire = 3 * 23 * 60 * 60 * 1000
 		const token = jwt.sign(payload, process.env.JWT_SECRET, {
 			expiresIn: jwtExpire
 		});
 		console.log(token);
-		return res.status(200).json(token);
+		return res.status(200).json({token, user});
 	}
 	catch (e) {
 		console.log(e);

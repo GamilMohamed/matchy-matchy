@@ -35,9 +35,10 @@ const Home: React.FC = () => {
       name: 'Sophie',
       age: 28,
       location: 'Paris',
-      bio: 'J\'adore voyager et découvrir de nouvelles cultures. Passionnée de photographie.',
+      bio: `'Après avoir été recruté par une école américaine pour poursuivre mes études et jouer au football avant d'éventuelles détections pour jouer en professionnel, je me suis envolé vers la Californie en janvier 2021 avec pour objectif de réaliser mes rêves, devenir footballeur. À travers cette aventure, j'ai pu apprendre énormément de choses, comme me débrouiller tout seul sans ma famille à mes côtés pour m'épauler et améliorer mon anglais.
+J'ai pris énormément de plaisir à jouer au football là-bas, surtout avec un soleil quotidien que je n'avais pas l'habitude d'avoir, moi qui ai passé ma vie à jouer dans le froid parisien. Malheureusement pour moi, un jour, en plein entraînement, j'ai commencé à sentir une douleur au niveau de mes mollets. Jamais je n'aurais pu imaginer que cette blessure me forcerait à rentrer, mais force était de constater que je n'avais pas le choix. En rentrant en France, j'ai parlé avec mon frère pour lui faire savoir que je souhaitais continuer mes études en programmation informatique que j'avais commencées aux États-Unis. C'est à ce moment-là qu'il m'a convaincu de faire l'école 42 que lui était en train de faire'`,
       interests: ['Voyage', 'Photographie', 'Cuisine', 'Yoga'],
-      imageUrl: 'https://placehold.co/400x400/png'
+      imageUrl: 'https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/a3725331dd734ee68547afc30097f500_9366/Pantalon_de_survetement_Adicolor_Classics_SST_Rouge_IM4543_23_hover_model.jpg'
     },
     {
       id: 2,

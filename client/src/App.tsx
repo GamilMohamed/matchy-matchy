@@ -8,9 +8,12 @@ import Profil from './components/profil';
 import { useEffect } from 'react';
 import Cookies from 'js-cookie';
 import { useAuth } from './context/auth-context';
+import { ApiService } from './services/apiService';
 
 function App() {
-  const { isAuth, setIsAuth } = useAuth();
+  const { user, api } = useAuth();
+  const isAuth = !!user;
+  console.log('isAuth', isAuth, user);
   if (!isAuth) {
     return (
       <Router>

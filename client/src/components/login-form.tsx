@@ -13,9 +13,11 @@ import { toast } from '@/hooks/use-toast';
 import { Toaster } from '@/components/ui/toaster';
 import Cookies from 'js-cookie';
 import { useAuth } from '@/context/auth-context';
+// import { useAuth } from '@/context/auth-context';
 
 const LoginForm = () => {
-  const { isAuth, setIsAuth } = useAuth();
+  // const { isAuth, setIsAuth } = useAuth();
+  const { login, signup } = useAuth();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -35,81 +37,12 @@ const LoginForm = () => {
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    try {
-      const response = await fetch('http://localhost:3000/login/signin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
-      const data = await response.json();
-      // set cookies to data
-      if (response.ok) {
-        Cookies.set('token', data);
-        setIsAuth(true);
-        toast({
-          title: "Succès",
-          description: "Connexion réussie!",
-        });
-        setIsLoginOpen(false);
-      } else {
-
-        toast({
-          title: "Erreur",
-          description: "Échec de la connexion",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Erreur de connexion au serveur",
-        variant: "destructive",
-      });
-    }
+    const response = await login(formData.email, formData.password);
   };
 
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    try {
-      const response = await fetch('http://localhost:3000/login/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          pseudo: formData.pseudo,
-          firstname: formData.firstname,
-          lastname: formData.lastname,
-          password: formData.password,
-        }),
-      });
-
-      if (response.ok) {
-        toast({
-          title: "Succès",
-          description: "Inscription réussie!",
-        });
-        setIsSignupOpen(false);
-      } else {
-        toast({
-          title: "Erreur",
-          description: "Échec de l'inscription",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Erreur de connexion au serveur",
-        variant: "destructive",
-      });
-    }
+    await signup(formData.email, formData.password, formData.firstname, formData.lastname, formData.pseudo);
   };
 
   return (
@@ -174,6 +107,17 @@ const LoginForm = () => {
                       type="email"
                       required
                       value={formData.email}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="pseudo">Pseudo</Label>
+                    <Input
+                      id="pseudo"
+                      name="pseudo"
+                      type="pseudo"
+                      required
+                      value={formData.pseudo}
                       onChange={handleInputChange}
                     />
                   </div>
