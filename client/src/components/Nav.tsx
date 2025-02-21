@@ -4,10 +4,9 @@ import Cookies from "js-cookie";
 import { UserCircle, Home, Settings, LogOut } from 'lucide-react';
 
 const Nav = () => {
-	const { isAuth, setIsAuth } = useAuth();
+	const { logout } = useAuth();
 	const handleLogout = () => {
-		Cookies.remove('token');
-		setIsAuth(false);
+		logout();
 	};
 
 	const handleSettings = () => {

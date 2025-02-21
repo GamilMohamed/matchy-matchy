@@ -22,7 +22,7 @@ const LoginForm = () => {
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
-    pseudo: '',
+    username: '',
     firstname: '',
     lastname: '',
     password: '',
@@ -42,7 +42,7 @@ const LoginForm = () => {
 
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await signup(formData.email, formData.password, formData.firstname, formData.lastname, formData.pseudo);
+    await signup(formData.email, formData.password, formData.firstname, formData.lastname, formData.username);
   };
 
   return (
@@ -111,13 +111,13 @@ const LoginForm = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="pseudo">Pseudo</Label>
+                    <Label htmlFor="username">username</Label>
                     <Input
-                      id="pseudo"
-                      name="pseudo"
-                      type="pseudo"
+                      id="username"
+                      name="username"
+                      type="username"
                       required
-                      value={formData.pseudo}
+                      value={formData.username}
                       onChange={handleInputChange}
                     />
                   </div>

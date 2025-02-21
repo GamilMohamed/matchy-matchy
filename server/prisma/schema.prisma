@@ -15,11 +15,12 @@ datasource db {
 
 
 model User {
-  id    Int     @id @default(autoincrement())
+  username  String @id @unique
   email String  @unique
   firstname  String
   lastname  String
   password  String
   profileComplete Boolean @default(false)
+  orientation String @default("bisexual")
 }
 

@@ -5,6 +5,7 @@ export interface User {
   name: string;
   role: "user" | "admin";
   createdAt: string;
+  profileComplete: boolean;
 }
 
 export interface AuthResponse {

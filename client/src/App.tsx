@@ -5,10 +5,12 @@ import Home from './components/home';
 import About from './components/about-us';
 import Settings from './components/settings';
 import Profil from './components/profil';
-import { useEffect } from 'react';
-import Cookies from 'js-cookie';
+import UserPage from './components/UserPage';
+import PreferencesForms from './components/PrefForms';
+// import { useEffect } from 'react';
+// import Cookies from 'js-cookie';
 import { useAuth } from './context/auth-context';
-import { ApiService } from './services/apiService';
+// import { ApiService } from './services/apiService';
 
 function App() {
   const { user, api } = useAuth();
@@ -21,6 +23,22 @@ function App() {
           <Route path="*" element={
             <main className="flex flex-col items-center justify-center h-screen">
               <LoginForm />
+            </main>
+          } />
+        </Routes>
+        <Toaster />
+      </Router>
+    )
+  }
+
+  if (isAuth && user && !user.profileComplete)
+  {
+    return (
+      <Router>
+        <Routes>
+          <Route path="*" element={
+            <main className="flex flex-col items-center justify-center h-screen">
+              <PreferencesForms />
             </main>
           } />
         </Routes>
@@ -50,6 +68,11 @@ function App() {
         <Route path="/profil" element={
           <main className="flex flex-col items-center justify-center h-screen">
             <Profil />
+          </main>
+        } />
+        <Route path="/user/:username" element={
+          <main className="flex flex-col items-center justify-center h-screen">
+            <UserPage />
           </main>
         } />
       </Routes>

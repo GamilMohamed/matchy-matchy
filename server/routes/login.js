@@ -28,13 +28,13 @@ router.post('/signinx', async function (req, res, next) {
 router.post('/signup', async function (req, res, next) {
 	try {
 		console.log(req.body);
-		const requiredFields = ['email', 'password', 'firstname', 'lastname'];
+		const requiredFields = ['email', 'password', 'firstname', 'lastname', 'username'];
 		requiredFields.forEach(field => {
 			if (!(field in req.body)) {
 				throw new Error(`Missing ${field} in request body`);
 			}
 		});
-		const { email, password, firstname, lastname } = req.body;
+		const { email, password, firstname, lastname, username } = req.body;
 
 		if (await alreadyInDatabase(email)) {
 			throw new Error('Email already in use');
@@ -50,7 +50,8 @@ router.post('/signup', async function (req, res, next) {
 				email,
 				password: hashedPassword,
 				firstname,
-				lastname
+				lastname,
+				username
 			}
 		});
 		return res.status(200).send('ok');

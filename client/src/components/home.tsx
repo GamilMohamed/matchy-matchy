@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Footer from './Footer';
 import Nav from './Nav';
 import { Heart, X, Star, MapPin, Filter } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface UserProfile {
   id: number;
@@ -25,6 +26,13 @@ interface UserProfile {
 
 const Home: React.FC = () => {
   // Données initiales de l'utilisateur actuel
+  const navigate = useNavigate(); // Hook pour la navigation
+
+  // Fonction pour gérer le clic sur le profil et rediriger vers la page utilisateur
+  const handleProfileClick = (username: string) => {
+    navigate(`/user/${username}`);
+  };
+
   const initialUserProfile: UserProfile = {
     id: 0,
     name: 'You',
@@ -46,7 +54,7 @@ const Home: React.FC = () => {
 
   // Un seul état pour toutes les données utilisateur et préférences
   const [userProfile, setUserProfile] = useState<UserProfile>(initialUserProfile);
-  
+
   // Sample profiles database
   const allProfiles: UserProfile[] = [
     {
@@ -267,7 +275,7 @@ const Home: React.FC = () => {
       };
     });
   };
-  
+
   // Appliquer tous les filtres
   const handleSubmitFilters = () => {
     // Mettre à jour l'API ou effectuer d'autres actions au besoin
@@ -511,12 +519,11 @@ const Home: React.FC = () => {
               direction === 'up' ? 'translate-y-full opacity-0' : 'translate-x-0 opacity-100'}`}
         >
           {/* Profile image */}
-          <div className="relative h-80 w-full">
+          <div onClick={() => handleProfileClick(currentProfile.name)} className="relative h-80 w-full">
             <img 
               src={currentProfile.imageUrl} 
               alt={`Photo de ${currentProfile.name}`} 
-              className="h-full w-full object-cover object-center"
-            />
+              className="h-full w-full object-cover object-center" />
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
               <h2 className="text-2xl font-bold">{currentProfile.name}, {currentProfile.age}</h2>
               <p className="flex items-center gap-1">
