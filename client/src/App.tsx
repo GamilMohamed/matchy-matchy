@@ -7,6 +7,7 @@ import Settings from './components/settings';
 import Profil from './components/profil';
 import UserPage from './components/UserPage';
 import PreferencesForms from './components/PrefForms';
+import Error from './components/Error';
 // import { useEffect } from 'react';
 // import Cookies from 'js-cookie';
 import { useAuth } from './context/auth-context';
@@ -50,7 +51,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="*" element={
+        <Route path="/home" element={
           <main className="flex flex-col items-center justify-center h-screen">
             <Home />
           </main>
@@ -73,6 +74,11 @@ function App() {
         <Route path="/user/:username" element={
           <main className="flex flex-col items-center justify-center h-screen">
             <UserPage />
+          </main>
+        } />
+        <Route path="/*" element={
+          <main className="flex flex-col items-center justify-center h-screen">
+            <Error />
           </main>
         } />
       </Routes>
