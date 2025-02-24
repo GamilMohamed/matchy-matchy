@@ -3,8 +3,11 @@ import Footer from './Footer';
 import Nav from './Nav';
 import { Heart, X, Star, MapPin, Filter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import MenuFilter from './MenuFilter'; // Import du composant MenuFilter
 
-interface UserProfile {
+// Déplacer l'interface UserProfile dans un fichier types.ts serait idéal
+// mais pour l'exemple, je la garde ici
+export interface UserProfile {
   id: number;
   name: string;
   age: number;
@@ -129,6 +132,9 @@ const Home: React.FC = () => {
   const [matchedProfiles, setMatchedProfiles] = useState<UserProfile[]>([]);
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
 
+  // Extraction de tous les intérêts uniques pour le menu de filtre
+  const allUniqueInterests = Array.from(new Set(allProfiles.flatMap(p => p.interests)));
+
   // Calculate distance between two points using Haversine formula
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 6371; // Earth radius in km
@@ -228,7 +234,7 @@ const Home: React.FC = () => {
     }, 300);
   };
   
-  // Fonction pour gérer les changements de distance
+  // Fonctions pour les filtres - ces fonctions seront passées au composant MenuFilter
   const handleDistanceChange = (distance: number) => {
     setUserProfile(prev => ({
       ...prev,
@@ -236,7 +242,6 @@ const Home: React.FC = () => {
     }));
   };
   
-  // Fonction pour gérer les changements d'âge min
   const handleMinAgeChange = (minAge: number) => {
     setUserProfile(prev => ({
       ...prev,
@@ -247,7 +252,6 @@ const Home: React.FC = () => {
     }));
   };
   
-  // Fonction pour gérer les changements d'âge max
   const handleMaxAgeChange = (maxAge: number) => {
     setUserProfile(prev => ({
       ...prev,
@@ -258,7 +262,6 @@ const Home: React.FC = () => {
     }));
   };
   
-  // Fonction pour gérer les centres d'intérêt
   const handleInterestToggle = (interest: string) => {
     setUserProfile(prev => {
       const currentInterests = prev.activeFilters?.interests || [];
@@ -276,18 +279,18 @@ const Home: React.FC = () => {
     });
   };
 
-  // Appliquer tous les filtres
+// Appliquer tous les filtres
   const handleSubmitFilters = () => {
     // Mettre à jour l'API ou effectuer d'autres actions au besoin
     /*
-    	JSON {
-			  distance: userProfile.gender,
-        age: ageRange: {
-          min: userProfile.ageRange?.min,
-          max: userProfile.ageRange?.max,
-        },
-        interests: userProfile.interests
-    	}
+        JSON {
+          distance: userProfile.gender,
+          age: ageRange: {
+            min: userProfile.ageRange?.min,
+            max: userProfile.ageRange?.max,
+          },
+          interests: userProfile.interests
+        }
     const json = JSON.stringify(userProfile);
     */
     console.log('Sending updated user profile to backend:', JSON.stringify(userProfile));
@@ -312,90 +315,20 @@ const Home: React.FC = () => {
             Modifier les filtres
           </button>
         </div>
-        {/* Render filter menu here so it's available when no matches are found */}
-        {isFilterMenuOpen && (
-          <div className="absolute top-1/4 right-1/2 transform translate-x-1/2 bg-white p-4 rounded-xl shadow-lg z-20 w-80">
-            <h3 className="font-bold text-purple-800 mb-3">Filtres</h3>
-            
-            <form onSubmit={(e) => { e.preventDefault(); handleSubmitFilters(); }}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Distance maximale: {userProfile.maxDistance} km
-                </label>
-                <input 
-                  type="range" 
-                  min="1" 
-                  max="200"
-                  value={userProfile.maxDistance}
-                  onChange={(e) => handleDistanceChange(parseInt(e.target.value))}
-                  className="w-full"
-                />
-              </div>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Âge: {userProfile.ageRange?.min} - {userProfile.ageRange?.max} ans
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    min="18"
-                    max={userProfile.ageRange?.max}
-                    value={userProfile.ageRange?.min}
-                    onChange={(e) => handleMinAgeChange(parseInt(e.target.value))}
-                    className="w-1/2 p-1 border rounded"
-                  />
-                  <input
-                    type="number"
-                    min={userProfile.ageRange?.min}
-                    max="100"
-                    value={userProfile.ageRange?.max}
-                    onChange={(e) => handleMaxAgeChange(parseInt(e.target.value))}
-                    className="w-1/2 p-1 border rounded"
-                  />
-                </div>
-              </div>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Centres d'intérêt
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {Array.from(new Set(allProfiles.flatMap(p => p.interests))).map((interest, idx) => (
-                    <button
-                      type="button"
-                      key={idx}
-                      onClick={() => handleInterestToggle(interest)}
-                      className={`text-sm px-2 py-1 rounded-full ${
-                        userProfile.activeFilters?.interests.includes(interest)
-                          ? 'bg-purple-600 text-white'
-                          : 'bg-gray-200 text-gray-700'
-                      }`}
-                    >
-                      {interest}
-                    </button>
-                  ))}
-                </div>
-              </div>
 
-              <div className="flex justify-end gap-2 mt-4">
-                <button 
-                  type="button"
-                  onClick={() => setIsFilterMenuOpen(false)}
-                  className="px-3 py-1 text-gray-600 hover:text-gray-800"
-                >
-                  Annuler
-                </button>
-                <button 
-                  type="submit"
-                  className="px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700"
-                >
-                  Appliquer
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
+        {/* Utilisation du composant MenuFilter */}
+        <MenuFilter 
+          userProfile={userProfile}
+          allInterests={allUniqueInterests}
+          isOpen={isFilterMenuOpen}
+          onClose={() => setIsFilterMenuOpen(false)}
+          onDistanceChange={handleDistanceChange}
+          onMinAgeChange={handleMinAgeChange}
+          onMaxAgeChange={handleMaxAgeChange}
+          onInterestToggle={handleInterestToggle}
+          onSubmit={handleSubmitFilters}
+        />
+        
         <Footer />
       </div>
     );
@@ -415,90 +348,18 @@ const Home: React.FC = () => {
         </button>
       </div>
 
-      {/* Filter menu */}
-      {isFilterMenuOpen && (
-        <div className="absolute top-28 right-4 bg-white p-4 rounded-xl shadow-lg z-20 w-80">
-          <h3 className="font-bold text-purple-800 mb-3">Filtres</h3>
-          
-          <form onSubmit={(e) => { e.preventDefault(); handleSubmitFilters(); }}>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Distance maximale: {userProfile.maxDistance} km
-              </label>
-              <input 
-                type="range" 
-                min="1" 
-                max="200"
-                value={userProfile.maxDistance}
-                onChange={(e) => handleDistanceChange(parseInt(e.target.value))}
-                className="w-full"
-              />
-            </div>
-            
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Âge: {userProfile.ageRange?.min} - {userProfile.ageRange?.max} ans
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  min="18"
-                  max={userProfile.ageRange?.max}
-                  value={userProfile.ageRange?.min}
-                  onChange={(e) => handleMinAgeChange(parseInt(e.target.value))}
-                  className="w-1/2 p-1 border rounded"
-                />
-                <input
-                  type="number"
-                  min={userProfile.ageRange?.min}
-                  max="100"
-                  value={userProfile.ageRange?.max}
-                  onChange={(e) => handleMaxAgeChange(parseInt(e.target.value))}
-                  className="w-1/2 p-1 border rounded"
-                />
-              </div>
-            </div>
-            
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Centres d'intérêt
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {Array.from(new Set(allProfiles.flatMap(p => p.interests))).map((interest, idx) => (
-                  <button
-                    type="button"
-                    key={idx}
-                    onClick={() => handleInterestToggle(interest)}
-                    className={`text-sm px-2 py-1 rounded-full ${
-                      userProfile.activeFilters?.interests.includes(interest)
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-gray-200 text-gray-700'
-                    }`}
-                  >
-                    {interest}
-                  </button>
-                ))}
-              </div>
-            </div>
-            
-            <div className="flex justify-end gap-2 mt-4">
-              <button 
-                type="button"
-                onClick={() => setIsFilterMenuOpen(false)}
-                className="px-3 py-1 text-gray-600 hover:text-gray-800"
-              >
-                Annuler
-              </button>
-              <button 
-                type="submit"
-                className="px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700"
-              >
-                Appliquer
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+      {/* Utilisation du composant MenuFilter */}
+      <MenuFilter 
+        userProfile={userProfile}
+        allInterests={allUniqueInterests}
+        isOpen={isFilterMenuOpen}
+        onClose={() => setIsFilterMenuOpen(false)}
+        onDistanceChange={handleDistanceChange}
+        onMinAgeChange={handleMinAgeChange}
+        onMaxAgeChange={handleMaxAgeChange}
+        onInterestToggle={handleInterestToggle}
+        onSubmit={handleSubmitFilters}
+      />
 
       {/* Slogan */}
       <div className="text-center">
