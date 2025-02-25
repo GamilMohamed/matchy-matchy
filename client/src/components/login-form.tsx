@@ -201,6 +201,7 @@ const LoginForm = () => {
                       value={formData.birthdate}
                       onChange={handleInputChange}
                       max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+                      className="[&::-webkit-calendar-picker-indicator]:bg-white [&::-webkit-calendar-picker-indicator]:p-1 [&::-webkit-calendar-picker-indicator]:rounded"
                     />
                     {birthdateError && (
                       <p className="text-sm text-red-500">{birthdateError}</p>
