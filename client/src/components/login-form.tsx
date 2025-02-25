@@ -11,12 +11,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { Toaster } from '@/components/ui/toaster';
-import Cookies from 'js-cookie';
+// import Cookies from 'js-cookie';
 import { useAuth } from '@/context/auth-context';
-// import { useAuth } from '@/context/auth-context';
 
 const LoginForm = () => {
-  // const { isAuth, setIsAuth } = useAuth();
   const { login, signup } = useAuth();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSignupOpen, setIsSignupOpen] = useState(false);
@@ -26,23 +24,73 @@ const LoginForm = () => {
     firstname: '',
     lastname: '',
     password: '',
+    birthdate: '',
   });
+  const [birthdateError, setBirthdateError] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+
+    // Vérifier l'âge lorsque la date de naissance change
+    if (e.target.name === 'birthdate') {
+      validateAge(e.target.value);
+    }
+  };
+
+  const validateAge = (birthdate: string) => {
+    if (!birthdate) {
+      setBirthdateError('La date de naissance est requise');
+      return false;
+    }
+
+    const today = new Date();
+    const birthdateDate = new Date(birthdate);
+    const age = today.getFullYear() - birthdateDate.getFullYear();
+    const monthDiff = today.getMonth() - birthdateDate.getMonth();
+    
+    // Si le mois actuel est avant le mois de naissance ou si c'est le même mois mais que le jour actuel est avant le jour de naissance
+    const isBeforeBirthday = monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthdateDate.getDate());
+    
+    const actualAge = isBeforeBirthday ? age - 1 : age;
+    
+    if (actualAge < 18) {
+      setBirthdateError('Vous devez avoir au moins 18 ans pour vous inscrire');
+      return false;
+    } else {
+      setBirthdateError('');
+      return true;
+    }
   };
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const response = await login(formData.email, formData.password);
+    await login(formData.email, formData.password);
   };
 
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await signup(formData.email, formData.password, formData.firstname, formData.lastname, formData.username);
+    
+    // Valider l'âge avant de soumettre
+    if (!validateAge(formData.birthdate)) {
+      toast({
+        title: "Erreur",
+        description: "Vous devez avoir au moins 18 ans pour vous inscrire.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    await signup(
+      formData.email, 
+      formData.password, 
+      formData.firstname, 
+      formData.lastname, 
+      formData.username,
+      formData.birthdate // Ajouter la date de naissance
+    );
   };
 
   return (
@@ -111,11 +159,11 @@ const LoginForm = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="username">username</Label>
+                    <Label htmlFor="username">Username</Label>
                     <Input
                       id="username"
                       name="username"
-                      type="username"
+                      type="text"
                       required
                       value={formData.username}
                       onChange={handleInputChange}
@@ -126,7 +174,7 @@ const LoginForm = () => {
                     <Input
                       id="firstname"
                       name="firstname"
-                      type="firstname"
+                      type="text"
                       required
                       value={formData.firstname}
                       onChange={handleInputChange}
@@ -137,11 +185,26 @@ const LoginForm = () => {
                     <Input
                       id="lastname"
                       name="lastname"
-                      type="lastname"
+                      type="text"
                       required
                       value={formData.lastname}
                       onChange={handleInputChange}
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="birthdate">Date de naissance</Label>
+                    <Input
+                      id="birthdate"
+                      name="birthdate"
+                      type="date"
+                      required
+                      value={formData.birthdate}
+                      onChange={handleInputChange}
+                      max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+                    />
+                    {birthdateError && (
+                      <p className="text-sm text-red-500">{birthdateError}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Mot de passe</Label>
@@ -154,7 +217,7 @@ const LoginForm = () => {
                       onChange={handleInputChange}
                     />
                   </div>
-                  <Button type="submit" className="w-full">
+                  <Button type="submit" className="w-full" disabled={!!birthdateError}>
                     S'inscrire
                   </Button>
                 </form>

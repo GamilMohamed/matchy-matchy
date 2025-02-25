@@ -1,4 +1,4 @@
-import { useState, FormEvent, useEffect } from 'react';
+import { useState, FormEvent } from 'react';
 import { X } from 'lucide-react';
 
 interface ProfileData {
@@ -8,8 +8,6 @@ interface ProfileData {
   interests: string[];
   pictures: File[];
   profilePicture: File | null;
-  birthDate: string;
-  age: number | null;
 }
 
 function PreferencesForms() {
@@ -20,41 +18,9 @@ function PreferencesForms() {
     interests: [],
     pictures: [],
     profilePicture: null,
-    birthDate: '',
-    age: null,
   });
 
   const [newTag, setNewTag] = useState('');
-
-  // Fonction pour calculer l'âge en fonction de la date de naissance
-  const calculateAge = (birthDate: string): number => {
-    if (!birthDate) return 0;
-    
-    const today = new Date();
-    const birth = new Date(birthDate);
-    
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDifference = today.getMonth() - birth.getMonth();
-    
-    // Si le mois de naissance n'est pas encore arrivé cette année ou 
-    // si c'est le même mois mais que le jour n'est pas encore arrivé, on réduit l'âge de 1
-    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-    
-    return age;
-  };
-
-  // Mettre à jour l'âge quand la date de naissance change
-  useEffect(() => {
-    if (profileData.birthDate) {
-      const calculatedAge = calculateAge(profileData.birthDate);
-      setProfileData(prevData => ({
-        ...prevData,
-        age: calculatedAge
-      }));
-    }
-  }, [profileData.birthDate]);
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && newTag.trim() !== '') {
@@ -120,8 +86,6 @@ function PreferencesForms() {
         interests: profileData.interests,
         profilePicture: profileData.profilePicture/
         additionalPicture: profileData.additionalPicture/
-        birthDate: profileData.birthDate,
-        age: profileData.age
     	}
     	const json = JSON.stringify(profileData);
     	*/
@@ -138,23 +102,6 @@ function PreferencesForms() {
             <h2 className="text-3xl font-bold mb-4 text-gray-800">Edit Profile</h2>
             
             <form onSubmit={handleSubmit}>
-              {/* Date de naissance */}
-              <div className="mb-4">
-                <label htmlFor="birthDate" className="block mb-3 text-lg font-semibold text-gray-800">Date de naissance</label>
-                <input
-                  id="birthDate"
-                  name="birthDate"
-                  type="date"
-                  value={profileData.birthDate}
-                  onChange={(e) => setProfileData({ ...profileData, birthDate: e.target.value })}
-                  className="w-full px-4 py-3 text-gray-800 text-lg border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 bg-white"
-                  max={new Date().toISOString().split('T')[0]} // Empêche de sélectionner une date future
-                />
-                {profileData.age !== null && (
-                  <p className="mt-2 text-gray-600">Âge: {profileData.age} ans</p>
-                )}
-              </div>
-
               {/* Gender Selection */}
               <div className="mb-2">
                 <label className="block mb-2 text-lg font-semibold text-gray-800">Gender</label>
