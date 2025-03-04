@@ -19,13 +19,7 @@ async function alreadyInDatabase(email) {
 	return user;
 }
 
-router.post('/signinx', async function (req, res, next) {
-	return res.status(200).json({token: 'token', user: {email: 'email', id: 'id'}});
-}
-);
-
-
-router.post('/signup', async function (req, res, next) {
+router.post('/signup', async function (req, res) {
 	try {
 		console.log(req.body);
 		const requiredFields = ['email', 'password', 'firstname', 'lastname', 'username'];
@@ -62,7 +56,7 @@ router.post('/signup', async function (req, res, next) {
 	}
 });
 
-router.post('/signin', async function (req, res, next) {
+router.post('/signin', async function (req, res) {
 	console.log("hello world");
 
 	try {
@@ -99,8 +93,36 @@ router.post('/signin', async function (req, res, next) {
 		const token = jwt.sign(payload, process.env.JWT_SECRET, {
 			expiresIn: jwtExpire
 		});
-		console.log(token);
+		console.log("token in signin", token);
 		return res.status(200).json({token, user});
+	}
+	catch (e) {
+		console.log(e);
+		return res.status(500).send('Internal server error' + e);
+	}
+});
+
+router.post('/refresh', async function (req, res, next) {
+	try {
+		console.log(req.body);
+		const requiredFields = ['token'];
+		const token = req.headers.authorization.split(' ')[1];
+		const payload = jwt.verify(token, process.env.JWT_SECRET);
+		console.log("payload in refresh", payload);
+		console.log("payload time in refresh", new Date(payload.date).getTime());
+		console.log("current time in refresh", new Date(payload.iat).getTime());
+		console.log("current time in refresh", new Date(payload.exp).getTime());
+		const newToken = jwt.sign(payload, process.env.JWT_SECRET, {
+			expiresIn: 3 * 23 * 60 * 60 * 1000
+		});
+		const user = await prisma.user.findUnique({
+			where: {
+				email: payload.email
+			}
+		});
+		console.log("token in refresh", newToken);
+		console.log("user in refresh", user);
+		return res.status(200).json({ token: newToken });
 	}
 	catch (e) {
 		console.log(e);

@@ -1,126 +1,157 @@
 // contexts/AuthContext.tsx
-import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import { ApiService } from '../services/apiService';
-import { User, AuthContextType } from '../types/auth';
+import React, { createContext, useState, useContext, useEffect, ReactNode } from "react";
+import { ApiService } from "../services/apiService";
+import { User, AuthContextType } from "../types/auth";
+import { useToast } from "@/hooks/use-toast";
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 interface AuthProviderProps {
-	children: ReactNode;
+  children: ReactNode;
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-	const [user, setUser] = useState<User | null>(null);
-	const [token, setToken] = useState<string | null>(null);
-	const [loading, setLoading] = useState(true);
-	const [api, setApi] = useState<ApiService | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [api, setApi] = useState<ApiService | null>(null);
+  const { toast } = useToast();
 
-	useEffect(() => {
-		const apiService = new ApiService({ token, logout });
-		setApi(apiService);
-		
-		const storedToken = localStorage.getItem('token');
-		const storedUser = localStorage.getItem('user');
+  useEffect(() => {
+    const apiService = new ApiService({ token, logout });
+    setApi(apiService);
 
-		if (storedToken && storedUser) {
-			setToken(storedToken);
-			try {
-				setUser(JSON.parse(storedUser));
-			} catch (error) {
-				console.error('Failed to parse stored user:', error);
-				localStorage.removeItem('user');
-				localStorage.removeItem('token');
-			}
-		}
-		setLoading(false);
-	}, [token]);
+    const storedToken = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
 
-	const signup = async (email: string, password: string, firstname: string, lastname: string, username: string): Promise<boolean> => {
-		try {
-			const data = await api?.register({ email, password, firstname, lastname, username });
+    if (storedToken && storedUser) {
+      setToken(storedToken);
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error("Failed to parse stored user:", error);
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+      }
+    }
+    setLoading(false);
+  }, [token]);
 
-			if (data) {
-				localStorage.setItem('token', data.token);
-				localStorage.setItem('user', JSON.stringify(data.user));
+  const signup = async (email: string, password: string, firstname: string, lastname: string, username: string): Promise<boolean> => {
+    try {
+      const data = await api?.register({ email, password, firstname, lastname, username });
 
-				setToken(data.token);
-				setUser(data.user);
+      if (data) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
 
-				return true;
-			}
-			return false;
-		} catch (error) {
-			console.error('Signup error:', error);
-			return false;
-		}
-	}
+        setToken(data.token);
+        setUser(data.user);
 
-	const login = async (email: string, password: string): Promise<boolean> => {
-		try {
-			const data = await api?.login({ email, password });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Signup error:", error);
+      return false;
+    }
+  };
 
-			if (data) {
-				localStorage.setItem('token', data.token);
-				localStorage.setItem('user', JSON.stringify(data.user));
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const data = await api?.login({ email, password });
 
-				setToken(data.token);
-				setUser(data.user);
+      if (data) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
 
-				return true;
-			}
-			return false;
-		} catch (error) {
-			console.error('Login error:', error);
-			return false;
-		}
-	};
+        setToken(data.token);
+        setUser(data.user);
 
-	const logout = () => {
-		localStorage.removeItem('token');
-		localStorage.removeItem('user');
-		setToken(null);
-		setUser(null);
-	};
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Login error:", error);
+      return false;
+    }
+  };
 
-	const refreshToken = async (): Promise<boolean> => {
-		try {
-			const data = await api?.refreshToken();
-			if (data) {
-				localStorage.setItem('token', data.token);
-				setToken(data.token);
-				return true;
-			}
-			return false;
-		} catch (error) {
-			console.error('Token refresh error:', error);
-			logout();
-			return false;
-		}
-	};
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setToken(null);
+    setUser(null);
+  };
 
-	const value: AuthContextType = {
-		user,
-		token,
-		loading,
-		api,
-		login,
-		signup,
-		logout,
-		refreshToken,
-		isAuthenticated: !!token,
-	};
+  const refreshToken = async (): Promise<boolean> => {
+    try {
+      console.log('refreshToken');
+      const data = await api?.refreshToken();
+      if (data) {
+        console.log('data', data);
+        localStorage.setItem("token", data.token);
+        setToken(data.token);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Token refresh error:", error);
+      logout();
+      return false;
+    }
+  };
 
-	return (
-		<AuthContext.Provider value={value}>
-			{!loading && children}
-		</AuthContext.Provider>
-	);
+  const updateProfile = async (profileData: Partial<User>) => {
+    /*
+				JSON {
+					  gender: profileData.gender
+					sexualPreference: profileData.sexualPreferences,
+					biography: profileData.biography,
+				interests: profileData.interests,
+				profilePicture: profileData.profilePicture/
+				additionalPicture: profileData.additionalPicture/
+				}
+				const json = JSON.stringify(profileData);
+				*/
+    try {
+      await refreshToken();
+      const response = await api?.updateUserProfile(profileData);
+	  console.log('response updateProfile', response);
+      if (response) {
+        setUser(response);
+      } else {
+        console.error("Failed to update profile: response is undefined");
+      }
+    } catch (error) {
+      toast({
+        title: "Update failed",
+        description: error instanceof Error ? error.message : "There was an error updating your profile. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const value: AuthContextType = {
+    user,
+    token,
+    loading,
+    api,
+    login,
+    signup,
+    logout,
+    refreshToken,
+    isAuthenticated: !!token,
+    updateProfile,
+  };
+
+  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
 };
 
 export const useAuth = (): AuthContextType => {
-	const context = useContext(AuthContext);
-	if (!context) {
-		throw new Error('useAuth must be used within an AuthProvider');
-	}
-	return context;
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 };

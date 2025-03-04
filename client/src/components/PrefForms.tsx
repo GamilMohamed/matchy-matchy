@@ -1,5 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { X } from 'lucide-react';
+import { useAuth } from '@/context/auth-context';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProfileData {
   gender: string;
@@ -11,15 +13,17 @@ interface ProfileData {
 }
 
 function PreferencesForms() {
+  const { user } = useAuth(); 
   const [profileData, setProfileData] = useState<ProfileData>({
-    gender: '',
-    sexualPreferences: '',
-    biography: '',
-    interests: [],
+    gender: user?.gender || '',
+    sexualPreferences: user?.sexualPreferences || '',
+    biography: user?.biography || '',
+    interests: user?.interests || [],
     pictures: [],
     profilePicture: null,
   });
-
+  const { api, updateProfile } = useAuth();
+  const { toast } = useToast();
   const [newTag, setNewTag] = useState('');
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -77,7 +81,8 @@ function PreferencesForms() {
     });
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    
     /*
     	JSON {
 			  gender: profileData.gender
@@ -90,7 +95,19 @@ function PreferencesForms() {
     	const json = JSON.stringify(profileData);
     	*/
     e.preventDefault();
-    console.log('Updated user info:', profileData);
+    await updateProfile(profileData);
+    // try {
+      //   const response = await api?.updateUserProfile(profileData);
+      //   console.log('response', response);
+      // } catch (error) {
+      //   toast({
+      //     title: "Update failed",
+      //     description: error instanceof Error ? error.message : "There was an error updating your profile. Please try again.",
+      //     variant: "destructive",
+      //   });
+        
+      // }
+
     // Here you can add an API request to update user information
   };
 

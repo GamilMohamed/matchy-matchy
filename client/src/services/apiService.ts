@@ -39,6 +39,7 @@ export class ApiService {
       },
     });
 
+    console.log('response', response);
     if (response.status === 401) {
       this.authContext.logout();
       throw new Error("Session expired. Please login again.");

@@ -32,21 +32,21 @@ function App() {
     )
   }
 
-  // if (isAuth && user && !user.profileComplete)
-  // {
-  //   return (
-  //     <Router>
-  //       <Routes>
-  //         <Route path="*" element={
-  //           <main className="flex flex-col items-center justify-center h-screen">
-  //             <PreferencesForms />
-  //           </main>
-  //         } />
-  //       </Routes>
-  //       <Toaster />
-  //     </Router>
-  //   )
-  // }
+  if (isAuth && user && !user.profileComplete)
+  {
+    return (
+      <Router>
+        <Routes>
+          <Route path="*" element={
+            <main className="flex flex-col items-center justify-center h-screen">
+              <PreferencesForms />
+            </main>
+          } />
+        </Routes>
+        <Toaster />
+      </Router>
+    )
+  }
 
   return (
     <Router>

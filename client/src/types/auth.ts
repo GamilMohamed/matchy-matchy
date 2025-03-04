@@ -6,6 +6,13 @@ export interface User {
   role: "user" | "admin";
   createdAt: string;
   profileComplete: boolean;
+
+  gender?: string;
+  sexualPreferences?: string;
+  biography: string;
+  interests: string[];
+  pictures: File[];
+  profilePicture: File | null;
 }
 
 export interface AuthResponse {
@@ -33,6 +40,7 @@ export interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   refreshToken: () => Promise<boolean>;
+  updateProfile: (data: Partial<User>) => Promise<boolean>;
   isAuthenticated: boolean;
 }
 
