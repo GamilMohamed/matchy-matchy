@@ -1,20 +1,11 @@
 import { useState, FormEvent } from 'react';
 import { X } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
-import { useToast } from '@/hooks/use-toast';
-
-interface ProfileData {
-  gender: string;
-  sexualPreferences: string;
-  biography: string;
-  interests: string[];
-  pictures: File[];
-  profilePicture: File | null;
-}
+import { UpdateProfileData } from '@/types/auth';
 
 function PreferencesForms() {
   const { user } = useAuth(); 
-  const [profileData, setProfileData] = useState<ProfileData>({
+  const [profileData, setProfileData] = useState<UpdateProfileData>({
     gender: user?.gender || '',
     sexualPreferences: user?.sexualPreferences || '',
     biography: user?.biography || '',
@@ -22,8 +13,7 @@ function PreferencesForms() {
     pictures: [],
     profilePicture: null,
   });
-  const { api, updateProfile } = useAuth();
-  const { toast } = useToast();
+  const { updateProfile } = useAuth();
   const [newTag, setNewTag] = useState('');
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -63,7 +53,7 @@ function PreferencesForms() {
         profilePicture: files[0],
       });
     } else {
-      if (profileData.pictures.length + files.length <= 4) {
+      if (profileData.pictures && profileData.pictures.length + files.length <= 4) {
         setProfileData({
           ...profileData,
           pictures: [...profileData.pictures, ...Array.from(files)],
@@ -77,38 +67,13 @@ function PreferencesForms() {
   const handleRemoveImage = (index: number) => {
     setProfileData({
       ...profileData,
-      pictures: profileData.pictures.filter((_, i) => i !== index),
+      pictures: profileData.pictures && profileData.pictures.filter((_, i) => i !== index),
     });
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    
-    /*
-    	JSON {
-			  gender: profileData.gender
-    		sexualPreference: profileData.sexualPreferences,
-    		biography: profileData.biography,
-        interests: profileData.interests,
-        profilePicture: profileData.profilePicture/
-        additionalPicture: profileData.additionalPicture/
-    	}
-    	const json = JSON.stringify(profileData);
-    	*/
     e.preventDefault();
     await updateProfile(profileData);
-    // try {
-      //   const response = await api?.updateUserProfile(profileData);
-      //   console.log('response', response);
-      // } catch (error) {
-      //   toast({
-      //     title: "Update failed",
-      //     description: error instanceof Error ? error.message : "There was an error updating your profile. Please try again.",
-      //     variant: "destructive",
-      //   });
-        
-      // }
-
-    // Here you can add an API request to update user information
   };
 
   return (
@@ -235,11 +200,11 @@ function PreferencesForms() {
                   accept="image/*"
                   multiple
                   onChange={(e) => handleImageUpload(e, false)}
-                  disabled={profileData.pictures.length >= 4}
+                  disabled={profileData.pictures && profileData.pictures.length >= 4}
                   className="w-full px-4 py-3 text-gray-800 text-lg border-2 border-gray-300 rounded-lg bg-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-lg file:bg-blue-500 file:text-white hover:file:bg-blue-600"
                 />
                 <div className="flex flex-wrap gap-2 mt-3 h-1/3">
-                  {profileData.pictures.map((pic, index) => (
+                  {profileData.pictures && profileData.pictures.map((pic, index) => (
                     <div key={index} className="flex items-center gap-2 bg-white border-2 border-gray-300 px-4 py-2 rounded-lg text-lg">
                       <p className="text-gray-800">{pic.name}</p>
                       <button

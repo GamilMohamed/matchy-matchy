@@ -16,6 +16,12 @@ router.get('/', function(req, res) {
   res.send('respond with a resource');
 });
 
+router.get('/me', async function(req, res) {
+  const user = await getUserFromToken(req.headers.authorization.split(' ')[1]);
+  console.log("/me", user);
+  res.status(200).json(user);
+});
+
 // use express validator
 
 router.put('/profile', 
@@ -24,7 +30,7 @@ router.put('/profile',
   body('biography').isString().trim().notEmpty(),
   body('interests').isArray().notEmpty(),
   body('profilePicture').optional(),
-  async function(req, res, next) {
+  async function(req, res) {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -45,11 +51,11 @@ router.put('/profile',
         profileComplete: true
       }
     });
-    res.status(200).json(user);
+    res.status(200).json(updatedUser);
   }
   catch (e) {
     console.log(e);
-    res.status(500).json(e.message);
+    return res.status(500).json({ message: e.message });
   }
   // res.send('respond with a resource' + token);
 });

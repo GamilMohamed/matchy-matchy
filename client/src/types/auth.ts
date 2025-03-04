@@ -29,22 +29,27 @@ export interface RegisterData extends LoginCredentials {
   firstname: string;
   username: string;
   lastname: string;
+  birthdate: string;
+  password: string;
+}
+
+export interface UpdateProfileData {
+  gender: string;
+  sexualPreferences: string;
+  biography: string;
+  interests: string[];
+  pictures?: File[];
+  profilePicture: File | null;
 }
 
 export interface AuthContextType {
   user: User | null;
   token: string | null;
-  loading: boolean;
-  api: ApiService | null;
-  signup: (email: string, password: string, firstname: string, lastname: string, username: string) => Promise<boolean>;
-  login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
-  refreshToken: () => Promise<boolean>;
-  updateProfile: (data: Partial<User>) => Promise<boolean>;
   isAuthenticated: boolean;
+  login: (token: string, user: User) => void;
+  logout: () => void;
 }
 
-export interface ApiError extends Error {
-  status?: number;
-  data?: any;
+export interface MyError {
+      message: string;
 }

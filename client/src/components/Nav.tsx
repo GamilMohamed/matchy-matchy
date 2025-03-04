@@ -14,12 +14,12 @@ const Nav = () => {
     	  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     	    <div className="flex justify-center h-16 items-center">
     	      <div className="flex items-center space-x-8">
-			  <Link to="/home" className="flex items-center">
+			  <Link to="/" className="flex items-center">
   				<Home className="h-6 w-6 text-blue-600" />
 					<span className="ml-2 text-xl font-bold text-white-900">Matchy matchy</span>
 			  </Link>
 			  <div className="flex space-x-6">
-			    <Link to="/home" className="px-3 py-2 text-white-600 hover:text-gray-900">
+			    <Link to="/" className="px-3 py-2 text-white-600 hover:text-gray-900">
 			      Accueil
 			    </Link>
 			    <Link to="/about-us" className="px-3 py-2 text-white-600 hover:text-gray-900">
@@ -37,7 +37,7 @@ const Nav = () => {
   					    <UserCircle className="h-5 w-5" />
   					  </Button>
   					</Link>
-  					<Link to="/logout">
+  					<Link to="/">
 					  <Button variant="ghost" size="icon" onClick={handleLogout}>
         				<LogOut className="h-5 w-5" />
       				  </Button>
