@@ -2,10 +2,10 @@
 export interface User {
   id: string;
   email: string;
-  name: string;
-  role: "user" | "admin";
+  firstname: string;
   createdAt: string;
   profileComplete: boolean;
+  username: string;
 
   gender?: string;
   sexualPreferences?: string;

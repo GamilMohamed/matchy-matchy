@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { Toaster } from "@/components/ui/toaster";
 // import Cookies from 'js-cookie';
 import { useAuth } from "@/context/auth-context";
 import { RegisterData } from "@/types/auth";
@@ -175,7 +174,6 @@ const LoginForm = () => {
           </div>
         </div>
       </div>
-      <Toaster />
     </div>
   );
 };

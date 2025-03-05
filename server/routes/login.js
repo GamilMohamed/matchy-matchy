@@ -21,7 +21,6 @@ async function alreadyInDatabase(email) {
 
 router.post("/signup", async function (req, res) {
   try {
-    console.log(req.body);
     const requiredFields = ["email", "password", "firstname", "lastname", "username"];
     requiredFields.forEach((field) => {
       if (!(field in req.body)) {

@@ -18,6 +18,7 @@ interface User {
   interests?: string[];
   pictures?: File[];
   profilePicture?: File | null;
+  profileComplete?: boolean;
 
   // [key: string]: unknown; // For any additional fields
 }
@@ -27,10 +28,11 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<unknown>;
+  register: (userData: RegisterData) => Promise<unknown>;
+  updateProfile: (userData: UpdateProfileData) => Promise<unknown>;
   logout: () => void;
-  register: (userData: RegisterData) => Promise<void>;
-  updateProfile: (userData: UpdateProfileData) => Promise<void>;
+  
 }
 
 // Create the context
@@ -41,6 +43,8 @@ const api = axios.create({
   baseURL: "http://localhost:3000",
   headers: {
     "Content-Type": "application/json",
+    "Accept": "application/json",
+    "Authorization": `Bearer ${localStorage.getItem("token")}`,
   },
 });
 
@@ -123,14 +127,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Login function
   const login = async (email: string, password: string) => {
-    const res = await handleRequest(async () => {
+    return await handleRequest(async () => {
       const response = await api.post("/auth/signin", { email, password });
       const newToken = response.data.token;
       localStorage.setItem("token", newToken);
       setToken(newToken);
       return response;
     });
-    return res;
   };
 
 
@@ -146,7 +149,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       () => api.put("/users/profile", userData),
       "Profile updated successfully"
     );
-    window.location.reload();
+    // window.location.reload();
   };
 
   // Logout function
@@ -161,8 +164,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     user,
     token,
     loading,
-    login,
     logout,
+    login,
     register,
     updateProfile,
   };

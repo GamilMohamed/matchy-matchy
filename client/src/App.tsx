@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Route, Routes } from "react-router";
 import { LoginForm } from "@/components/login-form";
-import { Toaster } from "./components/ui/toaster";
 import Home from "./components/home";
+import Test from "./components/test";
 import About from "./components/about-us";
 import Settings from "./components/settings";
 import Profil from "./components/profil";
@@ -27,7 +27,6 @@ function App() {
             }
           />
         </Routes>
-        <Toaster />
       </Router>
     );
   }
@@ -45,10 +44,10 @@ function App() {
             }
           />
         </Routes>
-        <Toaster />
       </Router>
     );
   }
+ 
 
   return (
     <Router>
@@ -59,6 +58,12 @@ function App() {
             <main className="flex flex-col items-center justify-center h-screen">
               <Home />
             </main>
+          }
+        />
+        <Route
+          path="/test"
+          element={
+              <Test />
           }
         />
         <Route
@@ -102,7 +107,6 @@ function App() {
           }
         />
       </Routes>
-      <Toaster /> {/* Le Toaster est en dehors des Routes pour être disponible partout */}
     </Router>
   );
 }

@@ -73,13 +73,3 @@
     @apply bg-background text-foreground;
   }
 }
-
-
-.loginpage {
-  display: flex;
-  height: 300px;
-  width: 300px;
-  flex-direction: column;
-  justify-content: space-around;
-  align-items: center;
-}
