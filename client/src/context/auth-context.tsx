@@ -14,6 +14,8 @@ interface User {
   birthdate?: string;
   gender?: string;
   sexualPreferences?: string;
+  authorizeLocalisation?: boolean;
+  localisation?: []
   biography?: string;
   interests?: string[];
   pictures?: File[];
