@@ -5,6 +5,9 @@ import { api } from "@/context/auth-context";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 export default function Test() {
+  // wait 15 seconds before rendering the component
+  // to simulate a slow network request
+
   const { user } = useAuth();
   const [allProfiles, setAllProfiles] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,6 +37,7 @@ export default function Test() {
       </div>
     );
   }
+
 
   return (
     <div className="w-full p-4">

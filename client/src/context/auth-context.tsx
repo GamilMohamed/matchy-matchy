@@ -68,10 +68,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
   const [loading, setLoading] = useState<boolean>(false);
-  const [profileCompleted, setProfileCompleted] = useState<boolean>(user?.profileComplete || false);
+  const [profileCompleted, setProfileCompleted] = useState<boolean>(false);
   const { toast } = useToast();
 
-  
+  useEffect(() => {
+    if (user) {
+      setProfileCompleted(user.profileComplete || false);
+    }
+  }, [user]);
   const handleRequest = async (
     requestFn: () => Promise<unknown>,
     successMessage?: string
