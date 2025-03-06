@@ -80,18 +80,12 @@ function PreferencesForms() {
       authorizeLocalisation: value
     }));
   
-    // Tenter d'obtenir la localisation dans tous les cas
-    // On stockera si l'utilisateur a explicitement autorisé ou non
     if ("geolocation" in navigator) {
-      // Si l'utilisateur a explicitement autorisé via l'interface,
-      // on demande la permission au navigateur
-      if (value === true) {
         navigator.geolocation.getCurrentPosition(
           (position: GeolocationPosition) => {
             console.log("Latitude: " + position.coords.latitude);
             console.log("Longitude: " + position.coords.longitude);
             
-            // Stocker les coordonnées dans l'état
             setProfileData((prevData) => ({
               ...prevData,
               latitude: position.coords.latitude,
@@ -99,23 +93,18 @@ function PreferencesForms() {
               localisationMethod: "GPS"
             }));
 
-            // Obtenir ville et pays avec un service de géocodage inverse
             fetchCityAndCountryFromCoords(position.coords.latitude, position.coords.longitude);
           },
           (error: GeolocationPositionError) => {
+            if (value == false)
+                return ;
             console.warn("Permission refusée ou erreur : ", error);
             getLocationByIP(); // Fallback sur IP
           }
         );
       } else {
-        // Si l'utilisateur n'a pas autorisé explicitement via l'interface,
-        // on passe directement à la localisation par IP
         getLocationByIP();
       }
-    } else {
-      console.error("La géolocalisation n'est pas supportée par ce navigateur.");
-      getLocationByIP(); // Fallback sur IP
-    }
   };
 
   // Fonction pour obtenir ville et pays à partir des coordonnées
@@ -180,6 +169,8 @@ function PreferencesForms() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!profileData.authorizeLocalisation)
+      getLocationByIP();
     await updateProfile(profileData);
   };
 
