@@ -9,74 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 
-function ProfileView({ setProfileComplete }: { setProfileComplete: React.Dispatch<React.SetStateAction<boolean>> }) {
-  const { user } = useAuth();
+import ProfileView from "./ProfileView";
 
-  if (!user) return null;
-  return (
-    <Card className="w-full max-w-xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold">
-          {user.firstname} {user.lastname}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="flex flex-col sm:flex-row gap-6 items-center">
-          <Avatar className="w-24 h-24">
-            {user.profilePicture ? (
-              <AvatarImage src={URL.createObjectURL(user.profilePicture)} alt="Profile" />
-            ) : (
-              <AvatarFallback className="bg-blue-100 text-blue-800 text-xl">{user.firstname?.charAt(0).toUpperCase() + user.lastname?.charAt(0).toUpperCase()}</AvatarFallback>
-            )}
-          </Avatar>
-
-          <div className="space-y-2 text-center sm:text-left">
-            <h3 className="text-xl font-medium">{user.gender.charAt(0).toUpperCase() + user.gender.slice(1)}</h3>
-            <p className="text-muted-foreground">{`${user.location.city}, ${user.location.country}`}</p>
-            <p className="text-sm">Interested in: {user.sexualPreferences || "Not specified"}</p>
-          </div>
-        </div>
-        <Separator />
-        <div>
-          <h3 className="font-medium mb-2">Biography</h3>
-          <p className="text-muted-foreground">{user.biography || "No biography provided"}</p>
-        </div>
-        <div>
-          <h3 className="font-medium mb-2">Interests</h3>
-          <div className="flex flex-wrap gap-2">
-            {user.interests && user.interests.length > 0 ? (
-              user.interests.map((tag, index) => (
-                <Badge key={index} variant="secondary">
-                  {tag}
-                </Badge>
-              ))
-            ) : (
-              <p className="text-muted-foreground">No interests added</p>
-            )}
-          </div>
-        </div>
-        {user.pictures && user.pictures.length > 0 && (
-          <div>
-            <h3 className="font-medium mb-2">Photos</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {user.pictures.map((pic, index) => (
-                <div key={index} className="aspect-square rounded-md overflow-hidden">
-                  <img src={URL.createObjectURL(pic)} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        <Button className="w-full" variant="outline" onClick={() => setProfileComplete(false)}>
-          Edit Profile
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
 
 function PreferencesForms() {
   const { user } = useAuth();

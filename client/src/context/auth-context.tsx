@@ -100,10 +100,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const res = await api.get("/users/me");
       setUser(res.data);
       console.log("User loaded:", res.data);
-      toast({
-        title: "Success",
-        description: "User loaded successfully",
-      });
     } catch (err) {
       console.error("Error loading user:", err);
       setToken(null);
