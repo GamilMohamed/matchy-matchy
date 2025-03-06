@@ -21,6 +21,7 @@ exports.isAuthenticated = async (req, res, next) => {
 };
 
 exports.validateBody = (req, res, next) => {
+  console.log("validateBody", req.body);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const errorMsg = formatValidationError(errors.array());

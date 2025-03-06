@@ -1,4 +1,3 @@
-const { getUserFromToken } = require("../utils/userUtils.js");
 const prisma = require("../config/database.js");
 
 exports.getMe = async function (req, res) {
@@ -10,7 +9,7 @@ exports.getMe = async function (req, res) {
       select: {
         ...Object.fromEntries(
           Object.keys(prisma.user.fields)
-            .filter((field) => field !== "password" && field !== "updatedAt" && field !== "profileComplete")
+            .filter((field) => field !== "password" && field !== "updatedAt")
             .map((field) => [field, true])
         ),
       },
@@ -41,13 +40,25 @@ exports.getUsers = async function (req, res) {
 
 exports.updateUser = async function (req, res) {
   try {
+    console.log("body is",req.body);
+    const toUpdate = { gender, sexualPreferences, biography, interests } = req.body;
+
+    console.log("req.file", req.file);
+    console.log("req.files", req.files);
     const updatedUser = await prisma.user.update({
       where: {
         email: req.user.email
       },
       data: {
-        ...req.body,
+        ...toUpdate,
         profileComplete: true,
+      },
+      select: {
+        ...Object.fromEntries(
+          Object.keys(prisma.user.fields)
+            .filter((field) => field !== "password" && field !== "updatedAt")
+            .map((field) => [field, true])
+        ),
       },
     });
     res.status(200).json(updatedUser);
