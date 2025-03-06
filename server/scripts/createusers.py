@@ -11,6 +11,7 @@ def mock_users():
             'username': 'username' + str(i),
             'email': 'user' + str(i) + '@gmail.com',
             'password': 'password' + str(i),
+            'birthdate': '2000-01-01',
         })
     return users
 
