@@ -1,5 +1,5 @@
 // src/contexts/AuthContext.tsx
-import React, { createContext, useState, useContext, useEffect, ReactNode } from "react";
+import React, { createContext, useState, useContext, useEffect, ReactNode, use } from "react";
 import axios from "axios";
 import { MyError, RegisterData, UpdateProfileData } from "../types/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -32,6 +32,7 @@ interface AuthContextType {
   register: (userData: RegisterData) => Promise<unknown>;
   updateProfile: (userData: UpdateProfileData) => Promise<unknown>;
   logout: () => void;
+  profileCompleted: boolean;
   
 }
 
@@ -67,6 +68,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
   const [loading, setLoading] = useState<boolean>(false);
+  const [profileCompleted, setProfileCompleted] = useState<boolean>(user?.profileComplete || false);
   const { toast } = useToast();
 
   
@@ -149,6 +151,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       () => api.put("/users/profile", userData),
       "Profile updated successfully"
     );
+    setProfileCompleted(true);
     // window.location.reload();
   };
 
@@ -168,6 +171,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     login,
     register,
     updateProfile,
+    profileCompleted
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

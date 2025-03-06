@@ -11,7 +11,7 @@ import Error from "./components/Error";
 import { useAuth } from "./context/auth-context";
 
 function App() {
-  const { user } = useAuth();
+  const { user, profileCompleted } = useAuth();
   const isAuth = !!user;
   console.log("isAuth", isAuth, user);
   if (!isAuth) {
@@ -31,7 +31,7 @@ function App() {
     );
   }
 
-  if (isAuth && user && !user.profileComplete) {
+  if (isAuth && user && !profileCompleted && user.profileComplete === false) {
     return (
       <Router>
         <Routes>

@@ -59,7 +59,7 @@ router.post("/signin", async function (req, res) {
     const requiredFields = ["email", "password"];
     requiredFields.forEach((field) => {
       if (!(field in req.body)) {
-        throw new Error(`Missing ${field} in request body`);
+        return res.status(400).json({ message: `Missing ${field} in request body` });
       }
     });
     const { email, password } = req.body;
@@ -70,11 +70,11 @@ router.post("/signin", async function (req, res) {
       },
     });
     if (!user) {
-      throw new Error("User not found");
+      return res.status(404).json({ message: "User not found" });
     }
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
-      throw new Error("Incorrect password");
+      return res.status(401).json({ message: "Incorrect password" });
     }
 
     // generate token
