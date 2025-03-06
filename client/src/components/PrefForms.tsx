@@ -1,47 +1,140 @@
-import { useState, FormEvent } from 'react';
-import { X } from 'lucide-react';
-import { useAuth } from '@/context/auth-context';
-import { UpdateProfileData } from '@/types/auth';
+import { useState, FormEvent, useEffect } from "react";
+import { X } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
+import { UpdateProfileData } from "@/types/auth";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+
+function ProfileView({ setProfileComplete }: { setProfileComplete: React.Dispatch<React.SetStateAction<boolean>> }) {
+  const { user } = useAuth();
+
+  if (!user) return null;
+  return (
+    <Card className="w-full max-w-xl mx-auto">
+      <CardHeader>
+        <CardTitle className="text-2xl font-bold">
+          {user.firstname} {user.lastname}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="flex flex-col sm:flex-row gap-6 items-center">
+          <Avatar className="w-24 h-24">
+            {user.profilePicture ? (
+              <AvatarImage src={URL.createObjectURL(user.profilePicture)} alt="Profile" />
+            ) : (
+              <AvatarFallback className="bg-blue-100 text-blue-800 text-xl">{user.firstname?.charAt(0).toUpperCase() + user.lastname?.charAt(0).toUpperCase()}</AvatarFallback>
+            )}
+          </Avatar>
+
+          <div className="space-y-2 text-center sm:text-left">
+            <h3 className="text-xl font-medium">{user.gender.charAt(0).toUpperCase() + user.gender.slice(1)}</h3>
+            <p className="text-muted-foreground">{`${user.location.city}, ${user.location.country}`}</p>
+            <p className="text-sm">Interested in: {user.sexualPreferences || "Not specified"}</p>
+          </div>
+        </div>
+        <Separator />
+        <div>
+          <h3 className="font-medium mb-2">Biography</h3>
+          <p className="text-muted-foreground">{user.biography || "No biography provided"}</p>
+        </div>
+        <div>
+          <h3 className="font-medium mb-2">Interests</h3>
+          <div className="flex flex-wrap gap-2">
+            {user.interests && user.interests.length > 0 ? (
+              user.interests.map((tag, index) => (
+                <Badge key={index} variant="secondary">
+                  {tag}
+                </Badge>
+              ))
+            ) : (
+              <p className="text-muted-foreground">No interests added</p>
+            )}
+          </div>
+        </div>
+        {user.pictures && user.pictures.length > 0 && (
+          <div>
+            <h3 className="font-medium mb-2">Photos</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {user.pictures.map((pic, index) => (
+                <div key={index} className="aspect-square rounded-md overflow-hidden">
+                  <img src={URL.createObjectURL(pic)} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        <Button className="w-full" variant="outline" onClick={() => setProfileComplete(false)}>
+          Edit Profile
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
 
 function PreferencesForms() {
-  const { user } = useAuth(); 
+  const { user } = useAuth();
+  const [profileComplete, setProfileComplete] = useState(user?.profileComplete || false);
   const [profileData, setProfileData] = useState<UpdateProfileData>({
-    gender: user?.gender || '',
-    sexualPreferences: user?.sexualPreferences || '',
-    authorizeLocalisation: user?.authorizeLocalisation ?? false,
-    localisation: Array.isArray(user?.localisation) ? { latitude: 0, longitude: 0 } : (user?.localisation ?? { latitude: 0, longitude: 0 }),
-    biography: user?.biography || '',
+    gender: user?.gender || "",
+    sexualPreferences: user?.sexualPreferences || "",
+    authorizeLocation: user?.authorizeLocation || false,
+    location: user?.location || { latitude: 0, longitude: 0, city: "", country: "" },
+    biography: user?.biography || "",
     interests: user?.interests || [],
     pictures: [],
     profilePicture: null,
   });
   const { updateProfile } = useAuth();
-  const [newTag, setNewTag] = useState('');
+  const [newTag, setNewTag] = useState("");
+  const [isGeolocationEnabled, setIsGeolocationEnabled] = useState(true);
+
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position: GeolocationPosition) => {
+          setIsGeolocationEnabled(true);
+          console.log("Latitude: " + position.coords.latitude);
+          console.log("Longitude: " + position.coords.longitude);
+          if (profileData.location.city && profileData.location.country) return;
+          fetchCityAndCountryFromCoords(position.coords.latitude, position.coords.longitude);
+        },
+        (error: GeolocationPositionError) => {
+          setIsGeolocationEnabled(false);
+          console.warn("Permission denied or error: ", error);
+          getLocationByIP(); // Fallback to IP
+        }
+      );
+    } else {
+      getLocationByIP();
+    }
+  });
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && newTag.trim() !== '') {
+    if (e.key === "Enter" && newTag.trim() !== "") {
       e.preventDefault();
-      if (profileData.interests && profileData.interests.length > 4)
-          return;
-      if (!newTag.startsWith('#')) {
-        setProfileData({
-          ...profileData,
-          interests: [...profileData.interests, `#${newTag.trim()}`],
-        });
-      } else {
-        setProfileData({
-          ...profileData,
-          interests: [...profileData.interests, newTag.trim()],
-        });
-      }
-      setNewTag('');
+      if (profileData.interests && profileData.interests.length >= 5) return;
+
+      const formattedTag = !newTag.startsWith("#") ? `#${newTag.trim()}` : newTag.trim();
+
+      setProfileData({
+        ...profileData,
+        interests: [...profileData.interests, formattedTag],
+      });
+      setNewTag("");
     }
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
     setProfileData({
       ...profileData,
-      interests: profileData.interests.filter(tag => tag !== tagToRemove),
+      interests: profileData.interests.filter((tag) => tag !== tagToRemove),
     });
   };
 
@@ -61,7 +154,7 @@ function PreferencesForms() {
           pictures: [...profileData.pictures, ...Array.from(files)],
         });
       } else {
-        alert('Maximum 4 additional pictures allowed');
+        alert("Maximum 4 additional pictures allowed");
       }
     }
   };
@@ -74,65 +167,47 @@ function PreferencesForms() {
   };
 
   const handleLocalisation = (value: boolean) => {
-    // Mettre à jour l'état du formulaire avec la nouvelle valeur 
+    // Update the form state with the new value
     setProfileData((prevData) => ({
       ...prevData,
-      authorizeLocalisation: value
+      authorizeLocation: value,
     }));
-  
-    if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          (position: GeolocationPosition) => {
-            console.log("Latitude: " + position.coords.latitude);
-            console.log("Longitude: " + position.coords.longitude);
-            
-            setProfileData((prevData) => ({
-              ...prevData,
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-              localisationMethod: "GPS"
-            }));
 
-            fetchCityAndCountryFromCoords(position.coords.latitude, position.coords.longitude);
-          },
-          (error: GeolocationPositionError) => {
-            if (value == false)
-                return ;
-            console.warn("Permission refusée ou erreur : ", error);
-            getLocationByIP(); // Fallback sur IP
-          }
-        );
-      } else {
-        getLocationByIP();
-      }
+
   };
 
-  // Fonction pour obtenir ville et pays à partir des coordonnées
   async function fetchCityAndCountryFromCoords(latitude: number, longitude: number): Promise<void> {
     try {
-      // Exemple avec Nominatim (OpenStreetMap)
       const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
       const data = await response.json();
 
-      const city = data.address.city || data.address.town || data.address.village || '';
-      const country = data.address.country || '';
+      const city = data.address.city || data.address.town || data.address.village || "";
+      const country = data.address.country || "";
 
-      console.log("Ville: " + city);
-      console.log("Pays: " + country);
+      console.log("City: " + city);
+      console.log("Country: " + country);
 
-      // Mettre à jour l'état
+      // Update state
       setProfileData((prevData) => ({
         ...prevData,
-        city: city,
-        country: country
+        location: {
+          latitude: latitude,
+          longitude: longitude,
+          city: city,
+          country: country,
+        },
       }));
     } catch (error) {
-      console.error("Erreur lors du géocodage inverse:", error);
+      console.error("Error during reverse geocoding:", error);
     }
   }
 
   async function getLocationByIP(): Promise<void> {
     try {
+      if (profileData.location.longitude && profileData.location.latitude && profileData.location.city && profileData.location.country) {
+        return;
+      }
+      console.log("Getting approximate location by IP...");
       const response = await fetch("https://ipapi.co/json/");
       const data: {
         city: string;
@@ -140,222 +215,211 @@ function PreferencesForms() {
         latitude: number;
         longitude: number;
       } = await response.json();
-      
-      console.log("Localisation approximative par IP:");
-      console.log("Ville: " + data.city);
-      console.log("Pays: " + data.country_name);
+
+      console.log("Approximate location by IP:");
+      console.log("City: " + data.city);
+      console.log("Country: " + data.country_name);
       console.log("Latitude: " + data.latitude);
       console.log("Longitude: " + data.longitude);
-      
-      // Stocker les coordonnées dans l'état
+
+      // Store coordinates in state
       setProfileData((prevData) => ({
         ...prevData,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        city: data.city,
-        country: data.country_name,
-        localisationMethod: "IP"
+        location: {
+          latitude: data.latitude,
+          longitude: data.longitude,
+          city: data.city,
+          country: data.country_name,
+        },
       }));
     } catch (error) {
-      console.error("Erreur lors de la récupération de la localisation IP:", error);
-      
-      // Mettre à jour l'état pour indiquer l'échec
-      setProfileData((prevData) => ({
-        ...prevData,
-        localisationStatus: "failed"
-      }));
+      console.error("Error retrieving IP location:", error);
     }
   }
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!profileData.authorizeLocalisation)
-      getLocationByIP();
-    await updateProfile(profileData);
+    await getLocationByIP();
+    try {
+      await updateProfile(profileData);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    } finally {
+      setProfileComplete(true);
+    }
   };
 
+  if (profileComplete) {
+    return <ProfileView setProfileComplete={setProfileComplete} />;
+  }
+
   return (
-    <div className="bottom-0 left-0 right-0 text-gray-300 z-50 w-full">
-      <main className="flex-1">
-        <div className="max-w-xl mx-auto p-9">
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <h2 className="text-3xl font-bold mb-4 text-gray-800">Edit Profile</h2>
-            
-            <form onSubmit={handleSubmit}>
-              {/* Gender Selection */}
-              <div className="mb-2">
-                <label className="block mb-2 text-lg font-semibold text-gray-800">Gender</label>
-                <div className="flex gap-6">
-                  {['male', 'female', 'other'].map((option) => (
-                    <label key={option} className="flex items-center gap-2 bg-white border-2 border-gray-300 px-4 py-2 rounded-lg hover:border-blue-500 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="gender"
-                        value={option}
-                        checked={profileData.gender === option}
-                        onChange={(e) => setProfileData({ ...profileData, gender: e.target.value })}
-                        className="w-5 h-5 text-blue-600"
-                      />
-                      <span className="text-gray-800 text-lg">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Sexual Preferences */}
-              <div className="mb-4">
-                <label className="block mb-3 text-lg font-semibold text-gray-800">Sexual Preferences</label>
-                <div className="flex gap-6">
-                  {['men', 'women', 'both'].map((option) => (
-                    <label key={option} className="flex items-center gap-2 bg-white border-2 border-gray-300 px-4 py-2 rounded-lg hover:border-blue-500 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="sexualPreferences"
-                        value={option}
-                        checked={profileData.sexualPreferences === option}
-                        onChange={(e) => setProfileData({ ...profileData, sexualPreferences: e.target.value })}
-                        className="w-5 h-5 text-blue-600"
-                      />
-                      <span className="text-gray-800 text-lg">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Localisation */}
-              <div className="mb-4">
-                <label className="block mb-3 text-lg font-semibold text-gray-800">
-                  Would you like to share your location ?
-                </label>
-                <div className="flex gap-6">
-                  {[
-                    { label: "Yes", value: true },
-                    { label: "No", value: false },
-                  ].map(({ label, value }) => (
-                    <label
-                      key={String(value)}
-                      className="flex items-center gap-2 bg-white border-2 border-gray-300 px-4 py-2 rounded-lg hover:border-blue-500 cursor-pointer"
-                    >
-                      <input
-                        type="radio"
-                        name="localisation"
-                        value={String(value)}
-                        checked={profileData.authorizeLocalisation === value}
-                        onChange={() => handleLocalisation(value)}
-                        className="w-5 h-5 text-blue-600"
-                      />
-                      <span className="text-gray-800 text-lg">{label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Biography */}
-              <div className="mb-4">
-                <label htmlFor="bio" className="block mb-3 text-lg font-semibold text-gray-800">Biography</label>
-                <textarea
-                  id="bio"
-                  name="biography"
-                  value={profileData.biography}
-                  onChange={(e) => setProfileData({ ...profileData, biography: e.target.value })}
-                  className="w-full h-32 px-4 py-3 text-gray-800 text-lg border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 bg-white"
-                  placeholder="Tell us about yourself..."
-                />
-              </div>
-
-              {/* Interests/Tags */}
-              <div className="mb-4">
-                <label htmlFor="interests" className="block mb-3 text-lg font-semibold text-gray-800">
-                  Interests (Press Enter to add) {profileData.interests && profileData.interests.length === 5 && <span className="text-red-500 ml-2">MAX 5</span>}
-                </label>
-                <input
-                  id="interests"
-                  name="interests"
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  onKeyDown={handleAddTag}
-                  className="w-full px-4 py-3 text-gray-800 text-lg border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 bg-white"
-                  placeholder="Add interests (e.g. vegan, geek, piercing)"
-                />
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {profileData.interests.map((tag, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-1 bg-blue-100 text-gray-800 px-4 py-2 rounded-lg border-2 border-blue-300 text-lg"
-                    >
-                      {tag}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveTag(tag)}
-                        className="ml-2 text-blue-600 hover:text-blue-800"
-                      >
-                        <X className="h-5 w-5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Profile Picture */}
-              <div className="mb-4">
-                <label htmlFor="profilePic" className="block mb-3 text-lg font-semibold text-gray-800">Profile Picture</label>
-                <input
-                  id="profilePic"
-                  name="profilePicture"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleImageUpload(e, true)}
-                  className="w-full px-4 py-3 text-gray-800 text-lg border-2 border-gray-300 rounded-lg bg-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-lg file:bg-blue-500 file:text-white hover:file:bg-blue-600"
-                />
-                {profileData.profilePicture && (
-                  <div className="mt-3 text-lg text-gray-800 bg-white border-2 border-gray-300 rounded-lg p-3">
-                    <p>Selected profile picture: {profileData.profilePicture.name}</p>
+    <div className="w-full px-4 py-8 sm:px-6 md:py-12">
+      <Card className="max-w-xl mx-auto">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold">Edit Profile</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Gender Selection */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold">Gender</Label>
+              <RadioGroup value={profileData.gender} onValueChange={(value) => setProfileData({ ...profileData, gender: value })} className="flex flex-col sm:flex-row gap-3">
+                {["male", "female", "other"].map((option) => (
+                  <div key={option} className="flex items-center space-x-2">
+                    <RadioGroupItem value={option} id={`gender-${option}`} />
+                    <Label htmlFor={`gender-${option}`} className="text-base">
+                      {option.charAt(0).toUpperCase() + option.slice(1)}
+                    </Label>
                   </div>
-                )}
-              </div>
+                ))}
+              </RadioGroup>
+            </div>
 
-              {/* Additional Pictures */}
-              <div className="mb-4">
-                <label htmlFor="additionalPics" className="block mb-3 text-lg font-semibold text-gray-800">
-                  Additional Pictures (Max 4)
-                </label>
-                <input
-                  id="additionalPics"
-                  name="additionalPictures"
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={(e) => handleImageUpload(e, false)}
-                  disabled={profileData.pictures && profileData.pictures.length >= 4}
-                  className="w-full px-4 py-3 text-gray-800 text-lg border-2 border-gray-300 rounded-lg bg-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-lg file:bg-blue-500 file:text-white hover:file:bg-blue-600"
-                />
-                <div className="flex flex-wrap gap-2 mt-3 h-1/3">
-                  {profileData.pictures && profileData.pictures.map((pic, index) => (
-                    <div key={index} className="flex items-center gap-2 bg-white border-2 border-gray-300 px-4 py-2 rounded-lg text-lg">
-                      <p className="text-gray-800">{pic.name}</p>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveImage(index)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <X className="h-5 w-5" />
-                      </button>
+            {/* Sexual Preferences */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold">Sexual Preferences</Label>
+              <RadioGroup
+                value={profileData.sexualPreferences}
+                onValueChange={(value) => setProfileData({ ...profileData, sexualPreferences: value })}
+                className="flex flex-col sm:flex-row gap-3">
+                {["men", "women", "both"].map((option) => (
+                  <div key={option} className="flex items-center space-x-2">
+                    <RadioGroupItem value={option} id={`preference-${option}`} />
+                    <Label htmlFor={`preference-${option}`} className="text-base">
+                      {option.charAt(0).toUpperCase() + option.slice(1)}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            {/* Localisation */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold">Would you like to share your location?</Label>
+              <RadioGroup value={String(profileData.authorizeLocation)} onValueChange={(value) => handleLocalisation(value === "true")} className="flex flex-col sm:flex-row gap-3">
+                {[
+                  { label: "Yes", value: "true", disabled: !isGeolocationEnabled},
+                  { label: "No", value: "false", disabled: false },
+                ].map((option) => (
+                  <div key={option.value} className="flex items-center space-x-2">
+                    <RadioGroupItem value={option.value} id={`location-${option.value}`} disabled={option.disabled} />
+                    <Label htmlFor={`location-${option.value}`} className="text-base">
+                      {option.label}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            {/* Biography */}
+            <div className="space-y-3">
+              <Label htmlFor="bio" className="text-base font-semibold">
+                Biography
+              </Label>
+              <Textarea
+                id="bio"
+                name="biography"
+                value={profileData.biography}
+                onChange={(e) => setProfileData({ ...profileData, biography: e.target.value })}
+                className="min-h-32 text-base"
+                placeholder="Tell us about yourself..."
+              />
+            </div>
+
+            {/* Interests/Tags */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="interests" className="text-base font-semibold">
+                  Interests (Press Enter to add)
+                </Label>
+                {profileData.interests && profileData.interests.length >= 5 && <span className="text-red-500 text-sm">Maximum 5 reached</span>}
+              </div>
+              <Input
+                id="interests"
+                name="interests"
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                onKeyDown={handleAddTag}
+                className="text-base"
+                placeholder="Add interests (e.g. vegan, geek, piercing)"
+                disabled={profileData.interests && profileData.interests.length >= 5}
+              />
+              <div className="flex flex-wrap gap-2 mt-3">
+                {profileData.interests.map((tag, index) => (
+                  <Badge key={index} variant="secondary" className="text-base py-1 px-3 flex items-center gap-1">
+                    {tag}
+                    <Button
+                      type="button"
+                      onClick={() => handleRemoveTag(tag)}
+                      variant="ghost"
+                      size="sm"
+                      className="h-5 w-5 p-0 ml-1 text-blue-600 hover:text-blue-800 hover:bg-transparent">
+                      <X className="h-3 w-3" />
+                      <span className="sr-only">Remove</span>
+                    </Button>
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            {/* Profile Picture */}
+            <div className="space-y-3">
+              <Label htmlFor="profilePic" className="text-base font-semibold">
+                Profile Picture
+              </Label>
+              <Input id="profilePic" name="profilePicture" type="file" accept="image/*" onChange={(e) => handleImageUpload(e, true)} className="text-base" />
+              {profileData.profilePicture && (
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-100">
+                    <img src={URL.createObjectURL(profileData.profilePicture)} alt="Profile preview" className="w-full h-full object-cover" />
+                  </div>
+                  <span className="text-sm">{profileData.profilePicture.name}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Additional Pictures */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="additionalPics" className="text-base font-semibold">
+                  Additional Pictures
+                </Label>
+                <span className="text-muted-foreground text-sm">{profileData.pictures?.length || 0}/4</span>
+              </div>
+              <Input
+                id="additionalPics"
+                name="additionalPictures"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => handleImageUpload(e, false)}
+                disabled={profileData.pictures && profileData.pictures.length >= 4}
+                className="text-base"
+              />
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
+                {profileData.pictures &&
+                  profileData.pictures.map((pic, index) => (
+                    <div key={index} className="relative group">
+                      <div className="aspect-square rounded-md overflow-hidden bg-slate-100">
+                        <img src={URL.createObjectURL(pic)} alt={`Additional ${index + 1}`} className="w-full h-full object-cover" />
+                      </div>
+                      <Button type="button" onClick={() => handleRemoveImage(index)} variant="destructive" size="sm" className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0">
+                        <X className="h-4 w-4" />
+                        <span className="sr-only">Remove</span>
+                      </Button>
                     </div>
                   ))}
-                </div>
               </div>
+            </div>
 
-              {/* Submit Button */}
-              <button 
-                type="submit"
-                className="h-1/3 w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors text-lg font-semibold"
-              >
-                Save
-              </button>
-            </form>
-          </div>
-        </div>
-      </main>
+            {/* Submit Button */}
+            <Button type="submit" className="w-full text-base" size="lg">
+              Save Profile
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

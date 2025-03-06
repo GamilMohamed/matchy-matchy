@@ -85,6 +85,7 @@ const LoginForm = () => {
       username: formData.username,
       birthdate: formData.birthdate,
     } as RegisterData);
+    await login(formData.email, formData.password);
     setIsSignupOpen(false);
     setIsLoginOpen(true);
   };

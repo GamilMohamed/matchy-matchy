@@ -32,14 +32,13 @@ router.put(
   "/profile",
   isAuthenticated,
   upload.single("profilePicture"),
-
-  // body("gender").isString().trim().notEmpty(),
-  // body("sexualPreferences").isString().trim().notEmpty(),
-  // body("biography").isString().trim().notEmpty(),
-  // body("interests").isArray().notEmpty(),
-  // body("profilePicture").optional(),
+  body("gender").isString().trim().notEmpty().matches(/(male|female|other)/),
+  body("sexualPreferences").isString().trim().notEmpty().matches(/(men|women|both)/),
+  body("biography").isString().trim().notEmpty(),
+  body("interests").isArray().notEmpty().custom((value) => value.every((v) => typeof v === "string")),
+  body("profilePicture").optional(),
   isAuthenticated,
-  // validateBody,
+  validateBody,
   userController.updateUser
 );
 

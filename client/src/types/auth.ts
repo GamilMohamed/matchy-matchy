@@ -1,18 +1,12 @@
 // types/auth.ts
-export interface User {
-  id: string;
+export interface User  extends UpdateProfileData {
   email: string;
   firstname: string;
+  lastname: string;
+  birthDate: string;
   createdAt: string;
   profileComplete: boolean;
   username: string;
-
-  gender?: string;
-  sexualPreferences?: string;
-  biography: string;
-  interests: string[];
-  pictures: File[];
-  profilePicture: File | null;
 }
 
 export interface AuthResponse {
@@ -36,12 +30,12 @@ export interface RegisterData extends LoginCredentials {
 export interface UpdateProfileData {
   gender: string;
   sexualPreferences: string;
-  authorizeLocalisation: boolean;
-  localisation: {
+  authorizeLocation: boolean;
+  location: {
     latitude: number,
     longitude: number,
-    city?: string,
-    country?: string,
+    city: string,
+    country: string,
   }
   biography: string;
   interests: string[];

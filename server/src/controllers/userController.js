@@ -12,7 +12,15 @@ exports.getMe = async function (req, res) {
             .filter((field) => field !== "password" && field !== "updatedAt")
             .map((field) => [field, true])
         ),
-      },
+        location: {
+          select: {
+            latitude: true,
+            longitude: true,
+            country: true,
+            city: true,
+          },
+        },
+      }
     });
     res.status(200).json(user);
   } catch (e) {
@@ -40,17 +48,22 @@ exports.getUsers = async function (req, res) {
 
 exports.updateUser = async function (req, res) {
   try {
-    console.log("body is",req.body);
-    const toUpdate = { gender, sexualPreferences, biography, interests } = req.body;
+    const toUpdate = ({ gender, sexualPreferences, biography, interests } = req.body);
 
-    console.log("req.file", req.file);
-    console.log("req.files", req.files);
     const updatedUser = await prisma.user.update({
       where: {
-        email: req.user.email
+        email: req.user.email,
       },
       data: {
         ...toUpdate,
+        location: {
+          create: {
+            latitude: req.body.location.latitude,
+            longitude: req.body.location.longitude,
+            country: req.body.location.country,
+            city: req.body.location.city,
+          },
+        },
         profileComplete: true,
       },
       select: {
@@ -64,6 +77,6 @@ exports.updateUser = async function (req, res) {
     res.status(200).json(updatedUser);
   } catch (e) {
     console.log(e);
-    return res.status(500).json({ message: e.message });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };

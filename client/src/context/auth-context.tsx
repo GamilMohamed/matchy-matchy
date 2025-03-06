@@ -1,29 +1,10 @@
 // src/contexts/AuthContext.tsx
-import React, { createContext, useState, useContext, useEffect, ReactNode, use } from "react";
+import React, { createContext, useState, useContext, useEffect, ReactNode } from "react";
 import axios from "axios";
 import { MyError, RegisterData, UpdateProfileData } from "../types/auth";
 import { useToast } from "@/hooks/use-toast";
 import { AxiosError } from 'axios';
-
-// Simple user type
-interface User {
-  email: string;
-  username?: string;
-  firstname?: string;
-  lastname?: string;
-  birthdate?: string;
-  gender?: string;
-  sexualPreferences?: string;
-  authorizeLocalisation?: boolean;
-  localisation?: []
-  biography?: string;
-  interests?: string[];
-  pictures?: File[];
-  profilePicture?: File | null;
-  profileComplete?: boolean;
-
-  // [key: string]: unknown; // For any additional fields
-}
+import { User } from "@/types/auth";
 
 // Auth context type
 interface AuthContextType {
@@ -111,25 +92,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
   // Load user when token changes
+  const loadUser = async () => {
+    if (!token) return;
+
+    try {
+      setLoading(true);
+      const res = await api.get("/users/me");
+      setUser(res.data);
+      console.log("User loaded:", res.data);
+      toast({
+        title: "Success",
+        description: "User loaded successfully",
+      });
+    } catch (err) {
+      console.error("Error loading user:", err);
+      setToken(null);
+      localStorage.removeItem("token");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    
-    const loadUser = async () => {
-      if (!token) return;
-
-      try {
-        setLoading(true);
-        const res = await api.get("/users/me");
-        setUser(res.data);
-        console.log("User loaded:", res.data);
-      } catch (err) {
-        console.error("Error loading user:", err);
-        setToken(null);
-        localStorage.removeItem("token");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadUser();
   }, [token]);
 
@@ -147,18 +131,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Register function
   const register = async (userData: RegisterData) => {
-    return handleRequest(
+    return await handleRequest(
       () => api.post("/auth/signup", userData),
       "Registration successful! Please log in."
     );
   };
+
+  // Update profile function
   const updateProfile = async (userData: UpdateProfileData) => {
-    handleRequest(
+    console.log("userData in UpdateProfile", userData);
+    await handleRequest(
       () => api.put("/users/profile", userData),
       "Profile updated successfully"
     );
-    setProfileCompleted(true);
-    // window.location.reload();
+    return await loadUser();
   };
 
   // Logout function
