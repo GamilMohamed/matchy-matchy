@@ -8,6 +8,8 @@ function PreferencesForms() {
   const [profileData, setProfileData] = useState<UpdateProfileData>({
     gender: user?.gender || '',
     sexualPreferences: user?.sexualPreferences || '',
+    authorizeLocalisation: user?.authorizeLocalisation ?? false,
+    localisation: Array.isArray(user?.localisation) ? { latitude: 0, longitude: 0 } : (user?.localisation ?? { latitude: 0, longitude: 0 }),
     biography: user?.biography || '',
     interests: user?.interests || [],
     pictures: [],
@@ -71,8 +73,104 @@ function PreferencesForms() {
     });
   };
 
+  const handleLocalisation = (value: boolean) => {
+    // Mettre à jour l'état du formulaire avec la nouvelle valeur 
+    setProfileData((prevData) => ({
+      ...prevData,
+      authorizeLocalisation: value
+    }));
+  
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position: GeolocationPosition) => {
+            console.log("Latitude: " + position.coords.latitude);
+            console.log("Longitude: " + position.coords.longitude);
+            
+            setProfileData((prevData) => ({
+              ...prevData,
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              localisationMethod: "GPS"
+            }));
+
+            fetchCityAndCountryFromCoords(position.coords.latitude, position.coords.longitude);
+          },
+          (error: GeolocationPositionError) => {
+            if (value == false)
+                return ;
+            console.warn("Permission refusée ou erreur : ", error);
+            getLocationByIP(); // Fallback sur IP
+          }
+        );
+      } else {
+        getLocationByIP();
+      }
+  };
+
+  // Fonction pour obtenir ville et pays à partir des coordonnées
+  async function fetchCityAndCountryFromCoords(latitude: number, longitude: number): Promise<void> {
+    try {
+      // Exemple avec Nominatim (OpenStreetMap)
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+      const data = await response.json();
+
+      const city = data.address.city || data.address.town || data.address.village || '';
+      const country = data.address.country || '';
+
+      console.log("Ville: " + city);
+      console.log("Pays: " + country);
+
+      // Mettre à jour l'état
+      setProfileData((prevData) => ({
+        ...prevData,
+        city: city,
+        country: country
+      }));
+    } catch (error) {
+      console.error("Erreur lors du géocodage inverse:", error);
+    }
+  }
+
+  async function getLocationByIP(): Promise<void> {
+    try {
+      const response = await fetch("https://ipapi.co/json/");
+      const data: {
+        city: string;
+        country_name: string;
+        latitude: number;
+        longitude: number;
+      } = await response.json();
+      
+      console.log("Localisation approximative par IP:");
+      console.log("Ville: " + data.city);
+      console.log("Pays: " + data.country_name);
+      console.log("Latitude: " + data.latitude);
+      console.log("Longitude: " + data.longitude);
+      
+      // Stocker les coordonnées dans l'état
+      setProfileData((prevData) => ({
+        ...prevData,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        city: data.city,
+        country: data.country_name,
+        localisationMethod: "IP"
+      }));
+    } catch (error) {
+      console.error("Erreur lors de la récupération de la localisation IP:", error);
+      
+      // Mettre à jour l'état pour indiquer l'échec
+      setProfileData((prevData) => ({
+        ...prevData,
+        localisationStatus: "failed"
+      }));
+    }
+  }
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!profileData.authorizeLocalisation)
+      getLocationByIP();
     await updateProfile(profileData);
   };
 
@@ -119,6 +217,34 @@ function PreferencesForms() {
                         className="w-5 h-5 text-blue-600"
                       />
                       <span className="text-gray-800 text-lg">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Localisation */}
+              <div className="mb-4">
+                <label className="block mb-3 text-lg font-semibold text-gray-800">
+                  Would you like to share your location ?
+                </label>
+                <div className="flex gap-6">
+                  {[
+                    { label: "Yes", value: true },
+                    { label: "No", value: false },
+                  ].map(({ label, value }) => (
+                    <label
+                      key={String(value)}
+                      className="flex items-center gap-2 bg-white border-2 border-gray-300 px-4 py-2 rounded-lg hover:border-blue-500 cursor-pointer"
+                    >
+                      <input
+                        type="radio"
+                        name="localisation"
+                        value={String(value)}
+                        checked={profileData.authorizeLocalisation === value}
+                        onChange={() => handleLocalisation(value)}
+                        className="w-5 h-5 text-blue-600"
+                      />
+                      <span className="text-gray-800 text-lg">{label}</span>
                     </label>
                   ))}
                 </div>

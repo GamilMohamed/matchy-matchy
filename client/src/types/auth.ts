@@ -36,6 +36,13 @@ export interface RegisterData extends LoginCredentials {
 export interface UpdateProfileData {
   gender: string;
   sexualPreferences: string;
+  authorizeLocalisation: boolean;
+  localisation: {
+    latitude: number,
+    longitude: number,
+    city?: string,
+    country?: string,
+  }
   biography: string;
   interests: string[];
   pictures?: File[];
