@@ -3,7 +3,7 @@ import React, { createContext, useState, useContext, useEffect, ReactNode } from
 import axios from "axios";
 import { MyError, RegisterData, UpdateProfileData } from "../types/auth";
 import { useToast } from "@/hooks/use-toast";
-import { AxiosError } from 'axios';
+import { AxiosError } from "axios";
 import { User } from "@/types/auth";
 
 // Auth context type
@@ -16,7 +16,6 @@ interface AuthContextType {
   updateProfile: (userData: UpdateProfileData) => Promise<unknown>;
   logout: () => void;
   profileCompleted: boolean;
-  
 }
 
 // Create the context
@@ -27,8 +26,7 @@ const api = axios.create({
   baseURL: "http://localhost:3000",
   headers: {
     "Content-Type": "application/json",
-    "Accept": "application/json",
-    "Authorization": `Bearer ${localStorage.getItem("token")}`,
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
   },
 });
 
@@ -44,8 +42,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-
-
 // Provider component
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -59,33 +55,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setProfileCompleted(user.profileComplete || false);
     }
   }, [user]);
-  const handleRequest = async (
-    requestFn: () => Promise<unknown>,
-    successMessage?: string
-  ) => {
+  const handleRequest = async (requestFn: () => Promise<unknown>, successMessage?: string) => {
     try {
       setLoading(true);
       const result = await requestFn();
-      
+
       if (successMessage) {
         toast({
           title: "Success",
           description: successMessage,
         });
       }
-      
+
       return result;
     } catch (err) {
-      const errorMsg = axios.isAxiosError(err) 
-        ? (err as AxiosError<MyError>).response?.data?.message || "Operation failed" 
-        : "An unexpected error occurred";
-        
+      const errorMsg = axios.isAxiosError(err) ? (err as AxiosError<MyError>).response?.data?.message || "Operation failed" : "An unexpected error occurred";
+
       toast({
         title: "Error",
         description: errorMsg,
         variant: "destructive",
       });
-      
+
       throw err;
     } finally {
       setLoading(false);
@@ -124,25 +115,43 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   };
 
-
   // Register function
   const register = async (userData: RegisterData) => {
-    return await handleRequest(
-      () => api.post("/auth/signup", userData),
-      "Registration successful! Please log in."
-    );
+    return await handleRequest(() => api.post("/auth/signup", userData), "Registration successful! Please log in.");
   };
 
   // Update profile function
   const updateProfile = async (userData: UpdateProfileData) => {
-    console.log("userData in UpdateProfile", userData);
-    await handleRequest(
-      () => api.put("/users/profile", userData),
-      "Profile updated successfully"
-    );
-    return await loadUser();
-  };
+    const convertedData = new FormData();
+    Object.entries(userData).forEach(([key, value]) => {
+      if (key === "profilePicture" && value instanceof File) {
+        convertedData.append(key, value as File);
+      } else if (key === "interests" && value) {
+        (value as string[]).forEach((interest) => {
+          convertedData.append("interests[]", interest);
+        });
+      } else if (key === "location" && value) {
+        Object.entries(value as Record<string, string>).forEach(([locKey, locValue]) => {
+          convertedData.append(`location[${locKey}]`, locValue);
+        });
+      } else if (key === "pictures" && value) {
+        (value as File[]).forEach((picture) => {
+          convertedData.append("pictures[]", picture);
+        });
+      } else {
+        convertedData.append(key, value as string);
+      }
+    });
 
+    await handleRequest(() => axios.put("http://localhost:3000/users/profile", convertedData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    ), "Profile updated successfully!").then(() => loadUser());
+  }
   // Logout function
   const logout = () => {
     localStorage.removeItem("token");
@@ -159,7 +168,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     login,
     register,
     updateProfile,
-    profileCompleted
+    profileCompleted,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

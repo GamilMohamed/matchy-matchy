@@ -39,8 +39,8 @@ export interface UpdateProfileData {
   }
   biography: string;
   interests: string[];
-  pictures?: File[];
-  profilePicture: File | null;
+  pictures?: File[] | string[];
+  profilePicture: string | File | null;
 }
 
 export interface AuthContextType {

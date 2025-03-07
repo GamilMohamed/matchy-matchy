@@ -25,6 +25,7 @@ exports.validateBody = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const errorMsg = formatValidationError(errors.array());
+    console.log("CUSTOME ERROR MSG:",errorMsg);
     return res.status(400).json({ message: errorMsg });
   }
   next();

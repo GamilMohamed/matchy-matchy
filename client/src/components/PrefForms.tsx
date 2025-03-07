@@ -9,22 +9,24 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "@/hooks/use-toast";
 
 import ProfileView from "./ProfileView";
-
+import { useToast } from "@/hooks/use-toast";
 
 function PreferencesForms() {
+  const { toast } = useToast();
   const { user } = useAuth();
   const [profileComplete, setProfileComplete] = useState(user?.profileComplete || false);
   const [profileData, setProfileData] = useState<UpdateProfileData>({
-    gender: user?.gender || "",
+    gender: user?.gender || "male",
     sexualPreferences: user?.sexualPreferences || "",
     authorizeLocation: user?.authorizeLocation || false,
     location: user?.location || { latitude: 0, longitude: 0, city: "", country: "" },
     biography: user?.biography || "",
     interests: user?.interests || [],
-    pictures: [],
-    profilePicture: null,
+    pictures: user?.pictures || [],
+    profilePicture: user?.profilePicture || "",
   });
   const { updateProfile } = useAuth();
   const [newTag, setNewTag] = useState("");
@@ -35,9 +37,7 @@ function PreferencesForms() {
       navigator.geolocation.getCurrentPosition(
         (position: GeolocationPosition) => {
           setIsGeolocationEnabled(true);
-          console.log("Latitude: " + position.coords.latitude);
-          console.log("Longitude: " + position.coords.longitude);
-          if (profileData.location.city && profileData.location.country) return;
+          if (profileData.location.city && profileData.location.country) return true;
           fetchCityAndCountryFromCoords(position.coords.latitude, position.coords.longitude);
         },
         (error: GeolocationPositionError) => {
@@ -54,7 +54,7 @@ function PreferencesForms() {
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && newTag.trim() !== "") {
       e.preventDefault();
-      if (profileData.interests && profileData.interests.length >= 5) return;
+      if (profileData.interests && profileData.interests.length >= 5) return true;
 
       const formattedTag = !newTag.startsWith("#") ? `#${newTag.trim()}` : newTag.trim();
 
@@ -75,7 +75,7 @@ function PreferencesForms() {
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, isProfilePic: boolean) => {
     const files = e.target.files;
-    if (!files) return;
+    if (!files) return true;
 
     if (isProfilePic) {
       setProfileData({
@@ -107,8 +107,6 @@ function PreferencesForms() {
       ...prevData,
       authorizeLocation: value,
     }));
-
-
   };
 
   async function fetchCityAndCountryFromCoords(latitude: number, longitude: number): Promise<void> {
@@ -140,7 +138,7 @@ function PreferencesForms() {
   async function getLocationByIP(): Promise<void> {
     try {
       if (profileData.location.longitude && profileData.location.latitude && profileData.location.city && profileData.location.country) {
-        return;
+        return true;
       }
       console.log("Getting approximate location by IP...");
       const response = await fetch("https://ipapi.co/json/");
@@ -174,7 +172,8 @@ function PreferencesForms() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await getLocationByIP();
+    if (handleProfileUpdateError(profileData)) return true;
+
     try {
       await updateProfile(profileData);
     } catch (error) {
@@ -234,7 +233,7 @@ function PreferencesForms() {
               <Label className="text-base font-semibold">Would you like to share your location?</Label>
               <RadioGroup value={String(profileData.authorizeLocation)} onValueChange={(value) => handleLocalisation(value === "true")} className="flex flex-col sm:flex-row gap-3">
                 {[
-                  { label: "Yes", value: "true", disabled: !isGeolocationEnabled},
+                  { label: "Yes", value: "true", disabled: !isGeolocationEnabled },
                   { label: "No", value: "false", disabled: false },
                 ].map((option) => (
                   <div key={option.value} className="flex items-center space-x-2">
@@ -303,13 +302,15 @@ function PreferencesForms() {
               <Label htmlFor="profilePic" className="text-base font-semibold">
                 Profile Picture
               </Label>
-              <Input id="profilePic" name="profilePicture" type="file" accept="image/*" onChange={(e) => handleImageUpload(e, true)} className="text-base" />
+              <Input id="profilePic" name="profilePicture" type="file" onChange={(e) => handleImageUpload(e, true)} className="text-base" />
               {profileData.profilePicture && (
-                <div className="flex items-center gap-2 mt-2">
-                  <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-100">
-                    <img src={URL.createObjectURL(profileData.profilePicture)} alt="Profile preview" className="w-full h-full object-cover" />
-                  </div>
-                  <span className="text-sm">{profileData.profilePicture.name}</span>
+                <div className="aspect-square rounded-md overflow-hidden">
+                  {profileData.profilePicture && profileData.profilePicture instanceof File && (
+                    <img src={URL.createObjectURL(profileData.profilePicture)} alt="Profile" className="w-full h-full object-cover" />
+                  )}
+                  {profileData.profilePicture && typeof profileData.profilePicture === "string" && (
+                    <img src={profileData.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                  )}
                 </div>
               )}
             </div>
@@ -337,7 +338,11 @@ function PreferencesForms() {
                   profileData.pictures.map((pic, index) => (
                     <div key={index} className="relative group">
                       <div className="aspect-square rounded-md overflow-hidden bg-slate-100">
-                        <img src={URL.createObjectURL(pic)} alt={`Additional ${index + 1}`} className="w-full h-full object-cover" />
+                        {typeof pic === "string" ? (
+                          <img src={pic} alt={`Additional ${index + 1}`} className="w-full h-full object-cover" />
+                        ) : (
+                          <img src={URL.createObjectURL(pic)} alt={`Additional ${index + 1}`} className="w-full h-full object-cover" />
+                        )}
                       </div>
                       <Button type="button" onClick={() => handleRemoveImage(index)} variant="destructive" size="sm" className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0">
                         <X className="h-4 w-4" />
@@ -360,3 +365,48 @@ function PreferencesForms() {
 }
 
 export default PreferencesForms;
+function handleProfileUpdateError(profileData: UpdateProfileData) {
+  let description: string | null = null;
+
+  if (!profileData.interests || profileData.interests.length === 0) {
+    description = "Please add at least one interest";
+  }
+
+  if (!profileData.profilePicture) {
+    description = "Please add a profile picture";
+  }
+
+  if (profileData.pictures && profileData.pictures.length === 0) {
+    description = "Please add at least one additional picture";
+  }
+
+  if (!profileData.location.city || !profileData.location.country) {
+    description = "Please authorize location sharing";
+  }
+
+  if (profileData.interests.length > 5) {
+    description = "Maximum 5 interests allowed";
+  }
+
+  if (profileData.pictures && profileData.pictures.length > 4) {
+    description = "Maximum 4 additional pictures allowed";
+  }
+
+  if (profileData.biography.length > 200 || profileData.biography.length < 10) {
+    description = "Biography must be between 10 and 200 characters";
+  }
+
+  if (profileData.interests.some((tag) => tag.length > 20)) {
+    description = "Interests must be less than 20 characters";
+  }
+
+  if (description) {
+    toast({
+      title: "Profile update failed",
+      description: description,
+      variant: "destructive",
+    });
+    return true;
+  }
+  return false;
+}
