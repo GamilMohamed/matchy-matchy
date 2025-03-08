@@ -19,7 +19,7 @@ function PreferencesForms() {
   const { user } = useAuth();
   const [profileComplete, setProfileComplete] = useState(user?.profileComplete || false);
   const [profileData, setProfileData] = useState<UpdateProfileData>({
-    gender: user?.gender || "male",
+    gender: user?.gender || "",
     sexualPreferences: user?.sexualPreferences || "",
     authorizeLocation: user?.authorizeLocation || false,
     location: user?.location || { latitude: 0, longitude: 0, city: "", country: "" },

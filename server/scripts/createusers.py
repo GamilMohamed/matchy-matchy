@@ -1,6 +1,7 @@
 import requests
 import random
 import time
+import json
 
 def mock_users():
     users = []
@@ -54,24 +55,78 @@ def load_user_profiles(users):
             print(f"Skipping profile update for {user['username']} - no token")
             continue
             
+        # Create mock profile data matching the expected structure
         profile = {
-            'gender': random.choice(["male", "female"]),
-            'sexualPreferences': random.choice(["male", "female", "both"]),
-            'biography': 'Biography ' + str(i),
-            'interests': ['interest1', 'interest2'],
-            'profilePicture': 'profilePicture' + str(i),
+            'gender': random.choice(["male", "female", "other"]),
+            'sexualPreferences': random.choice(["men", "women", "both"]),
+            'biography': f'This is the biography for user {i}',
+            'interests': ['coding', 'hiking', 'movies', 'travel'][:random.randint(1, 4)],
+            'authorizeLocation': 'true',
+            'location': {
+                'latitude': 14.5995,
+                'longitude': 120.9842,
+                'country': 'United States',
+                'city': random.choice(['New York', 'San Francisco', 'Chicago', 'Miami', 'Seattle'])
+            },
+            'pictures': []  # Empty array for existing pictures
         }
         
         try:
+            # For profile picture, we'll use a multipart/form-data request
+            # For demo purposes, we're just showing the structure
+            # In a real scenario, you'd need actual image files
+            
+            # Create form data with all the profile info
+            # Create form data with all the profile info
+            form_data = {}
+            
+            # Add basic text fields
+            form_data['gender'] = profile['gender']
+            form_data['sexualPreferences'] = profile['sexualPreferences']
+            form_data['biography'] = profile['biography']
+            form_data['authorizeLocation'] = profile['authorizeLocation']
+            
+            # Location needs to be passed as JSON
+            form_data['location'] = json.dumps(profile['location'])
+            
+            # Pictures need to be passed as JSON
+            form_data['pictures'] = json.dumps([])
+            
+            # Interests need special handling for arrays in form data
+            # In requests, for arrays we need to use the same key multiple times
+            for interest in profile['interests']:
+                form_data['interests[]'] = interest
+            
+            # In a real scenario, you would add actual files like this:
+            files = {
+                'profilePicture': ('profile.jpg', open('profile.jpg', 'rb'), 'image/jpeg'),
+                'pictures[]': ('pic1.jpg', open('pic1.jpg', 'rb'), 'image/jpeg')
+            }
+            
+            # Simulate without actual files for demo
+            print(f"Would send the following data for {user['username']}:")
+            print(json.dumps(form_data, indent=2))
+            
+            # Comment out the actual request since we don't have real files
             res = requests.put(
                 'http://localhost:3000/users/profile', 
                 headers={'Authorization': 'Bearer ' + user['token']},
-                json=profile  # Changed from 'body' to 'json'
+                data=form_data,
+                files=files
             )
+            
+            # Instead, let's make a simplified request without the files
+            # res = requests.put(
+            #     'http://localhost:3000/users/profile', 
+            #     headers={'Authorization': 'Bearer ' + user['token']},
+            #     data=form_data
+            # )
             
             print(f"Profile update for {user['username']}: Status {res.status_code}")
             if res.status_code >= 400:
                 print(f"Profile update response: {res.text[:100]}...")
+            else:
+                print(f"Profile successfully updated for {user['username']}")
         except Exception as e:
             print(f"Error updating profile for {user['username']}: {str(e)}")
 

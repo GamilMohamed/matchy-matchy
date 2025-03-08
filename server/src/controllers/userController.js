@@ -62,30 +62,26 @@ exports.updateUser = async function (req, res) {
       },
     });
 
-    console.log("updateUser", req.body);
     const toUpdate = ({ gender, sexualPreferences, biography, interests } = req.body);
     const files = req.files;
-    console.log("files", files);
     if (files.profilePicture) {
       const dataURI = `data:${files.profilePicture[0].mimetype};base64,${files.profilePicture[0].buffer.toString("base64")}`;
       const cloudinaryreturn = await cloudinary.uploader.upload(dataURI);
       toUpdate.profilePicture = cloudinaryreturn.secure_url;
     }
     
+    toUpdate.pictures = new Set(user.pictures);
     if (files["pictures[]"]) {
-      const pictures = [];
       for (const picture of files["pictures[]"]) {
         const dataURI = `data:${picture.mimetype};base64,${picture.buffer.toString("base64")}`;
         const cloudinaryreturn = await cloudinary.uploader.upload(dataURI);
-        pictures.push(cloudinaryreturn.secure_url);
+        toUpdate.pictures.add(cloudinaryreturn.secure_url);
       }
-      toUpdate.pictures = pictures;
     }
-    console.log("toUpdate AVANT>>>>>>>>>>>>>>>  ", toUpdate.pictures);
 
-    toUpdate.pictures = [...req.body.pictures, ...toUpdate.pictures].slice(0, 4);
-    console.log("req body pictures>>>>>>>>>>>>>>>  ", req.body.pictures);
-    console.log("toUpdate APRES>>>>>>>>>>>>>>>  ", toUpdate.pictures);
+    for (const pic in toUpdate.pictures) {
+      console.log("pic", pic);
+    }
     const updatedUser = await prisma.user.update({
       where: {
         email: req.user.email,
@@ -113,7 +109,9 @@ exports.updateUser = async function (req, res) {
         },
         profileComplete: true,
         profilePicture: toUpdate.profilePicture,
-        pictures: toUpdate.pictures,
+        pictures: {
+          set: Array.from(toUpdate.pictures),
+        },
 
       },
       select: {

@@ -24,11 +24,10 @@ exports.signIn = async (req, res) => {
 
     const payload = {
       email: user.email,
-      id: user.id,
       date: new Date(),
     };
 
-    const jwtExpire = 60 * 60 * 2;
+    const jwtExpire = 60 * 60 * 2; // 2 hours
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: jwtExpire,
     });
@@ -43,11 +42,11 @@ exports.signUp = async (req, res) => {
   try {
     const { email, password, firstname, lastname, username, birthdate } = req.body;
 
-	if (await alreadyInDatabase(email, username)) {
+    if (await alreadyInDatabase(email, username)) {
       return res.status(409).json({ message: "Email or username already in use" });
     }
 
-	const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
     await prisma.user.create({
       data: {
         email,
@@ -55,7 +54,7 @@ exports.signUp = async (req, res) => {
         firstname,
         lastname,
         username,
-		birthDate: new Date(birthdate),
+        birthDate: new Date(birthdate),
       },
     });
 

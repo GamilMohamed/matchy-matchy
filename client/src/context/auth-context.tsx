@@ -143,6 +143,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     });
 
+    console.log("Converted data:", convertedData.getAll("interests[]"));
     await handleRequest(() => axios.put("http://localhost:3000/users/profile", convertedData,
       {
         headers: {
@@ -152,6 +153,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     ), "Profile updated successfully!").then(() => loadUser());
   }
+
   // Logout function
   const logout = () => {
     localStorage.removeItem("token");
