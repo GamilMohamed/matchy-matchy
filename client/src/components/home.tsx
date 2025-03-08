@@ -1,139 +1,66 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import Footer from "./Footer";
 import Nav from "./Nav";
 import { Heart, X, Star, MapPin, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import MenuFilter from "./MenuFilter"; // Import du composant MenuFilter
+import MenuFilter from "./MenuFilter";
+import api from "@/lib/axios";
 
-// Déplacer l'interface UserProfile dans un fichier types.ts serait idéal
-// mais pour l'exemple, je la garde ici
+// Définir l'interface UserProfile pour le typage
 export interface UserProfile {
   id: number;
-  name: string;
-  age: number;
-  location: string;
-  latitude?: number;
-  longitude?: number;
-  bio: string;
+  email: string;
+  firstname: string;
+  lastname?: string;
+  birthDate?: string;
+  age?: number;
+  location?: {
+    latitude?: number;
+    longitude?: number;
+    city?: string;
+    country?: string;  
+  };
+  biography?: string;
+  bio?: string;
   interests: string[];
-  imageUrl: string;
+  pictures?: string[];
+  imageUrl?: string;
+  profilePicture?: string;
   gender: string;
-  sexualPreference: string[];
+  sexualPreferences: string;
   maxDistance?: number;
   ageRange?: { min: number; max: number };
-  // Ajout de propriétés optionnelles pour les filtres actifs de l'interface
   activeFilters?: {
     interests: string[];
   };
 }
 
 const Home: React.FC = () => {
-  // Données initiales de l'utilisateur actuel
-  const navigate = useNavigate(); // Hook pour la navigation
-
-  // Fonction pour gérer le clic sur le profil et rediriger vers la page utilisateur
-  const handleProfileClick = (username: string) => {
-    navigate(`/user/${username}`);
-  };
-
-  const initialUserProfile: UserProfile = {
-    id: 0,
-    name: "You",
-    age: 30,
-    location: "Paris",
-    latitude: 48.8566,
-    longitude: 2.3522,
-    bio: "Looking for meaningful connections",
-    interests: ["Voyage", "Cinéma", "Cuisine", "Art"],
-    imageUrl: "https://placehold.co/400x400/png",
-    gender: "non-binary",
-    sexualPreference: ["male", "female", "non-binary"],
-    maxDistance: 50, // km
-    ageRange: { min: 25, max: 40 },
-    activeFilters: {
-      interests: [], // Intérêts sélectionnés pour le filtrage
-    },
-  };
-
-  // Un seul état pour toutes les données utilisateur et préférences
-  const [userProfile, setUserProfile] = useState<UserProfile>(initialUserProfile);
-
-  // Sample profiles database
-  const allProfiles: UserProfile[] = [
-    {
-      id: 1,
-      name: "Sophie",
-      age: 28,
-      location: "Paris",
-      latitude: 48.8566,
-      longitude: 2.3522,
-      bio: "",
-      interests: ["Voyage", "Photographie", "Cuisine", "Yoga"],
-      imageUrl: "https://placehold.co/400x400/png",
-      gender: "female",
-      sexualPreference: ["male", "non-binary"],
-    },
-    {
-      id: 2,
-      name: "Thomas",
-      age: 32,
-      location: "Lyon",
-      latitude: 45.764,
-      longitude: 4.8357,
-      bio: "Amoureuse de voyages et de photographie, je cherche quelqu'un avec qui explorer le monde et partager de bons petits plats.",
-      interests: ["Sport", "Business", "Randonnée", "Cinéma"],
-      imageUrl: "https://placehold.co/400x400/png",
-      gender: "male",
-      sexualPreference: ["female"],
-    },
-    {
-      id: 3,
-      name: "Emma",
-      age: 26,
-      location: "Bordeaux",
-      latitude: 44.8378,
-      longitude: -0.5792,
-      bio: "Artiste dans l'âme, j'aime peindre et jouer de la musique. À la recherche d'une âme créative.",
-      interests: ["Art", "Musique", "Théâtre", "Lecture"],
-      imageUrl: "https://placehold.co/400x400/png",
-      gender: "female",
-      sexualPreference: ["female", "non-binary"],
-    },
-    {
-      id: 4,
-      name: "Jean",
-      age: 35,
-      location: "Marseille",
-      latitude: 43.2965,
-      longitude: 5.3698,
-      bio: "Passionné de sports nautiques et de cuisine méditerranéenne.",
-      interests: ["Plongée", "Cuisine", "Voile", "Photographie"],
-      imageUrl: "https://placehold.co/400x400/png",
-      gender: "male",
-      sexualPreference: ["male", "non-binary"],
-    },
-    {
-      id: 5,
-      name: "Alex",
-      age: 29,
-      location: "Nice",
-      latitude: 43.7102,
-      longitude: 7.262,
-      bio: "Non-binaire, passionné(e) de technologie et d'arts numériques.",
-      interests: ["Tech", "Art numérique", "Jeux vidéo", "Voyage"],
-      imageUrl: "https://placehold.co/400x400/png",
-      gender: "non-binary",
-      sexualPreference: ["female", "male", "non-binary"],
-    },
-  ];
-
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
   const [direction, setDirection] = useState<"none" | "left" | "right" | "up">("none");
   const [matchedProfiles, setMatchedProfiles] = useState<UserProfile[]>([]);
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
-
-  // Extraction de tous les intérêts uniques pour le menu de filtre
-  const allUniqueInterests = Array.from(new Set(allProfiles.flatMap((p) => p.interests)));
+  const [userProfile, setUserProfile] = useState<UserProfile>({
+    id: 0,
+    email: "",
+    firstname: "You",
+    interests: [],
+    gender: "non-binary",
+    sexualPreferences: "non-binary",
+    maxDistance: 50,
+    ageRange: { min: 25, max: 40 },
+    activeFilters: {
+      interests: [],
+    },
+  });
+  const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
+  
+  // Fonction pour gérer le clic sur le profil et rediriger vers la page utilisateur
+  const handleProfileClick = (username: string) => {
+    navigate(`/user/${username}`);
+  };
 
   // Calculate distance between two points using Haversine formula
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -147,64 +74,144 @@ const Home: React.FC = () => {
 
   // Calculate common interests score (percentage of matched interests)
   const calculateCommonInterestsScore = (profile1: UserProfile, profile2: UserProfile): number => {
+    if (!profile1.interests.length) return 0;
     const commonInterests = profile1.interests.filter((interest) => profile2.interests.includes(interest));
     return (commonInterests.length / profile1.interests.length) * 100;
   };
 
   // Check if two profiles match based on sexual preference
   const checkSexualPreferenceMatch = (profile1: UserProfile, profile2: UserProfile): boolean => {
-    return profile1.sexualPreference.includes(profile2.gender) && profile2.sexualPreference.includes(profile1.gender);
+    if (!profile1.sexualPreferences || !profile2.sexualPreferences || !profile1.gender || !profile2.gender) {
+      return false;
+    }
+    return profile1.sexualPreferences === profile2.gender && profile2.sexualPreferences === profile1.gender;
   };
+
+  const calculateAge = (birthDate: string): number => {
+    const birth = new Date(birthDate);
+    const today = new Date();
+
+    // Extraire l'année, le mois et le jour de la date de naissance
+    const birthYear = birth.getUTCFullYear();
+    const birthMonth = birth.getUTCMonth(); // 0 = Janvier, 11 = Décembre
+    const birthDay = birth.getUTCDate();
+
+    // Extraire l'année, le mois et le jour d'aujourd'hui
+    const todayYear = today.getUTCFullYear();
+    const todayMonth = today.getUTCMonth();
+    const todayDay = today.getUTCDate();
+
+    let age = todayYear - birthYear;
+
+    // Si l'anniversaire n'est pas encore passé cette année, on enlève 1 an
+    if (todayMonth < birthMonth || (todayMonth === birthMonth && todayDay < birthDay)) {
+        age--;
+    }
+
+    return age;
+};
 
   // Apply all matching criteria to generate suggested profiles
   const findMatches = () => {
-    const matches = allProfiles
+    if (!allUsers || !userProfile) {
+      return [];
+    }
+
+    const userAge = calculateAge(userProfile.birthDate || "");
+    console.log("User age:", userAge);
+
+    return allUsers
       .filter((profile) => {
         // Don't include current user in matches
-        if (profile.id === userProfile.id) return false;
+        if (profile.email === userProfile.email) return false;
 
         // Check mutual sexual preference match
         const preferenceMatch = checkSexualPreferenceMatch(userProfile, profile);
         if (!preferenceMatch) return false;
-
         // Check distance if coordinates are available
-        if (userProfile.latitude && userProfile.longitude && profile.latitude && profile.longitude && userProfile.maxDistance) {
-          const distance = calculateDistance(userProfile.latitude, userProfile.longitude, profile.latitude, profile.longitude);
-          if (distance > userProfile.maxDistance) return false;
-        }
+        // if (me.latitude && me.longitude && profile.latitude && profile.longitude && me.maxDistance) {
+        //   const distance = calculateDistance(me.latitude, me.longitude, profile.latitude, profile.longitude);
+        //   if (distance > me.maxDistance) return false;
+        // }
 
         // Check age range
-        if (userProfile.ageRange && (profile.age < userProfile.ageRange.min || profile.age > userProfile.ageRange.max)) return false;
+        const profileAge = calculateAge(profile.birthDate || "");
+        console.log("Profile age:", profileAge);
+        console.log("User age range:", userProfile.ageRange);
+        if (
+          (userProfile.ageRange &&
+              (profileAge < userProfile.ageRange.min || profileAge > userProfile.ageRange.max)) ||
+          (profile.ageRange &&
+              (userAge < profile.ageRange.min || userAge > profile.ageRange.max))
+        )
+        return false;
 
         // Check interest filters if any are selected
-        if (userProfile.activeFilters?.interests.length) {
-          const hasMatchingInterests = profile.interests.some((interest) => userProfile.activeFilters?.interests.includes(interest));
-          if (!hasMatchingInterests) return false;
-        }
+        // if (me.activeFilters?.interests.length) {
+        //   const hasMatchingInterests = profile.interests.some((interest) => 
+        //     me.activeFilters?.interests.includes(interest)
+        //   );
+        //   if (!hasMatchingInterests) return false;
+        // }
 
         return true;
       })
-      .sort((a, b) => {
-        // Sort by common interests score (higher is better)
-        const scoreA = calculateCommonInterestsScore(userProfile, a);
-        const scoreB = calculateCommonInterestsScore(userProfile, b);
-        return scoreB - scoreA;
-      });
-
-    return matches;
+      // .sort((a, b) => {
+      //   // Sort by common interests score (higher is better)
+      //   const scoreA = calculateCommonInterestsScore(me, a);
+      //   const scoreB = calculateCommonInterestsScore(me, b);
+      //   return scoreB - scoreA;
+      // });
   };
 
-  // Update matches when filters change
+  // Fetch users data on component mount
   useEffect(() => {
-    const newMatches = findMatches();
-    setMatchedProfiles(newMatches);
-    setCurrentProfileIndex(0);
-  }, [userProfile]);
+    const fetchUsers = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Récupérer l'utilisateur actuel
+        const meResponse = await api.get("/users/me");
+        const me = meResponse.data as UserProfile;
 
-  // Initialize matches on component mount
-  useEffect(() => {
-    setMatchedProfiles(findMatches());
+        setUserProfile(me);
+  
+        // Récupérer tous les utilisateurs
+        const allUsersResponse = await api.get("/users/all");
+        const allUsersData = allUsersResponse.data as UserProfile[];
+        setAllUsers(allUsersData);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    fetchUsers();
   }, []);
+
+  // Exécuter findMatches après mise à jour des états
+  useEffect(() => {
+    const matches = findMatches();
+    setMatchedProfiles(matches);
+    setCurrentProfileIndex(0);
+    console.log("Updated matched profiles:", matches);
+  }, [userProfile, allUsers]);
+
+  // Update matches when filters change
+  // useEffect(() => {
+  //   const fetchAndUpdateMatches = async () => {
+  //     try {
+  //       const newMatches = findMatches();
+  //       setMatchedProfiles(newMatches);
+  //       setCurrentProfileIndex(0);
+  //     } catch (error) {
+  //       console.error("Error updating matches:", error);
+  //     }
+  //   };
+    
+  //   fetchAndUpdateMatches();
+  // }, [userProfile]);
 
   // Handle swipe actions
   const handleSwipe = (dir: "left" | "right" | "up") => {
@@ -222,7 +229,7 @@ const Home: React.FC = () => {
     }, 300);
   };
 
-  // Fonctions pour les filtres - ces fonctions seront passées au composant MenuFilter
+  // Fonctions pour les filtres
   const handleDistanceChange = (distance: number) => {
     setUserProfile((prev) => ({
       ...prev,
@@ -267,24 +274,26 @@ const Home: React.FC = () => {
 
   // Appliquer tous les filtres
   const handleSubmitFilters = () => {
-    // Mettre à jour l'API ou effectuer d'autres actions au besoin
-    /*
-        JSON {
-          distance: userProfile.gender,
-          age: ageRange: {
-            min: userProfile.ageRange?.min,
-            max: userProfile.ageRange?.max,
-          },
-          interests: userProfile.interests
-        }
-    const json = JSON.stringify(userProfile);
-    */
     console.log("Sending updated user profile to backend:", JSON.stringify(userProfile));
     setIsFilterMenuOpen(false);
   };
 
   // Get current profile
   const currentProfile = matchedProfiles[currentProfileIndex];
+
+  // Extraction de tous les intérêts uniques pour le menu de filtre
+  const allUniqueInterests = Array.from(
+    new Set(matchedProfiles.flatMap((p) => p.interests))
+  );
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <div className="from-pink-50 to-purple-100 flex flex-col items-center justify-center w-screen h-screen">
+        <p>Chargement des profils...</p>
+      </div>
+    );
+  }
 
   // Handle case when no matches are found
   if (matchedProfiles.length === 0) {
@@ -363,27 +372,30 @@ const Home: React.FC = () => {
                 : "translate-x-0 opacity-100"
             }`}>
           {/* Profile image */}
-          <div onClick={() => handleProfileClick(currentProfile.name)} className="relative h-80 w-full">
-            <img src={currentProfile.imageUrl} alt={`Photo de ${currentProfile.name}`} className="h-full w-full object-cover object-center" />
+          <div onClick={() => handleProfileClick(currentProfile.firstname)} className="relative h-80 w-full">
+            <img 
+              src={currentProfile.imageUrl || currentProfile.profilePicture || "https://placehold.co/400x400/png"} 
+              alt={`Photo de ${currentProfile.firstname}`} 
+              className="h-full w-full object-cover object-center" 
+            />
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
               <h2 className="text-2xl font-bold">
-                {currentProfile.name}, {currentProfile.age}
+                {currentProfile.firstname}, {currentProfile.age}
               </h2>
               <p className="flex items-center gap-1">
                 <MapPin size={16} />
-                {currentProfile.location}
-                {userProfile.latitude && userProfile.longitude && currentProfile.latitude && currentProfile.longitude && (
-                  <span className="text-sm ml-1">
-                    ({Math.round(calculateDistance(userProfile.latitude, userProfile.longitude, currentProfile.latitude, currentProfile.longitude))} km)
-                  </span>
-                )}
+                {currentProfile.location?.city || "Emplacement inconnu"}
+                {/* {userProfile.latitude && userProfile.longitude && currentProfile.latitude && currentProfile.longitude && ( */}
+                  {/* // <span className="text-sm ml-1"> */}
+                    {/* ({Math.round(calculateDistance(userProfile.latitude, userProfile.longitude, currentProfile.latitude, currentProfile.longitude))} km) */}
+                  {/* </span> */}
               </p>
             </div>
           </div>
 
           {/* Profile info */}
           <div className="p-4">
-            <p className="mb-3 text-gray-700">{currentProfile.bio}</p>
+            <p className="mb-3 text-gray-700">{currentProfile.biography || currentProfile.bio || ""}</p>
 
             {/* Common interests section */}
             <div className="mb-3">
