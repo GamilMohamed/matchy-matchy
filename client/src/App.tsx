@@ -38,22 +38,22 @@ function App() {
     );
   }
 
-  // if (isAuth && user && !profileCompleted && user.profileComplete === false) {
-  //   return (
-  //     <Router>
-  //       <Routes>
-  //         <Route
-  //           path="*"
-  //           element={
-  //             <main className="flex flex-col items-center justify-center h-screen">
-  //               <PreferencesForms />
-  //             </main>
-  //           }
-  //         />
-  //       </Routes>
-  //     </Router>
-  //   );
-  // }
+  if (isAuth && user && !profileCompleted && user.profileComplete === false) {
+    return (
+      <Router>
+        <Routes>
+          <Route
+            path="*"
+            element={
+              <main className="flex flex-col items-center justify-center h-screen">
+                <PreferencesForms />
+              </main>
+            }
+          />
+        </Routes>
+      </Router>
+    );
+  }
  
 
   return (

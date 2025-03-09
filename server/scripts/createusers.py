@@ -5,6 +5,13 @@ import json
 from datetime import datetime
 from geoloc import get_city_coordinates
 
+def random_picture(sex):
+    """
+    Generate a random picture for the user
+    """
+    sex = "women" if sex == "female" else "men" 
+    return f"https://randomuser.me/api/portraits/{sex}/{random.randint(0, 99)}.jpg"
+
 def mock_users(num_users=10):
     """
     Generate mock users using the RandomUser API
@@ -21,7 +28,10 @@ def mock_users(num_users=10):
                 # Format DOB as YYYY-MM-DD
                 dob_date = datetime.strptime(api_user['dob']['date'], '%Y-%m-%dT%H:%M:%S.%fZ')
                 formatted_dob = dob_date.strftime('%Y-%m-%d')
-                location = get_city_coordinates(api_user['location']['city'], "FR")
+                try:
+                    location = get_city_coordinates(api_user['location']['city'], api_user['location']['country'])
+                except:
+                    print(f"Error fetching coordinates for {api_user['location']['city']}, {api_user['location']['country']}")
                 # Create user object with data from the API
                 user = {
                     'firstname': api_user['name']['first'],
@@ -33,15 +43,16 @@ def mock_users(num_users=10):
                     # Store additional data for profile creation later
                     'gender': api_user['gender'],
                     'location': {
-                        'latitude': location[0],
-                        'longitude': location[1],
+                        'latitude': location[0] or 14.5995,
+                        'longitude': location[1] or 120.9842,
+                        # 'longitude': location[1],
                         # 'latitude': float(api_user['location']['coordinates']['latitude']),
                         # 'longitude': float(api_user['location']['coordinates']['longitude']),
                         'country': api_user['location']['country'],
                         'city': api_user['location']['city']
                     },
                     'picture': api_user['picture']['large'],
-                    'pictures': [api_user['picture']['large'], api_user['picture']['medium'], api_user['picture']['thumbnail']]
+                    'pictures': [random_picture(api_user['gender']) for _ in range(4)]
                 }
                 users.append(user)
                 # print city country and latitude and longitude

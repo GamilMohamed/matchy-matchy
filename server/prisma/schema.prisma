@@ -42,5 +42,7 @@ model User {
   locationId   String?       @unique
   authorizeLocation Boolean @default(false)
   pictures String[]
+  viewed User[] @relation("Views")
+  viewedBy User[] @relation("Views")
 }
 

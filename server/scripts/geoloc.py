@@ -2,7 +2,7 @@ from geopy.geocoders import Nominatim
 
 def get_city_coordinates(city_name, country_code=None):
     # Initialize the geolocator
-    geolocator = Nominatim(user_agent="city_coordinate_finder")
+    geolocator = Nominatim(user_agent="city_coordinate_finderx")
     
     # Build the location query
     query = city_name

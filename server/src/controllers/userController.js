@@ -2,6 +2,35 @@ const prisma = require("../config/database.js");
 const cloudinary = require("../config/cloudinary.js");
 const { validationResult } = require("express-validator");
 
+exports.viewUser = async function (req, res) {
+  const viewer = req.user.email;
+  const viewedUser = req.params.username;
+  console.log("viewer", viewer, "is viewing", viewedUser);
+  if (viewer === viewedUser) {
+    return res.status(400).json({ message: "You cannot view yourself" });
+  }
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { email: viewer },
+      data: {
+        viewed: {
+          connect: { username: viewedUser },
+        },
+      },
+    }),
+    // Add viewer to viewed user's "viewedBy" list
+    prisma.user.update({
+      where: { username: viewedUser },
+      data: {
+        viewedBy: {
+          connect: { email: viewer },
+        },
+      },
+    }),
+  ]);
+  res.status(200).json({ message: "User viewed successfully" });
+};
+
 exports.getMe = async function (req, res) {
   try {
     const user = await prisma.user.findUnique({
@@ -20,6 +49,16 @@ exports.getMe = async function (req, res) {
             longitude: true,
             country: true,
             city: true,
+          },
+        },
+        viewed: {
+          select: {
+            username: true,
+          },
+        },
+        viewedBy: {
+          select: {
+            username: true,
           },
         },
       },
@@ -87,8 +126,7 @@ exports.updateUser = async function (req, res) {
       } catch (error) {
         console.error("Error parsing location JSON:", error);
       }
-    }
-    else {
+    } else {
       locationObject = toUpdate.location;
     }
     console.log("locationObject!!!", locationObject);
@@ -102,8 +140,7 @@ exports.updateUser = async function (req, res) {
     let picturesArray = [];
     try {
       picturesArray = JSON.parse(toUpdate.pictures);
-    }
-    catch (error) {
+    } catch (error) {
       console.error("Error parsing pictures JSON:", error);
     }
     console.log(">>>>>>>>>>>>>picturesArray", picturesArray);

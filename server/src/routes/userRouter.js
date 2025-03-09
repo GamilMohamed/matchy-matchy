@@ -68,5 +68,7 @@ router.put(
   userController.updateUser
 );
 
+router.post("/view/:username", isAuthenticated, userController.viewUser);
+
 
 module.exports = router;
