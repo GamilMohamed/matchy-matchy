@@ -13,6 +13,8 @@ import { toast } from "@/hooks/use-toast";
 
 import ProfileView from "./ProfileView";
 import { useToast } from "@/hooks/use-toast";
+import { Checkbox } from "./ui/checkbox";
+import SexualPreferencesSelector from "./SexualPreferencesSelector";
 
 function PreferencesForms() {
   const { toast } = useToast();
@@ -20,7 +22,7 @@ function PreferencesForms() {
   const [profileComplete, setProfileComplete] = useState(user?.profileComplete || false);
   const [profileData, setProfileData] = useState<UpdateProfileData>({
     gender: user?.gender || "",
-    sexualPreferences: user?.sexualPreferences || "",
+    sexualPreferences: user?.sexualPreferences || [],
     authorizeLocation: user?.authorizeLocation || false,
     location: user?.location || { latitude: 0, longitude: 0, city: "", country: "" },
     biography: user?.biography || "",
@@ -211,7 +213,8 @@ function PreferencesForms() {
             </div>
 
             {/* Sexual Preferences */}
-            <div className="space-y-3">
+                <SexualPreferencesSelector profileData={profileData} setProfileData={setProfileData} />
+            {/* <div className="space-y-3">
               <Label className="text-base font-semibold">Sexual Preferences</Label>
               <RadioGroup
                 value={profileData.sexualPreferences}
@@ -226,7 +229,7 @@ function PreferencesForms() {
                   </div>
                 ))}
               </RadioGroup>
-            </div>
+            </div> */}
 
             {/* Localisation */}
             <div className="space-y-3">

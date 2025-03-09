@@ -13,8 +13,19 @@ const sex: { [key: string]: string } = {
 
 const sexualpreferences: { [key: string]: string } = {
   men: "hommes",
-  women: "lydia et nos futurs enfants",
-  both: "hommes et les femmes",
+  women: "lydia",
+  other: "autres",
+};
+
+const formatSexualPreferences = (preferences: string[]) => {
+  preferences = preferences.sort().reverse();
+  if (preferences.length === 1) {
+    return sexualpreferences[preferences[0]];
+  }
+  if (preferences.length === 2) {
+    return `${sexualpreferences[preferences[0]]} et ${sexualpreferences[preferences[1]]}`;
+  }
+  return "tout le monde";
 };
 
 function ProfileView({ setProfileComplete }: { setProfileComplete: React.Dispatch<React.SetStateAction<boolean>> }) {
@@ -43,7 +54,7 @@ function ProfileView({ setProfileComplete }: { setProfileComplete: React.Dispatc
               {new Date().getFullYear() - new Date(user.birthDate).getFullYear()} ans, {sex[user.gender]}
             </h3>
             <p className="text-muted-foreground">{`${user.location.city}, ${user.location.country}`}</p>
-            <p className="text-sm">Intéressé par les {sexualpreferences[user.sexualPreferences]}</p>
+            <p className="text-sm">Intéressé par {formatSexualPreferences(user.sexualPreferences)}</p>
           </div>
         </div>
         <Separator />

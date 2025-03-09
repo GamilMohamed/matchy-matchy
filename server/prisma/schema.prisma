@@ -30,7 +30,7 @@ model User {
   lastname  String
   password  String
   profileComplete Boolean @default(false)
-  sexualPreferences String @default("both")
+  sexualPreferences String[]
   gender String?
   birthDate DateTime @default(now())
   biography String?

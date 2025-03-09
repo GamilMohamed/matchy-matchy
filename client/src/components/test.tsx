@@ -3,6 +3,7 @@ import { User } from "@/types/auth";
 import { useEffect, useState } from "react";
 import { api } from "@/context/auth-context";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import UserList from "./UsersList";
 
 export default function Test() {
   // wait 15 seconds before rendering the component
@@ -21,6 +22,13 @@ export default function Test() {
         const users = res.data;
         const profilesWithoutMine = users.filter((profile: User) => profile.username !== user?.username);
         setAllProfiles(profilesWithoutMine);
+        const sortUserByGeoLocFromUser = (a: User, b: User) => {
+          const posa = Math.sqrt(Math.pow(a.location.latitude - user?.location.latitude, 2) + Math.pow(a.location.longitude - user?.location.longitude, 2));
+          const posb = Math.sqrt(Math.pow(b.location.latitude - user?.location.latitude, 2) + Math.pow(b.location.longitude - user?.location.longitude, 2));
+          return posa - posb;
+        };
+        setAllProfiles(profilesWithoutMine.sort(sortUserByGeoLocFromUser));
+          
       } catch (err) {
         console.error("Error loading profiles:", err);
       } finally {
@@ -41,72 +49,11 @@ export default function Test() {
 
   return (
     <div className="w-full p-4">
-      <h1 className="text-2xl font-bold mb-4">User Profiles</h1>
-      <Card className="w-1/2 mb-2">
-        <CardHeader>
-          <CardTitle>My Profile</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="text-sm">
-              <span className="font-medium">Username: </span>
-              {user?.username}
-            </div>
-            <div className="text-sm">
-              <span className="font-medium">Email: </span>
-              {user?.email}
-            </div>
-            {user?.firstname && (
-              <div className="text-sm">
-                <span className="font-medium">Name: </span>
-                {user?.firstname}
-              </div>
-            )}
-            {/* Add more fields as needed */}
-            <details className="mt-2">
-              <summary className="cursor-pointer text-sm text-gray-500">View all details</summary>
-              <div className="mt-2 text-xs overflow-auto max-h-48 p-2 bg-x-50 rounded">
-                <pre>{JSON.stringify(user, null, 2)}</pre>
-              </div>
-            </details>
-          </div>
-        </CardContent>
-      </Card>
-
+      <h1 className="text-2xl font-bold mb-4 text-center">User Profiles</h1>
       {allProfiles.length === 0 ? (
         <p>No profiles found.</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {allProfiles.map((profile) => (
-            <Card key={profile.id} className="overflow-hidden">
-              <CardHeader>
-                <CardTitle>{profile.username}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="text-sm">
-                    <span className="font-medium">Email: </span>
-                    {profile.email}
-                  </div>
-                  {profile.firstname && (
-                    <div className="text-sm">
-                      <span className="font-medium">Name: </span>
-                      {profile.firstname}
-                    </div>
-                  )}
-                  {/* Add more fields as needed */}
-
-                  <details className="mt-2">
-                    <summary className="cursor-pointer text-sm text-gray-500">View all details</summary>
-                    <div className="mt-2 text-xs overflow-auto max-h-48 p-2 bg-x-50 rounded">
-                      <pre>{JSON.stringify(profile, null, 2)}</pre>
-                    </div>
-                  </details>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+              <UserList users={allProfiles} />
       )}
     </div>
   );

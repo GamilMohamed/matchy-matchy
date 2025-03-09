@@ -130,6 +130,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         (value as string[]).forEach((interest) => {
           convertedData.append("interests[]", interest);
         });
+      } else if (key === "sexualPreferences" && value) {
+        (value as string[]).forEach((preference) => {
+          convertedData.append("sexualPreferences[]", preference);
+        });
       } else if (key === "location" && value) {
         Object.entries(value as Record<string, string>).forEach(([locKey, locValue]) => {
           convertedData.append(`location[${locKey}]`, locValue);
@@ -144,6 +148,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
     console.log("Converted data:", convertedData.getAll("interests[]"));
+    console.log("Converted data:", convertedData.getAll("sexualPreferences[]"));
     await handleRequest(() => axios.put("http://localhost:3000/users/profile", convertedData,
       {
         headers: {

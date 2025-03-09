@@ -29,7 +29,7 @@ export interface RegisterData extends LoginCredentials {
 
 export interface UpdateProfileData {
   gender: string;
-  sexualPreferences: string;
+  sexualPreferences: string[];
   authorizeLocation: boolean;
   location: {
     latitude: number,
@@ -39,7 +39,7 @@ export interface UpdateProfileData {
   }
   biography: string;
   interests: string[];
-  pictures?: File[] | string[];
+  pictures: File[] | string[];
   profilePicture: string | File | null;
 }
 

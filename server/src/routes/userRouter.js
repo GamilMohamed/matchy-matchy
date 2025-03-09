@@ -55,10 +55,16 @@ router.put(
   isAuthenticated,
   multerError,
   body("gender").isIn(["male", "female", "other"]).notEmpty().withMessage("Gender is required"),
-  body("sexualPreferences").isIn(["men", "women", "both"]).notEmpty().withMessage("Sexual preference is required"),
+  body("sexualPreferences").isArray().notEmpty().withMessage("SexualPreferences are required"),
   body("biography").isString().trim().notEmpty().withMessage("Biography is required"),
   body("authorizeLocation").isBoolean().notEmpty().withMessage("Location authorization is required"),
   body("interests").isArray().notEmpty().withMessage("Interests are required"),
+  // body("location").isObject({
+  //   latitude: { isFloat: true, notEmpty: true },
+  //   longitude: { isFloat: true, notEmpty: true },
+  //   country: { isString: true, notEmpty: true },
+  //   city: { isString: true, notEmpty: true },
+  // }).notEmpty().withMessage("Location is required"),
   userController.updateUser
 );
 

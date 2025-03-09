@@ -40,6 +40,14 @@ exports.getUsers = async function (req, res) {
           .filter((field) => field !== "password" && field !== "updatedAt" && field !== "profileComplete")
           .map((field) => [field, true])
       ),
+      location: {
+        select: {
+          latitude: true,
+          longitude: true,
+          country: true,
+          city: true,
+        },
+      },
     },
     where: {
       profileComplete: true,
@@ -53,7 +61,14 @@ exports.updateUser = async function (req, res) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       console.log("errors", errors);
-      return res.status(400).json({ message: "Invalid Values: " + errors.array().map((error) => error.path).join(", ") });
+      return res.status(400).json({
+        message:
+          "Invalid Values: " +
+          errors
+            .array()
+            .map((error) => error.path)
+            .join(", "),
+      });
     }
 
     const user = await prisma.user.findUnique({
@@ -62,16 +77,38 @@ exports.updateUser = async function (req, res) {
       },
     });
 
-    const toUpdate = ({ gender, sexualPreferences, biography, interests } = req.body);
+    const toUpdate = ({ gender, sexualPreferences, biography, interests, profilePicture, location, pictures } = req.body);
+    console.log("toUpdate", toUpdate.location);
+    let locationObject;
+    if (typeof toUpdate.location === "string") {
+      try {
+        locationObject = JSON.parse(toUpdate.location);
+        console.log("Parsed location object:", locationObject);
+      } catch (error) {
+        console.error("Error parsing location JSON:", error);
+      }
+    }
+    else {
+      locationObject = toUpdate.location;
+    }
+    console.log("locationObject!!!", locationObject);
     const files = req.files;
-    if (files.profilePicture) {
+    if (files && files["profilePicture"]) {
       const dataURI = `data:${files.profilePicture[0].mimetype};base64,${files.profilePicture[0].buffer.toString("base64")}`;
       const cloudinaryreturn = await cloudinary.uploader.upload(dataURI);
       toUpdate.profilePicture = cloudinaryreturn.secure_url;
     }
-    
-    toUpdate.pictures = new Set(user.pictures);
-    if (files["pictures[]"]) {
+
+    let picturesArray = [];
+    try {
+      picturesArray = JSON.parse(toUpdate.pictures);
+    }
+    catch (error) {
+      console.error("Error parsing pictures JSON:", error);
+    }
+    console.log(">>>>>>>>>>>>>picturesArray", picturesArray);
+    toUpdate.pictures = new Set(picturesArray);
+    if (files && files["pictures[]"]) {
       for (const picture of files["pictures[]"]) {
         const dataURI = `data:${picture.mimetype};base64,${picture.buffer.toString("base64")}`;
         const cloudinaryreturn = await cloudinary.uploader.upload(dataURI);
@@ -93,17 +130,17 @@ exports.updateUser = async function (req, res) {
           // Use upsert to either update existing location or create a new one
           upsert: {
             create: {
-              latitude: Number(req.body.location.latitude),
-              longitude: Number(req.body.location.longitude),
-              country: req.body.location.country,
-              city: req.body.location.city,
+              latitude: Number(locationObject.latitude) || locationObject["latitude"],
+              longitude: Number(locationObject.longitude) || locationObject["longitude"],
+              country: locationObject["country"] || "putain",
+              city: locationObject["city"] || "aller la",
             },
             // This updates the existing location if it exists
             update: {
-              latitude: Number(req.body.location.latitude),
-              longitude: Number(req.body.location.longitude),
-              country: req.body.location.country,
-              city: req.body.location.city,
+              latitude: Number(locationObject.latitude) || locationObject["latitude"],
+              longitude: Number(locationObject.longitude) || locationObject["longitude"],
+              country: locationObject["country"] || "putain",
+              city: locationObject["city"] || "aller la",
             },
           },
         },
@@ -112,15 +149,14 @@ exports.updateUser = async function (req, res) {
         pictures: {
           set: Array.from(toUpdate.pictures),
         },
-
       },
-      select: {
-        ...Object.fromEntries(
-          Object.keys(prisma.user.fields)
-            .filter((field) => field !== "password" && field !== "updatedAt")
-            .map((field) => [field, true])
-        ),
-      },
+      // select: {
+      //   ...Object.fromEntries(
+      //     Object.keys(prisma.user.fields)
+      //       .filter((field) => field !== "password" && field !== "updatedAt")
+      //       .map((field) => [field, true])
+      //   ),
+      // },
     });
     res.status(200).json(updatedUser);
   } catch (e) {
