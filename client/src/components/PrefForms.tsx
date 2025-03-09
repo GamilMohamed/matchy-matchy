@@ -22,13 +22,13 @@ function PreferencesForms() {
   const [profileComplete, setProfileComplete] = useState(user?.profileComplete || false);
   const [profileData, setProfileData] = useState<UpdateProfileData>({
     gender: user?.gender || "male",
-    sexualPreferences: user?.sexualPreferences?.length > 0 ?  user?.sexualPreferences: ["women", "other"],
-    authorizeLocation: user?.authorizeLocation || false,
+    sexual_preferences: user?.sexual_preferences?.length > 0 ?  user?.sexual_preferences: ["women", "other"],
+    authorize_location: user?.authorize_location || false,
     location: user?.location || { latitude: 0, longitude: 0, city: "", country: "" },
     biography: user?.biography || "Pitié pour moi, je suis un(e) flemmard(e) et je n'ai pas écrit de biographie. 😅",
     interests: user?.interests?.length > 0 ? user?.interests : ["#coding", "#gaming", "#music"],
     pictures: user?.pictures.length > 0 ? user?.pictures : ["https://randomuser.me/api/portraits/men/4.jpg", "https://randomuser.me/api/portraits/men/3.jpg", "https://randomuser.me/api/portraits/men/4.jpg"],
-    profilePicture: user?.profilePicture || "https://randomuser.me/api/portraits/men/1.jpg",
+    profile_picture: user?.profile_picture || "https://randomuser.me/api/portraits/men/1.jpg",
   });
   const { updateProfile } = useAuth();
   console.log(">>>>>profileData", profileData);
@@ -84,7 +84,7 @@ function PreferencesForms() {
     if (isProfilePic) {
       setProfileData({
         ...profileData,
-        profilePicture: files[0],
+        profile_picture: files[0],
       });
     } else {
       if (profileData.pictures && profileData.pictures.length + files.length <= 4) {
@@ -109,7 +109,7 @@ function PreferencesForms() {
     // Update the form state with the new value
     setProfileData((prevData) => ({
       ...prevData,
-      authorizeLocation: value,
+      authorize_location: value,
     }));
   };
 
@@ -219,8 +219,8 @@ function PreferencesForms() {
             {/* <div className="space-y-3">
               <Label className="text-base font-semibold">Sexual Preferences</Label>
               <RadioGroup
-                value={profileData.sexualPreferences}
-                onValueChange={(value) => setProfileData({ ...profileData, sexualPreferences: value })}
+                value={profileData.sexual_preferences}
+                onValueChange={(value) => setProfileData({ ...profileData, sexual_preferences: value })}
                 className="flex flex-col sm:flex-row gap-3">
                 {["men", "women", "both"].map((option) => (
                   <div key={option} className="flex items-center space-x-2">
@@ -236,7 +236,7 @@ function PreferencesForms() {
             {/* Localisation */}
             <div className="space-y-3">
               <Label className="text-base font-semibold">Would you like to share your location?</Label>
-              <RadioGroup value={String(profileData.authorizeLocation)} onValueChange={(value) => handleLocalisation(value === "true")} className="flex flex-col sm:flex-row gap-3">
+              <RadioGroup value={String(profileData.authorize_location)} onValueChange={(value) => handleLocalisation(value === "true")} className="flex flex-col sm:flex-row gap-3">
                 {[
                   { label: "Yes", value: "true", disabled: !isGeolocationEnabled },
                   { label: "No", value: "false", disabled: false },
@@ -307,14 +307,14 @@ function PreferencesForms() {
               <Label htmlFor="profilePic" className="text-base font-semibold">
                 Profile Picture
               </Label>
-              <Input id="profilePic" name="profilePicture" type="file" onChange={(e) => handleImageUpload(e, true)} className="text-base" />
-              {profileData.profilePicture && (
+              <Input id="profilePic" name="profile_picture" type="file" onChange={(e) => handleImageUpload(e, true)} className="text-base" />
+              {profileData.profile_picture && (
                 <div className="aspect-square rounded-md overflow-hidden">
-                  {profileData.profilePicture && profileData.profilePicture instanceof File && (
-                    <img src={URL.createObjectURL(profileData.profilePicture)} alt="Profile" className="w-full h-full object-cover" />
+                  {profileData.profile_picture && profileData.profile_picture instanceof File && (
+                    <img src={URL.createObjectURL(profileData.profile_picture)} alt="Profile" className="w-full h-full object-cover" />
                   )}
-                  {profileData.profilePicture && typeof profileData.profilePicture === "string" && (
-                    <img src={profileData.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                  {profileData.profile_picture && typeof profileData.profile_picture === "string" && (
+                    <img src={profileData.profile_picture} alt="Profile" className="w-full h-full object-cover" />
                   )}
                 </div>
               )}
@@ -377,7 +377,7 @@ function handleProfileUpdateError(profileData: UpdateProfileData) {
     description = "Please add at least one interest";
   }
 
-  if (!profileData.profilePicture) {
+  if (!profileData.profile_picture) {
     description = "Please add a profile picture";
   }
 

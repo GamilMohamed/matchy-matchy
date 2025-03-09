@@ -124,15 +124,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateProfile = async (userData: UpdateProfileData) => {
     const convertedData = new FormData();
     Object.entries(userData).forEach(([key, value]) => {
-      if (key === "profilePicture" && value instanceof File) {
+      if (key === "profile_picture" && value instanceof File) {
         convertedData.append(key, value as File);
       } else if (key === "interests" && value) {
         (value as string[]).forEach((interest) => {
           convertedData.append("interests[]", interest);
         });
-      } else if (key === "sexualPreferences" && value) {
+      } else if (key === "sexual_preferences" && value) {
         (value as string[]).forEach((preference) => {
-          convertedData.append("sexualPreferences[]", preference);
+          convertedData.append("sexual_preferences[]", preference);
         });
       } else if (key === "location" && value) {
         Object.entries(value as Record<string, string>).forEach(([locKey, locValue]) => {
@@ -148,7 +148,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
     console.log("Converted data:", convertedData.getAll("interests[]"));
-    console.log("Converted data:", convertedData.getAll("sexualPreferences[]"));
+    console.log("Converted data:", convertedData.getAll("sexual_preferences[]"));
     await handleRequest(() => axios.put("http://localhost:3000/users/profile", convertedData,
       {
         headers: {

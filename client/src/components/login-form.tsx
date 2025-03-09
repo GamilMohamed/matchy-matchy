@@ -18,7 +18,7 @@ const LoginForm = () => {
     firstname: "moh",
     lastname: "gam",
     password: "123",
-    birthdate: new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split("T")[0],
+    birth_date: new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split("T")[0],
   });
   const [birthdateError, setBirthdateError] = useState("");
 
@@ -29,19 +29,19 @@ const LoginForm = () => {
     });
 
     // Vérifier l'âge lorsque la date de naissance change
-    if (e.target.name === "birthdate") {
+    if (e.target.name === "birth_date") {
       validateAge(e.target.value);
     }
   };
 
-  const validateAge = (birthdate: string) => {
-    if (!birthdate) {
+  const validateAge = (birth_date: string) => {
+    if (!birth_date) {
       setBirthdateError("La date de naissance est requise");
       return false;
     }
 
     const today = new Date();
-    const birthdateDate = new Date(birthdate);
+    const birthdateDate = new Date(birth_date);
     const age = today.getFullYear() - birthdateDate.getFullYear();
     const monthDiff = today.getMonth() - birthdateDate.getMonth();
 
@@ -68,7 +68,7 @@ const LoginForm = () => {
     e.preventDefault();
 
     // Valider l'âge avant de soumettre
-    if (!validateAge(formData.birthdate)) {
+    if (!validateAge(formData.birth_date)) {
       toast({
         title: "Erreur",
         description: "Vous devez avoir au moins 18 ans pour vous inscrire.",
@@ -83,7 +83,7 @@ const LoginForm = () => {
       firstname: formData.firstname,
       lastname: formData.lastname,
       username: formData.username,
-      birthdate: formData.birthdate,
+      birth_date: formData.birth_date,
     } as RegisterData);
     await login(formData.email, formData.password);
     setIsSignupOpen(false);
@@ -149,13 +149,13 @@ const LoginForm = () => {
                     <Input id="lastname" name="lastname" type="text" required value={formData.lastname} onChange={handleInputChange} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="birthdate">Date de naissance</Label>
+                    <Label htmlFor="birth_date">Date de naissance</Label>
                     <Input
-                      id="birthdate"
-                      name="birthdate"
+                      id="birth_date"
+                      name="birth_date"
                       type="date"
                       required
-                      value={formData.birthdate}
+                      value={formData.birth_date}
                       onChange={handleInputChange}
                       max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split("T")[0]}
                       className="[&::-webkit-calendar-picker-indicator]:bg-white [&::-webkit-calendar-picker-indicator]:p-1 [&::-webkit-calendar-picker-indicator]:rounded"

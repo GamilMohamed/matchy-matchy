@@ -1,11 +1,19 @@
-const prisma = require("../config/database.js");
+// const { Pool } = require('pg');
 const cloudinary = require("../config/cloudinary.js");
 const { validationResult } = require("express-validator");
+const pool = require("../config/database"); // Use the exported pool
+
+// Create a new PostgreSQL connection pool
+// const pool = new Pool({
+//   connectionString: process.env.DATABASE_URL
+// });
 
 /**
  * Record when a user views another user's profile
  */
 exports.viewUser = async function (req, res) {
+  const client = await pool.connect();
+  
   try {
     const viewer = req.user.username;
     const viewedUser = req.params.username;
@@ -14,29 +22,49 @@ exports.viewUser = async function (req, res) {
       return res.status(400).json({ message: "You cannot view yourself" });
     }
     
-    await prisma.$transaction([
-      prisma.user.update({
-        where: { username: viewer },
-        data: {
-          viewed: {
-            connect: { username: viewedUser },
-          },
-        },
-      }),
-      prisma.user.update({
-        where: { username: viewedUser },
-        data: {
-          viewedBy: {
-            connect: { username: viewer },
-          },
-        },
-      }),
-    ]);
+    // Start transaction
+    await client.query('BEGIN');
+    
+    // Check if both users exist
+    const userExistsQuery = `
+      SELECT username FROM "User" 
+      WHERE username IN ($1, $2)
+    `;
+    const usersResult = await client.query(userExistsQuery, [viewer, viewedUser]);
+    
+    if (usersResult.rowCount !== 2) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ message: "One or both users not found" });
+    }
+    
+    // Check if the view relationship already exists to avoid duplicates
+    const viewExistsQuery = `
+      SELECT * FROM "_Views" 
+      WHERE "A" = $1 AND "B" = $2
+    `;
+    const viewExists = await client.query(viewExistsQuery, [viewer, viewedUser]);
+    
+    // If relationship doesn't exist, create it
+    if (viewExists.rowCount === 0) {
+      const createViewQuery = `
+        INSERT INTO "_Views" ("A", "B")
+        VALUES ($1, $2)
+      `;
+      await client.query(createViewQuery, [viewer, viewedUser]);
+    }
+    
+    // Commit transaction
+    await client.query('COMMIT');
     
     return res.status(200).json({ message: "User viewed successfully" });
   } catch (error) {
+    // Rollback in case of error
+    await client.query('ROLLBACK');
     console.error("Error in viewUser:", error);
     return res.status(500).json({ message: "Failed to record user view" });
+  } finally {
+    // Release the client back to the pool
+    client.release();
   }
 };
 
@@ -44,48 +72,88 @@ exports.viewUser = async function (req, res) {
  * Get the current user's profile information
  */
 exports.getMe = async function (req, res) {
+  const client = await pool.connect();
+  
   try {
-    // Get all user fields except password and updatedAt
-    const userFields = Object.keys(prisma.user.fields)
-      .filter(field => field !== "password" && field !== "updatedAt")
-      .reduce((obj, field) => ({ ...obj, [field]: true }), {});
-
-    const user = await prisma.user.findUnique({
-      where: {
-        username: req.user.username,
-      },
-      select: {
-        ...userFields,
-        location: {
-          select: {
-            latitude: true,
-            longitude: true,
-            country: true,
-            city: true,
-          },
-        },
-        pictures: true,
-        viewed: {
-          select: {
-            username: true,
-          },
-        },
-        viewedBy: {
-          select: {
-            username: true,
-          },
-        },
-      },
-    });
+    const username = req.user.username;
+    console.log("user in getme", req.user);
     
-    if (!user) {
+    // Get user data
+    const userQuery = `
+      SELECT 
+        u.username, u.email, u.firstname, u.lastname, 
+        u."profile_complete" AS "profile_complete", 
+        u."sexual_preferences" AS "sexual_preferences", 
+        u.gender, u."birth_date" AS "birth_date", 
+        u.biography, u."profile_picture" AS "profile_picture", 
+        u."created_at" AS "created_at", u.interests, 
+        u."authorize_location" AS "authorize_location", 
+        u.pictures,
+        l.id AS "location_id", l.latitude, l.longitude, 
+        l.city, l.country
+      FROM "User" u
+      LEFT JOIN "Location" l ON u."location_id" = l.id
+      WHERE u.username = $1
+    `;
+    
+    const userResult = await client.query(userQuery, [username]);
+    
+    if (userResult.rowCount === 0) {
       return res.status(404).json({ message: "User not found" });
     }
     
-    return res.status(200).json(user);
+    // Get viewed users
+    const viewedQuery = `
+      SELECT u.username
+      FROM "User" u
+      JOIN "_Views" v ON u.username = v."B"
+      WHERE v."A" = $1
+    `;
+    
+    const viewedResult = await client.query(viewedQuery, [username]);
+    
+    // Get users who viewed this user
+    const viewed_byQuery = `
+      SELECT u.username
+      FROM "User" u
+      JOIN "_Views" v ON u.username = v."A"
+      WHERE v."B" = $1
+    `;
+    
+    const viewed_byResult = await client.query(viewed_byQuery, [username]);
+    
+    // Format user data
+    const userData = userResult.rows[0];
+    
+    // Format location data
+    const location = userData.location_id ? {
+      latitude: userData.latitude,
+      longitude: userData.longitude,
+      country: userData.country,
+      city: userData.city
+    } : null;
+    
+    // Remove location fields from user object
+    delete userData.latitude;
+    delete userData.longitude;
+    delete userData.country;
+    delete userData.city;
+    
+    // Format viewed and viewed_by arrays
+    const viewed = viewedResult.rows.map(row => ({ username: row.username }));
+    const viewed_by = viewed_byResult.rows.map(row => ({ username: row.username }));
+    
+    return res.status(200).json({
+      ...userData,
+      location,
+      viewed,
+      viewed_by
+    });
   } catch (error) {
     console.error("Error in getMe:", error);
     return res.status(500).json({ message: "Failed to retrieve user profile" });
+  } finally {
+    client.release();
   }
 };
 
@@ -93,33 +161,55 @@ exports.getMe = async function (req, res) {
  * Get all users with completed profiles
  */
 exports.getUsers = async function (req, res) {
+  const client = await pool.connect();
+  
   try {
-    // Get all user fields except password, updatedAt and profileComplete
-    const userFields = Object.keys(prisma.user.fields)
-      .filter(field => !["password", "updatedAt", "profileComplete"].includes(field))
-      .reduce((obj, field) => ({ ...obj, [field]: true }), {});
-
-    const users = await prisma.user.findMany({
-      select: {
-        ...userFields,
-        location: {
-          select: {
-            latitude: true,
-            longitude: true,
-            country: true,
-            city: true,
-          },
-        },
-      },
-      where: {
-        profileComplete: true,
-      },
+    const usersQuery = `
+      SELECT 
+        u.username, u.email, u.firstname, u.lastname, 
+        u.sexual_preferences AS "sexual_preferences", 
+        u.gender, u.birth_date AS "birth_date", 
+        u.biography, u.profile_picture AS "profile_picture", 
+        u.created_at AS "created_at", u.interests, 
+        u.authorize_location AS "authorize_location", 
+        u.pictures,
+        l.id AS "location_id", l.latitude, l.longitude, 
+        l.city, l.country
+      FROM "User" u
+      LEFT JOIN "Location" l ON u.location_id = l.id
+      WHERE u.profile_complete = true
+    `;
+    
+    const usersResult = await client.query(usersQuery);
+    
+    // Format user data
+    const users = usersResult.rows.map(user => {
+      // Format location data
+      const location = user.location_id ? {
+        latitude: user.latitude,
+        longitude: user.longitude,
+        country: user.country,
+        city: user.city
+      } : null;
+      
+      // Remove location fields from user object
+      delete user.latitude;
+      delete user.longitude;
+      delete user.country;
+      delete user.city;
+      
+      return {
+        ...user,
+        location
+      };
     });
     
     return res.status(200).json(users);
   } catch (error) {
     console.error("Error in getUsers:", error);
     return res.status(500).json({ message: "Failed to retrieve users" });
+  } finally {
+    client.release();
   }
 };
 
@@ -127,6 +217,8 @@ exports.getUsers = async function (req, res) {
  * Update the current user's profile
  */
 exports.updateUser = async function (req, res) {
+  const client = await pool.connect();
+  
   try {
     // Validate request
     const errors = validationResult(req);
@@ -137,9 +229,9 @@ exports.updateUser = async function (req, res) {
     }
 
     // Extract data from request
-    const { gender, sexualPreferences, biography, interests } = req.body;
+    const { gender, sexual_preferences, biography, interests } = req.body;
     let { location, pictures } = req.body;
-    let profilePicture = req.body.profilePicture;
+    let profile_picture = req.body.profile_picture;
     const files = req.files;
     
     // Process location data
@@ -156,10 +248,10 @@ exports.updateUser = async function (req, res) {
     }
 
     // Process profile picture
-    if (files && files["profilePicture"]) {
-      const dataURI = `data:${files.profilePicture[0].mimetype};base64,${files.profilePicture[0].buffer.toString("base64")}`;
+    if (files && files["profile_picture"]) {
+      const dataURI = `data:${files.profile_picture[0].mimetype};base64,${files.profile_picture[0].buffer.toString("base64")}`;
       const cloudinaryResult = await cloudinary.uploader.upload(dataURI);
-      profilePicture = cloudinaryResult.secure_url;
+      profile_picture = cloudinaryResult.secure_url;
     }
 
     // Process pictures
@@ -186,45 +278,158 @@ exports.updateUser = async function (req, res) {
         picturesSet.add(cloudinaryResult.secure_url);
       }
     }
-
+    
+    // Start transaction
+    await client.query('BEGIN');
+    
+    const username = req.user.username;
+    
+    // Check if user has a location
+    const locationQuery = `
+      SELECT "location_id" 
+      FROM "User" 
+      WHERE username = $1
+    `;
+    
+    const locationResult = await client.query(locationQuery, [username]);
+    const existinglocation_id = locationResult.rows[0]?.location_id;
+    
+    let location_id = existinglocation_id;
+    
+    // Handle location update or creation
+    if (locationData.latitude && locationData.longitude) {
+      if (existinglocation_id) {
+        // Update existing location
+        const updateLocationQuery = `
+          UPDATE "Location"
+          SET 
+            latitude = $1,
+            longitude = $2,
+            city = $3,
+            country = $4
+          WHERE id = $5
+          RETURNING id
+        `;
+        
+        const updateLocationResult = await client.query(
+          updateLocationQuery, 
+          [
+            Number(locationData.latitude),
+            Number(locationData.longitude),
+            locationData.city,
+            locationData.country,
+            existinglocation_id
+          ]
+        );
+        
+        location_id = updateLocationResult.rows[0].id;
+      } else {
+        // Create new location
+        const createLocationQuery = `
+          INSERT INTO "Location" (id, latitude, longitude, city, country)
+          VALUES (gen_random_uuid(), $1, $2, $3, $4)
+          RETURNING id
+        `;
+        
+        const createLocationResult = await client.query(
+          createLocationQuery, 
+          [
+            Number(locationData.latitude),
+            Number(locationData.longitude),
+            locationData.city,
+            locationData.country
+          ]
+        );
+        
+        location_id = createLocationResult.rows[0].id;
+      }
+    }
+    
     // Update user profile
-    const updatedUser = await prisma.user.update({
-      where: {
-        username: req.user.username,
-      },
-      data: {
+    const updateUserQuery = `
+      UPDATE "User"
+      SET 
+        gender = $1,
+        sexual_preferences = $2,
+        biography = $3,
+        interests = $4,
+        profile_picture = $5,
+        authorize_location = $6,
+        location_id = $7,
+        profile_complete = true,
+        pictures = $8,
+        updated_at = NOW()
+      WHERE username = $9
+      RETURNING *
+    `;
+    
+    const updateUserResult = await client.query(
+      updateUserQuery, 
+      [
         gender,
-        sexualPreferences,
+        sexual_preferences,
         biography,
         interests,
-        profilePicture,
-        authorizeLocation: req.body.authorizeLocation === "true",
-        location: {
-          upsert: {
-            create: {
-              latitude: Number(locationData.latitude),
-              longitude: Number(locationData.longitude),
-              country: locationData.country,
-              city: locationData.city,
-            },
-            update: {
-              latitude: Number(locationData.latitude),
-              longitude: Number(locationData.longitude),
-              country: locationData.country,
-              city: locationData.city,
-            },
-          },
-        },
-        profileComplete: true,
-        pictures: {
-          set: Array.from(picturesSet),
-        },
-      },
-    });
+        profile_picture,
+        req.body.authorize_location === "true",
+        location_id,
+        Array.from(picturesSet),
+        username
+      ]
+    );
     
-    return res.status(200).json(updatedUser);
+    // Get updated location data
+    const updatedLocationQuery = `
+      SELECT *
+      FROM "Location"
+      WHERE id = $1
+    `;
+    
+    const updatedLocationResult = await client.query(updatedLocationQuery, [location_id]);
+    
+    // Commit transaction
+    await client.query('COMMIT');
+    
+    // Format user data for response
+    const updatedUser = updateUserResult.rows[0];
+    
+    // Convert snake_case to camelCase for response
+    const formattedUser = {
+      username: updatedUser.username,
+      email: updatedUser.email,
+      firstname: updatedUser.firstname,
+      lastname: updatedUser.lastname,
+      profile_complete: updatedUser.profile_complete,
+      sexual_preferences: updatedUser.sexual_preferences,
+      gender: updatedUser.gender,
+      birth_date: updatedUser.birth_date,
+      biography: updatedUser.biography,
+      profile_picture: updatedUser.profile_picture,
+      created_at: updatedUser.created_at,
+      updated_at: updatedUser.updated_at,
+      interests: updatedUser.interests,
+      authorize_location: updatedUser.authorize_location,
+      pictures: updatedUser.pictures
+    };
+    
+    // Add location data if it exists
+    if (location_id && updatedLocationResult.rowCount > 0) {
+      const locationData = updatedLocationResult.rows[0];
+      formattedUser.location = {
+        latitude: locationData.latitude,
+        longitude: locationData.longitude,
+        city: locationData.city,
+        country: locationData.country
+      };
+    }
+    
+    return res.status(200).json(formattedUser);
   } catch (error) {
+    // Rollback in case of error
+    await client.query('ROLLBACK');
     console.error("Error in updateUser:", error);
     return res.status(500).json({ message: "Failed to update user profile" });
+  } finally {
+    client.release();
   }
 };

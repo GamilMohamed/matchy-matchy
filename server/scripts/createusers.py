@@ -1,5 +1,6 @@
 import requests
 import random
+import sys
 import time
 import json
 from datetime import datetime
@@ -39,7 +40,7 @@ def mock_users(num_users=10):
                     'username': api_user['login']['username'],
                     'email': api_user['email'],
                     'password': api_user['login']['password'],
-                    'birthdate': formatted_dob,
+                    'birth_date': formatted_dob,
                     # Store additional data for profile creation later
                     'gender': api_user['gender'],
                     'location': {
@@ -79,7 +80,7 @@ def _generate_fallback_users(num_users):
             'username': f'username{i}',
             'email': f'user{i}@gmail.com',
             'password': f'password{i}',
-            'birthdate': '2000-01-01',
+            'birth_date': '2000-01-01',
             'gender': random.choice(['male', 'female', 'other']),
             'location': {
                 'latitude': random.uniform(-90, 90),
@@ -138,10 +139,10 @@ def load_user_profiles(users):
         
         profile = {
             'gender': user.get('gender', random.choice(["male", "female", "other"])),
-            'sexualPreferences': random.sample(['men', 'women', 'other'], random.randint(1, 3)), 
+            'sexual_preferences': random.sample(['men', 'women', 'other'], random.randint(1, 3)), 
             'biography': f"Hi, I'm {user.get('firstname')} from {user.get('location', {}).get('city', 'somewhere beautiful')}. I enjoy exploring new places and meeting interesting people.",
             'interests': random.sample(interests, random.randint(2, 5)),
-            'authorizeLocation': 'true',
+            'authorize_location': 'true',
             'location': user.get('location', {
                 'latitude': 14.5995,
                 'longitude': 120.9842,
@@ -149,7 +150,7 @@ def load_user_profiles(users):
                 'city': 'New York'
             }),
             'pictures': user.get('pictures', ["https://res.cloudinary.com/dch3nkbyj/image/upload/v1741483066/qxffjosexo4ratee4toq.jpg"]),
-            'profilePicture': user.get('picture', "https://res.cloudinary.com/dch3nkbyj/image/upload/v1741483066/qxffjosexo4ratee4toq.jpg")
+            'profile_picture': user.get('picture', "https://res.cloudinary.com/dch3nkbyj/image/upload/v1741483066/qxffjosexo4ratee4toq.jpg")
         }
         
         try:
@@ -159,18 +160,18 @@ def load_user_profiles(users):
             # Add basic text fields
             form_data['gender'] = profile['gender']
             form_data['biography'] = profile['biography']
-            form_data['authorizeLocation'] = profile['authorizeLocation']
+            form_data['authorize_location'] = profile['authorize_location']
             
             # Location needs to be passed as JSON
             form_data['location'] = json.dumps(profile['location'])
             
             # Pictures need to be passed as JSON
             form_data['pictures'] = json.dumps(profile['pictures'])
-            form_data['profilePicture'] = profile['profilePicture']
+            form_data['profile_picture'] = profile['profile_picture']
             
             # Handle arrays in form data
-            for pref in profile['sexualPreferences']:
-                form_data.setdefault('sexualPreferences[]', []).append(pref)
+            for pref in profile['sexual_preferences']:
+                form_data.setdefault('sexual_preferences[]', []).append(pref)
                 
             for interest in profile['interests']:
                 form_data.setdefault('interests[]', []).append(interest)
@@ -195,8 +196,12 @@ def mock_data():
     pass
 
 def main():
+    # if arg[1] == 'default' or 'd': run default
+    if len(sys.argv) > 1 and sys.argv[1] in ['default', 'd']:
+        users = _generate_fallback_users(10)
+    else:
+        users = mock_users(10)
     # Generate users with RandomUser API
-    users = mock_users(10)
     # Register them with the application
     signup_users(users)
     # Sign them in to get tokens

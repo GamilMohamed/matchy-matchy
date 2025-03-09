@@ -10,7 +10,7 @@ const upload = multer({
   storage: storage,
   limits: { fileSize: 1 * 1024 * 1024 } // 5MB file size limit
 }).fields([
-  { name: 'profilePicture', maxCount: 1 },
+  { name: 'profile_picture', maxCount: 1 },
   { name: 'pictures[]', maxCount: 5 }
 ]);
 
@@ -55,9 +55,9 @@ router.put(
   isAuthenticated,
   multerError,
   body("gender").isIn(["male", "female", "other"]).notEmpty().withMessage("Gender is required"),
-  body("sexualPreferences").isArray().notEmpty().withMessage("SexualPreferences are required"),
+  body("sexual_preferences").isArray().notEmpty().withMessage("sexual_preferences are required"),
   body("biography").isString().trim().notEmpty().withMessage("Biography is required"),
-  body("authorizeLocation").isBoolean().notEmpty().withMessage("Location authorization is required"),
+  body("authorize_location").isBoolean().notEmpty().withMessage("Location authorization is required"),
   body("interests").isArray().notEmpty().withMessage("Interests are required"),
   // body("location").isObject({
   //   latitude: { isFloat: true, notEmpty: true },

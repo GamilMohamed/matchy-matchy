@@ -66,7 +66,7 @@ const UserCardCarousel = ({ sampleUsers }: { sampleUsers: User[] }) => {
          
          `}>
           <div className="relative">
-            <img src={currentUser.profilePicture} alt={currentUser.firstname} className="w-full h-96 object-cover" />
+            <img src={currentUser.profile_picture} alt={currentUser.firstname} className="w-full h-96 object-cover" />
 
             {/* Action indicator overlay */}
             {actionPerformed && (

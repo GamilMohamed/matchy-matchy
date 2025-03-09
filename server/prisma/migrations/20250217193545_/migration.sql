@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE "User" ADD COLUMN     "profileComplete" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "User" ADD COLUMN     "profile_complete" BOOLEAN NOT NULL DEFAULT false;

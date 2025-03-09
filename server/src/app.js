@@ -8,6 +8,7 @@ var indexRouter = require('./routes/indexRouter');
 var usersRouter = require('./routes/userRouter');
 var authRouter = require('./routes/authRouter');
 var cors = require('cors')
+require("dotenv").config();
 
 var app = express();
 app.use(cors())

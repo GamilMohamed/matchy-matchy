@@ -3,7 +3,7 @@ export interface User  extends UpdateProfileData {
   email: string;
   firstname: string;
   lastname: string;
-  birthDate: string;
+  birth_date: string;
   createdAt: string;
   profileComplete: boolean;
   username: string;
@@ -23,14 +23,14 @@ export interface RegisterData extends LoginCredentials {
   firstname: string;
   username: string;
   lastname: string;
-  birthdate: string;
+  birth_date: string;
   password: string;
 }
 
 export interface UpdateProfileData {
   gender: string;
-  sexualPreferences: string[];
-  authorizeLocation: boolean;
+  sexual_preferences: string[];
+  authorize_location: boolean;
   location: {
     latitude: number,
     longitude: number,
@@ -40,7 +40,7 @@ export interface UpdateProfileData {
   biography: string;
   interests: string[];
   pictures: File[] | string[];
-  profilePicture: string | File | null;
+  profile_picture: string | File | null;
 }
 
 export interface AuthContextType {

@@ -29,20 +29,20 @@ model User {
   firstname  String
   lastname  String
   password  String
-  profileComplete Boolean @default(false)
-  sexualPreferences String[]
+  profile_complete Boolean @default(false)
+  sexual_preferences String[]
   gender String?
-  birthDate DateTime @default(now())
+  birth_date DateTime @default(now())
   biography String?
-  profilePicture String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  profile_picture String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
   interests String[]
-  location     Location? @relation(fields: [locationId], references: [id])
-  locationId   String?       @unique
-  authorizeLocation Boolean @default(false)
+  location     Location? @relation(fields: [location_id], references: [id])
+  location_id   String?       @unique
+  authorize_location Boolean @default(false)
   pictures String[]
   viewed User[] @relation("Views")
-  viewedBy User[] @relation("Views")
+  viewed_by User[] @relation("Views")
 }
 

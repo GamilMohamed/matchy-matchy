@@ -2,13 +2,13 @@
   Warnings:
 
   - You are about to drop the column `location` on the `User` table. All the data in the column will be lost.
-  - A unique constraint covering the columns `[locationId]` on the table `User` will be added. If there are existing duplicate values, this will fail.
+  - A unique constraint covering the columns `[location_id]` on the table `User` will be added. If there are existing duplicate values, this will fail.
 
 */
 -- AlterTable
 ALTER TABLE "User" DROP COLUMN "location",
-ADD COLUMN     "authorizeLocation" BOOLEAN NOT NULL DEFAULT false,
-ADD COLUMN     "locationId" TEXT;
+ADD COLUMN     "authorize_location" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "location_id" TEXT;
 
 -- CreateTable
 CREATE TABLE "Location" (
@@ -22,7 +22,7 @@ CREATE TABLE "Location" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_locationId_key" ON "User"("locationId");
+CREATE UNIQUE INDEX "User_location_id_key" ON "User"("location_id");
 
 -- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_locationId_fkey" FOREIGN KEY ("locationId") REFERENCES "Location"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "User" ADD CONSTRAINT "User_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "Location"("id") ON DELETE SET NULL ON UPDATE CASCADE;

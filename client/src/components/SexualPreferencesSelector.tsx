@@ -7,12 +7,12 @@ const SexualPreferencesSelector = ({ profileData, setProfileData }: { profileDat
     if (checked) {
       setProfileData({
         ...profileData,
-        sexualPreferences: [...profileData.sexualPreferences, option]
+        sexual_preferences: [...profileData.sexual_preferences, option]
       });
     } else {
       setProfileData({
         ...profileData,
-        sexualPreferences: profileData.sexualPreferences.filter(pref => pref !== option)
+        sexual_preferences: profileData.sexual_preferences.filter(pref => pref !== option)
       });
     }
   };
@@ -25,7 +25,7 @@ const SexualPreferencesSelector = ({ profileData, setProfileData }: { profileDat
           <div key={option} className="flex items-center space-x-2">
             <Checkbox 
               id={`preference-${option}`} 
-              checked={profileData.sexualPreferences.includes(option)}
+              checked={profileData.sexual_preferences.includes(option)}
               onCheckedChange={(checked) => handleCheckboxChange(option, checked as boolean)}
             />
             <Label 

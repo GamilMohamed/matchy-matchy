@@ -11,7 +11,7 @@ const sex: { [key: string]: string } = {
   other: "autre",
 };
 
-const sexualpreferences: { [key: string]: string } = {
+const sexual_preferences: { [key: string]: string } = {
   men: "hommes",
   women: "lydia",
   other: "autres",
@@ -20,10 +20,10 @@ const sexualpreferences: { [key: string]: string } = {
 const formatSexualPreferences = (preferences: string[]) => {
   preferences = preferences.sort().reverse();
   if (preferences.length === 1) {
-    return sexualpreferences[preferences[0]];
+    return sexual_preferences[preferences[0]];
   }
   if (preferences.length === 2) {
-    return `${sexualpreferences[preferences[0]]} et ${sexualpreferences[preferences[1]]}`;
+    return `${sexual_preferences[preferences[0]]} et ${sexual_preferences[preferences[1]]}`;
   }
   return "tout le monde";
 };
@@ -42,8 +42,8 @@ function ProfileView({ setProfileComplete }: { setProfileComplete: React.Dispatc
       <CardContent className="space-y-6">
         <div className="flex flex-col sm:flex-row gap-6 items-center">
           <Avatar className="w-24 h-24">
-            {user.profilePicture ? (
-              <AvatarImage src={user.profilePicture} alt="Profile Picture" />
+            {user.profile_picture ? (
+              <AvatarImage src={user.profile_picture} alt="Profile Picture" />
             ) : (
               <AvatarFallback className="bg-blue-100 text-blue-800 text-xl">{user.firstname?.charAt(0).toUpperCase() + user.lastname?.charAt(0).toUpperCase()}</AvatarFallback>
             )}
@@ -51,10 +51,10 @@ function ProfileView({ setProfileComplete }: { setProfileComplete: React.Dispatc
 
           <div className="space-y-2 text-center sm:text-left">
             <h3 className="text-xl font-medium">
-              {new Date().getFullYear() - new Date(user.birthDate).getFullYear()} ans, {sex[user.gender]}
+              {new Date().getFullYear() - new Date(user.birth_date).getFullYear()} ans, {sex[user.gender]}
             </h3>
             <p className="text-muted-foreground">{`${user.location.city}, ${user.location.country}`}</p>
-            <p className="text-sm">Intéressé par {formatSexualPreferences(user.sexualPreferences)}</p>
+            <p className="text-sm">Intéressé par {formatSexualPreferences(user.sexual_preferences)}</p>
           </div>
         </div>
         <Separator />

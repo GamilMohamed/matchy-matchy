@@ -21,10 +21,10 @@ interface UserProfileDialogProps {
 
 export function UserProfileDialog({ user, isOpen, onClose }: UserProfileDialogProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const images = [user.profilePicture, ...user.pictures].filter(Boolean);
-  const age = calculateAge(new Date(user.birthDate));
+  const images = [user.profile_picture, ...user.pictures].filter(Boolean);
+  const age = calculateAge(new Date(user.birth_date));
   const joinedDate = formatDistanceToNow(new Date(user.createdAt), { addSuffix: true });
-  const formattedBirthDate = format(new Date(user.birthDate), "MMMM d, yyyy");
+  const formattedBirthDate = format(new Date(user.birth_date), "MMMM d, yyyy");
 
   useEffect(() => {
     async function viewUser() {
@@ -51,7 +51,7 @@ export function UserProfileDialog({ user, isOpen, onClose }: UserProfileDialogPr
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={user.profilePicture} alt={user.username} />
+              <AvatarImage src={user.profile_picture} alt={user.username} />
               <AvatarFallback>
                 {user.firstname.charAt(0)}
                 {user.lastname.charAt(0)}
@@ -142,7 +142,7 @@ export function UserProfileDialog({ user, isOpen, onClose }: UserProfileDialogPr
 
                 <div className="flex items-center gap-2 text-sm">
                   <Heart className="h-4 w-4 text-muted-foreground" />
-                  <span>Interested in: {user.sexualPreferences.join(", ")}</span>
+                  <span>Interested in: {user.sexual_preferences.join(", ")}</span>
                 </div>
               </div>
             </div>

@@ -14,7 +14,7 @@ router.post("/signup",
   body("firstname").isString().notEmpty(),
   body("lastname").isString().notEmpty(),
   body("username").isString().notEmpty(),
-  body("birthdate").isDate(),
+  body("birth_date").isDate(),
   validateBody,
   authController.signUp);
 

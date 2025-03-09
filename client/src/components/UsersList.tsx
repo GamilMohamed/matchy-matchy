@@ -29,7 +29,7 @@ export default function UserList({ users = [] }: UserListProps) {
 
 function UserCard({ userx, user }: { userx: User; user: User }) {
   const [showDialog, setShowDialog] = useState(false);
-  const age = calculateAge(new Date(userx.birthDate));
+  const age = calculateAge(new Date(userx.birth_date));
   const joinedDate = formatDistanceToNow(new Date(userx.createdAt), { addSuffix: true });
   const appendHashtag = (str: string) => (str.charAt(0) === "#" ? str : `#${str}`);
 
@@ -42,11 +42,11 @@ function UserCard({ userx, user }: { userx: User; user: User }) {
     <>
       <Card className="overflow-hidden">
         <div className="relative h-40 w-full overflow-hidden">
-          <img src={userx.pictures[0] || userx.profilePicture || "/default-cover.jpg"} alt={`${userx.firstname}'s cover`} className="h-full w-full object-cover" />
+          <img src={userx.pictures[0] || userx.profile_picture || "/default-cover.jpg"} alt={`${userx.firstname}'s cover`} className="h-full w-full object-cover" />
         </div>
         <CardHeader className="relative mt-[-40px] flex flex-row items-end gap-4 pb-0">
           <Avatar className="h-20 w-20 border-4 border-background">
-            <AvatarImage src={userx.profilePicture} alt={userx.username} />
+            <AvatarImage src={userx.profile_picture} alt={userx.username} />
             <AvatarFallback>
               {userx.firstname.charAt(0)}
               {userx.lastname.charAt(0)}
@@ -73,7 +73,7 @@ function UserCard({ userx, user }: { userx: User; user: User }) {
 
           {/* <p className="mb-4 line-clamp-2 text-sm">{userx.biography}</p> */}
           <div className="min-h-[4.5rem] text-sm">{userx.biography || "\u00A0"}</div>
-          <p className="mb-4 line-clamp-2 text-sm">I'm interested in: {userx.sexualPreferences.join(", ")}</p>
+          <p className="mb-4 line-clamp-2 text-sm">I'm interested in: {userx.sexual_preferences.join(", ")}</p>
 
           <div className="mb-4 flex flex-wrap gap-2">
             {formattedInterests.map((interest) => (
@@ -99,12 +99,12 @@ function UserCard({ userx, user }: { userx: User; user: User }) {
 }
 
 // Export the calculateAge function so it can be used in the dialog component
-export function calculateAge(birthDate: Date): number {
+export function calculateAge(birth_date: Date): number {
   const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDifference = today.getMonth() - birthDate.getMonth();
+  let age = today.getFullYear() - birth_date.getFullYear();
+  const monthDifference = today.getMonth() - birth_date.getMonth();
 
-  if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+  if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birth_date.getDate())) {
     age--;
   }
 

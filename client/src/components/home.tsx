@@ -12,7 +12,7 @@ export interface UserProfile {
   email: string;
   firstname: string;
   lastname?: string;
-  birthDate?: string;
+  birth_date?: string;
   age?: number;
   location?: {
     latitude?: number;
@@ -25,9 +25,9 @@ export interface UserProfile {
   interests: string[];
   pictures?: string[];
   imageUrl?: string;
-  profilePicture?: string;
+  profile_picture?: string;
   gender: string;
-  sexualPreferences: string;
+  sexual_preferences: string;
   maxDistance?: number;
   ageRange?: { min: number; max: number };
   activeFilters?: {
@@ -48,7 +48,7 @@ const Home: React.FC = () => {
     firstname: "You",
     interests: [],
     gender: "non-binary",
-    sexualPreferences: "non-binary",
+    sexual_preferences: "non-binary",
     maxDistance: 50,
     ageRange: { min: 25, max: 40 },
     activeFilters: {
@@ -81,14 +81,14 @@ const Home: React.FC = () => {
 
   // Check if two profiles match based on sexual preference
   const checkSexualPreferenceMatch = (profile1: UserProfile, profile2: UserProfile): boolean => {
-    if (!profile1.sexualPreferences || !profile2.sexualPreferences || !profile1.gender || !profile2.gender) {
+    if (!profile1.sexual_preferences || !profile2.sexual_preferences || !profile1.gender || !profile2.gender) {
       return false;
     }
-    return profile1.sexualPreferences === profile2.gender && profile2.sexualPreferences === profile1.gender;
+    return profile1.sexual_preferences === profile2.gender && profile2.sexual_preferences === profile1.gender;
   };
 
-  const calculateAge = (birthDate: string): number => {
-    const birth = new Date(birthDate);
+  const calculateAge = (birth_date: string): number => {
+    const birth = new Date(birth_date);
     const today = new Date();
 
     // Extraire l'année, le mois et le jour de la date de naissance
@@ -117,7 +117,7 @@ const Home: React.FC = () => {
       return [];
     }
 
-    const userAge = calculateAge(userProfile.birthDate || "");
+    const userAge = calculateAge(userProfile.birth_date || "");
     console.log("User age:", userAge);
 
     return allUsers
@@ -135,7 +135,7 @@ const Home: React.FC = () => {
         // // }
 
         // // Check age range
-        // const profileAge = calculateAge(profile.birthDate || "");
+        // const profileAge = calculateAge(profile.birth_date || "");
         // console.log("Profile age:", profileAge);
         // console.log("User age range:", userProfile.ageRange);
         // if (
@@ -374,7 +374,7 @@ const Home: React.FC = () => {
           {/* Profile image */}
           <div onClick={() => handleProfileClick(currentProfile.firstname)} className="relative h-80 w-full">
             {/* <img 
-              src={currentProfile.imageUrl || currentProfile.profilePicture || "https://placehold.co/400x400/png"} 
+              src={currentProfile.imageUrl || currentProfile.profile_picture || "https://placehold.co/400x400/png"} 
               alt={`Photo de ${currentProfile.firstname}`} 
               className="h-full w-full object-cover object-center" 
             /> */}
