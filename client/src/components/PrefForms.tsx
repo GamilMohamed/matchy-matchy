@@ -21,16 +21,18 @@ function PreferencesForms() {
   const { user } = useAuth();
   const [profileComplete, setProfileComplete] = useState(user?.profileComplete || false);
   const [profileData, setProfileData] = useState<UpdateProfileData>({
-    gender: user?.gender || "",
-    sexualPreferences: user?.sexualPreferences || [],
+    gender: user?.gender || "male",
+    sexualPreferences: user?.sexualPreferences?.length > 0 ?  user?.sexualPreferences: ["women", "other"],
     authorizeLocation: user?.authorizeLocation || false,
     location: user?.location || { latitude: 0, longitude: 0, city: "", country: "" },
-    biography: user?.biography || "",
-    interests: user?.interests || [],
-    pictures: user?.pictures || [],
-    profilePicture: user?.profilePicture || "",
+    biography: user?.biography || "Pitié pour moi, je suis un(e) flemmard(e) et je n'ai pas écrit de biographie. 😅",
+    interests: user?.interests?.length > 0 ? user?.interests : ["#coding", "#gaming", "#music"],
+    pictures: user?.pictures.length > 0 ? user?.pictures : ["https://randomuser.me/api/portraits/men/4.jpg", "https://randomuser.me/api/portraits/men/3.jpg", "https://randomuser.me/api/portraits/men/4.jpg"],
+    profilePicture: user?.profilePicture || "https://randomuser.me/api/portraits/men/1.jpg",
   });
   const { updateProfile } = useAuth();
+  console.log(">>>>>profileData", profileData);
+  console.log(">>>>>user", user);
   const [newTag, setNewTag] = useState("");
   const [isGeolocationEnabled, setIsGeolocationEnabled] = useState(true);
 

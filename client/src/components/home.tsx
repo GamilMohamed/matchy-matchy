@@ -126,25 +126,25 @@ const Home: React.FC = () => {
         if (profile.email === userProfile.email) return false;
 
         // Check mutual sexual preference match
-        const preferenceMatch = checkSexualPreferenceMatch(userProfile, profile);
-        if (!preferenceMatch) return false;
-        // Check distance if coordinates are available
-        // if (me.latitude && me.longitude && profile.latitude && profile.longitude && me.maxDistance) {
-        //   const distance = calculateDistance(me.latitude, me.longitude, profile.latitude, profile.longitude);
-        //   if (distance > me.maxDistance) return false;
-        // }
+        // const preferenceMatch = checkSexualPreferenceMatch(userProfile, profile);
+        // if (!preferenceMatch) return false;
+        // // Check distance if coordinates are available
+        // // if (me.latitude && me.longitude && profile.latitude && profile.longitude && me.maxDistance) {
+        // //   const distance = calculateDistance(me.latitude, me.longitude, profile.latitude, profile.longitude);
+        // //   if (distance > me.maxDistance) return false;
+        // // }
 
-        // Check age range
-        const profileAge = calculateAge(profile.birthDate || "");
-        console.log("Profile age:", profileAge);
-        console.log("User age range:", userProfile.ageRange);
-        if (
-          (userProfile.ageRange &&
-              (profileAge < userProfile.ageRange.min || profileAge > userProfile.ageRange.max)) ||
-          (profile.ageRange &&
-              (userAge < profile.ageRange.min || userAge > profile.ageRange.max))
-        )
-        return false;
+        // // Check age range
+        // const profileAge = calculateAge(profile.birthDate || "");
+        // console.log("Profile age:", profileAge);
+        // console.log("User age range:", userProfile.ageRange);
+        // if (
+        //   (userProfile.ageRange &&
+        //       (profileAge < userProfile.ageRange.min || profileAge > userProfile.ageRange.max)) ||
+        //   (profile.ageRange &&
+        //       (userAge < profile.ageRange.min || userAge > profile.ageRange.max))
+        // )
+        // return false;
 
         // Check interest filters if any are selected
         // if (me.activeFilters?.interests.length) {
@@ -373,11 +373,11 @@ const Home: React.FC = () => {
             }`}>
           {/* Profile image */}
           <div onClick={() => handleProfileClick(currentProfile.firstname)} className="relative h-80 w-full">
-            <img 
+            {/* <img 
               src={currentProfile.imageUrl || currentProfile.profilePicture || "https://placehold.co/400x400/png"} 
               alt={`Photo de ${currentProfile.firstname}`} 
               className="h-full w-full object-cover object-center" 
-            />
+            /> */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
               <h2 className="text-2xl font-bold">
                 {currentProfile.firstname}, {currentProfile.age}
@@ -434,7 +434,7 @@ const Home: React.FC = () => {
         </div>
       )}
 
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };

@@ -9,6 +9,7 @@ import UserPage from "./components/UserPage";
 import PreferencesForms from "./components/PrefForms";
 import Error from "./components/Error";
 import { useAuth } from "./context/auth-context";
+import Nav from "./components/Nav";
 
 function App() {
   const { user, profileCompleted, loading } = useAuth();
@@ -70,7 +71,10 @@ function App() {
         <Route
           path="/test"
           element={
+            <>
+            <Nav />
               <Test />
+            </>
           }
         />
         <Route

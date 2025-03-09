@@ -27,7 +27,6 @@ export function UserProfileDialog({ user, isOpen, onClose }: UserProfileDialogPr
   const formattedBirthDate = format(new Date(user.birthDate), "MMMM d, yyyy");
 
   useEffect(() => {
-	alert("user.username: " + user.username);
     async function viewUser() {
       try {
         const res = await api.post("/users/view/" + user.username);

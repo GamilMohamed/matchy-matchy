@@ -10,7 +10,7 @@ async function getUserFromToken(token) {
     }
     const user = await prisma.user.findUnique({
       where: {
-        email: isVerified.email,
+        username: isVerified.username,
       },
     });
     return user;

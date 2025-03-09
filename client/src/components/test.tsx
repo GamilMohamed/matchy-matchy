@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { api } from "@/context/auth-context";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import UserList from "./UsersList";
+import UserCarousel from "./user-carousel";
 
 export default function Test() {
   // wait 15 seconds before rendering the component
@@ -53,7 +54,7 @@ export default function Test() {
       {allProfiles.length === 0 ? (
         <p>No profiles found.</p>
       ) : (
-              <UserList users={allProfiles} />
+        <UserCarousel sampleUsers={allProfiles} />
       )}
     </div>
   );

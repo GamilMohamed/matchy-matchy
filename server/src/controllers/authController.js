@@ -23,7 +23,7 @@ exports.signIn = async (req, res) => {
     }
 
     const payload = {
-      email: user.email,
+      username: user.username,
       date: new Date(),
     };
 
