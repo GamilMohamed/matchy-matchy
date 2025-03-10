@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router";
 import { LoginForm } from "@/components/login-form";
 import Home from "./components/home";
 import Test from "./components/test";
+import TestCarousel from "./components/test/test-carousel.tsx";
 import About from "./components/about-us";
 import Settings from "./components/settings";
 import Profil from "./components/profil";
@@ -9,7 +10,7 @@ import UserPage from "./components/UserPage";
 import PreferencesForms from "./components/PrefForms";
 import Error from "./components/Error";
 import { useAuth } from "./context/auth-context";
-import Nav from "./components/Nav";
+// import Nav from "./components/Nav";
 
 function App() {
   const { user, profileCompleted, loading } = useAuth();
@@ -72,8 +73,15 @@ function App() {
           path="/test"
           element={
             <>
-            <Nav />
               <Test />
+            </>
+          }
+        />
+        <Route
+          path="/carousel"
+          element={
+            <>
+              <TestCarousel />
             </>
           }
         />

@@ -33,7 +33,7 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
    }
-  .dark {
+  .darxk {
     --background: 323 50% 10%;
     --foreground: 323 5% 90%;
     --card: 323 50% 10%;
@@ -63,6 +63,9 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
    }
+}
+.animate-modal-appear {
+  animation: modal-appear 300ms ease-out forwards;
 }
 
 @layer base {

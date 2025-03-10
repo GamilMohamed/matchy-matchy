@@ -6,7 +6,14 @@ import json
 from datetime import datetime
 from geoloc import get_city_coordinates
 
-def random_picture(sex):
+def random_robot_picture(username):
+    """
+    Generate a random picture for the robot
+    """
+    sets = ['set1', 'set2', 'set3', 'set4', 'set5']
+    return [f"https://robohash.org/{username}{str(x)}.png?set={sets[x]}" for x in range(4)]
+
+def random_human_picture(sex):
     """
     Generate a random picture for the user
     """
@@ -53,7 +60,10 @@ def mock_users(num_users=10):
                         'city': api_user['location']['city']
                     },
                     'picture': api_user['picture']['large'],
-                    'pictures': [random_picture(api_user['gender']) for _ in range(4)]
+                    # human pictures
+                    # 'pictures': [random_human_picture(api_user['gender']) for x in range(4)]
+                    # robot pictures
+                    'pictures': random_robot_picture(api_user['login']['username'])
                 }
                 users.append(user)
                 # print city country and latitude and longitude
