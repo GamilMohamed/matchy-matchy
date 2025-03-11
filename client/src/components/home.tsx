@@ -308,6 +308,27 @@ const Home: React.FC = () => {
     new Set(matchedProfiles.flatMap((p) => p.interests))
   );
 
+  const sendLike = async (liker: UserProfile, liked: UserProfile) => {
+    try {
+      const requestData = await fetch("http://localhost:3000/users/likes/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({liker, liked,}),
+      });
+
+      if (!requestData.ok) {
+        throw new Error("Erreur lors de l'envoi du like");
+      }
+
+      const responseData = await requestData.json();
+      console.log("Like envoyé avec succès:", responseData);
+    } catch (error) {
+      console.error("Erreur :", error);
+    }
+  };
+
   // Handle loading state
   if (isLoading) {
     return (
@@ -384,6 +405,7 @@ const Home: React.FC = () => {
       {currentProfile && (
         <div
           className={`relative w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden transition-all duration-300 ease-out
+            onClick={() => sendLike(userProfile, currentProfile)}
             ${
               direction === "left"
                 ? "translate-x-full opacity-0"
@@ -449,7 +471,12 @@ const Home: React.FC = () => {
             <button onClick={() => handleSwipe("up")} className="bg-white rounded-full p-4 shadow-lg text-blue-500 hover:bg-blue-50 transition-colors">
               <Star size={32} />
             </button>
-            <button onClick={() => handleSwipe("right")} className="bg-white rounded-full p-4 shadow-lg text-green-500 hover:bg-green-50 transition-colors">
+            <button 
+              onClick={() => {
+                sendLike(userProfile, currentProfile);
+                handleSwipe("right");
+              }} 
+              className="bg-white rounded-full p-4 shadow-lg text-green-500 hover:bg-green-50 transition-colors">
               <Heart size={32} />
             </button>
           </div>

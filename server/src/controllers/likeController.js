@@ -1,5 +1,31 @@
 const pool = require("../config/database");
 
+exports.getLikesSent = async (req, res) => {
+	const { username } = req.params;
+  
+	try {
+	  const query = `
+		SELECT liked, created_at
+		FROM "Like"
+		WHERE liker = $1
+		ORDER BY created_at DESC
+	  `;
+  
+	  const { rows } = await pool.query(query, [username]);
+  
+	  res.json({
+		total: rows.length,
+		likes: rows.map(row => ({
+		  liked_user: row.liked,
+		  created_at: row.created_at
+		}))
+	  });
+	} catch (error) {
+	  console.error("Erreur lors de la récupération des likes envoyés:", error);
+	  res.status(500).json({ error: "Erreur serveur" });
+	}
+};
+
 exports.getLikesReceived = async (req, res) => {
 	const { username } = req.params;
   
