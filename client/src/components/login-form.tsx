@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,14 +21,36 @@ const LoginForm = () => {
     birth_date: new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split("T")[0],
   });
   const [birthdateError, setBirthdateError] = useState("");
+  const [usernameError, setUsernameError] = useState("");
+  const [usernameImage, setUsernameImage] = useState("");
+  const [usernameDesign, setUsernameDesign] = useState<number>(0);
+
+  const handleUsernameDesignChange = () => {
+    setUsernameDesign((prev) => {
+      if (prev === 2) return 0;
+      return prev + 1;
+    });
+  };
+
+  useEffect(() => {
+    checkUsernameAvailability(formData.username);
+  }
+  , [usernameDesign]);
+
+  const checkUsernameAvailability = async (username: string) => {
+    if (!username) return;
+    setUsernameImage(`https://robohash.org/${username}.png?set=${["set1", "set2", "set4"][usernameDesign]}`);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.name === "username") {
+      checkUsernameAvailability(e.target.value);
+    }
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
 
-    // Vérifier l'âge lorsque la date de naissance change
     if (e.target.name === "birth_date") {
       validateAge(e.target.value);
     }
@@ -77,18 +99,40 @@ const LoginForm = () => {
       return;
     }
 
-    await register({
-      email: formData.email,
-      password: formData.password,
-      firstname: formData.firstname,
-      lastname: formData.lastname,
-      username: formData.username,
-      birth_date: formData.birth_date,
-    } as RegisterData);
-    await login(formData.email, formData.password);
-    setIsSignupOpen(false);
-    setIsLoginOpen(true);
+    try {
+      const a = await register({
+        email: formData.email,
+        password: formData.password,
+        firstname: formData.firstname,
+        lastname: formData.lastname,
+        username: formData.username,
+        birth_date: formData.birth_date,
+      } as RegisterData);
+      console.log("a", a);
+      if (a) {
+        setIsSignupOpen(false);
+        setIsLoginOpen(true);
+      }
+      // alert("putain pk ca passe");
+      // setIsSignupOpen(false);
+      // setIsLoginOpen(true);
+      // await login(formData.email, formData.password);
+    } catch (error) {
+      console.log("error", error);
+    }
+
   };
+
+  const handleUsernameChange = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    checkUsernameAvailability(formData.username);
+  };
+  // const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   alert("handleUsernameChange" + e.target.value);
+  //   setFormData({
+  //     ...formData,
+  //     username: e.target.value,
+  //   });
+  // };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
@@ -138,7 +182,15 @@ const LoginForm = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="username">Username</Label>
+                    <div className="flex items-center gap-2">
                     <Input id="username" name="username" type="text" required value={formData.username} onChange={handleInputChange} />
+                    {usernameImage && <img 
+                    onClick={handleUsernameDesignChange}
+                    
+                    src={usernameImage} alt="Username" className="w-14 h-14" />}
+                    </div>
+                    <p 
+                    className="text-xs text-gray-500">Cliquez sur l'icône pour changer de design</p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="firstname">Prénom</Label>

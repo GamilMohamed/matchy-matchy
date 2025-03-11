@@ -279,7 +279,7 @@ const TinderCardStack: React.FC = () => {
             {/* Header with close button */}
             <div className="flex justify-between items-center p-4">
               <h2 className="text-xl font-bold">
-                {currentCard.firstname}, {new Date().getFullYear() - new Date(currentCard.birth_date).getFullYear()} ans
+                {currentCard.firstname}, {new Date().getFullYear() - new Date(currentCard.birth_date).getFullYear()} ans (@: {currentCard.username})
               </h2>
               <button onClick={toggleDetailView} className="rounded-full p-1 hover:bg-gray-100 transition-all" aria-label="Close profile">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -458,7 +458,7 @@ const TinderCardStack: React.FC = () => {
                 <div className="p-4 flex-1 flex flex-col bg-white/80 rounded-xl m-2">
                   {/* Name and age */}
                   <div className="flex items-baseline">
-                    <h3 className="text-xl font-bold text-black800">{card.firstname}</h3>
+                    <h3 className="text-xl font-bold text-black800">{card.firstname}  (@: {currentCard.username})</h3> 
                     <span className="ml-2 text-black600">{new Date().getFullYear() - new Date(card.birth_date).getFullYear()}</span>
                   </div>
 

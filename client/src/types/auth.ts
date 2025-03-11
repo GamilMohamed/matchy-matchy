@@ -5,7 +5,7 @@ export interface User  extends UpdateProfileData {
   lastname: string;
   birth_date: string;
   createdAt: string;
-  profileComplete: boolean;
+  profile_complete: boolean;
   username: string;
 }
 
@@ -49,8 +49,4 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   login: (token: string, user: User) => void;
   logout: () => void;
-}
-
-export interface MyError {
-      message: string;
 }

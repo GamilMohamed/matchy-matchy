@@ -8,9 +8,21 @@ import Settings from "./components/settings";
 import Profil from "./components/profil";
 import UserPage from "./components/UserPage";
 import PreferencesForms from "./components/PrefForms";
+import Elias, { Elias1, Elias2 } from "./components/Elias.tsx";
 import Error from "./components/Error";
 import { useAuth } from "./context/auth-context";
 // import Nav from "./components/Nav";
+
+function randomString() {
+  return Math.random().toString(36).substring(7);
+}
+const initialUsers = Array.from({ length: 100 }, (_, i) => ({
+    rank: i + 1,
+  username: randomString(),
+  avatar: `https://robohash.org/${i + 1}.png`,
+  points: Math.floor(Math.random() * 10000)
+}));
+
 
 function App() {
   const { user, profileCompleted, loading } = useAuth();
@@ -39,15 +51,15 @@ function App() {
       </Router>
     );
   }
-
-  if (isAuth && user && !profileCompleted && user.profileComplete === false) {
+  console.log("profileCompleted", profileCompleted);
+  if (isAuth && user && !profileCompleted) {
     return (
       <Router>
         <Routes>
           <Route
             path="*"
             element={
-              <main className="flex flex-col items-center justify-center h-screen">
+              <main className="h-screen flex flex-col items-center justify-center w-full">
                 <PreferencesForms />
               </main>
             }
@@ -90,6 +102,14 @@ function App() {
           element={
             <main className="flex flex-col items-center justify-center h-screen">
               <About />
+            </main>
+          }
+        />
+        <Route
+          path="/elias"
+          element={
+            <main className="flex flex-col items-center justify-center h-screen">
+              <Elias initialUsers={initialUsers} />
             </main>
           }
         />

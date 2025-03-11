@@ -61,9 +61,9 @@ def mock_users(num_users=10):
                     },
                     'picture': api_user['picture']['large'],
                     # human pictures
-                    # 'pictures': [random_human_picture(api_user['gender']) for x in range(4)]
-                    # robot pictures
-                    'pictures': random_robot_picture(api_user['login']['username'])
+                    'pictures': [random_human_picture(api_user['gender']) for x in range(4)]
+                    # # robot pictures
+                    # 'pictures': random_robot_picture(api_user['login']['username'])
                 }
                 users.append(user)
                 # print city country and latitude and longitude

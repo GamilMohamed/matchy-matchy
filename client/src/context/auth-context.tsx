@@ -52,12 +52,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     if (user) {
-      setProfileCompleted(user.profileComplete || false);
+      setProfileCompleted(user.profile_complete || false);
     }
   }, [user]);
   const handleRequest = async (requestFn: () => Promise<unknown>, successMessage?: string) => {
     try {
-      setLoading(true);
+      // setLoading(true);
       const result = await requestFn();
 
       if (successMessage) {
@@ -79,7 +79,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       throw err;
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
   // Load user when token changes
@@ -117,7 +117,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Register function
   const register = async (userData: RegisterData) => {
-    return await handleRequest(() => api.post("/auth/signup", userData), "Registration successful! Please log in.");
+    await handleRequest(() => api.post("/auth/signup", userData), "Registration successful! Please log in.")
+      .then(() => {
+        login(userData.email, userData.password);
+        return true;
+      })
+      .catch((error) => {
+        return false;
+      });
   };
 
   // Update profile function
@@ -149,15 +156,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     console.log("Converted data:", convertedData.getAll("interests[]"));
     console.log("Converted data:", convertedData.getAll("sexual_preferences[]"));
-    await handleRequest(() => axios.put("http://localhost:3000/users/profile", convertedData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      }
-    ), "Profile updated successfully!").then(() => loadUser());
-  }
+    await handleRequest(
+      () =>
+        axios.put("http://localhost:3000/users/profile", convertedData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }),
+      "Profile updated successfully!"
+    ).then(() => loadUser());
+  };
 
   // Logout function
   const logout = () => {

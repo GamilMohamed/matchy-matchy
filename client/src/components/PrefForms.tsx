@@ -9,20 +9,31 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "@/hooks/use-toast";
-
-import ProfileView from "./ProfileView";
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "./ui/tabs";
+import { 
+  Avatar,
+  AvatarFallback,
+  AvatarImage 
+} from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
+import ProfileView from "./ProfileView";
 import { Checkbox } from "./ui/checkbox";
 import SexualPreferencesSelector from "./SexualPreferencesSelector";
+import { Progress } from "./ui/progress";
 
 function PreferencesForms() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [profileComplete, setProfileComplete] = useState(user?.profileComplete || false);
+  const [activeTab, setActiveTab] = useState("basic-info");
   const [profileData, setProfileData] = useState<UpdateProfileData>({
     gender: user?.gender || "male",
-    sexual_preferences: user?.sexual_preferences?.length > 0 ?  user?.sexual_preferences: ["women", "other"],
+    sexual_preferences: user?.sexual_preferences?.length > 0 ? user?.sexual_preferences : ["women", "other"],
     authorize_location: user?.authorize_location || false,
     location: user?.location || { latitude: 0, longitude: 0, city: "", country: "" },
     biography: user?.biography || "Pitié pour moi, je suis un(e) flemmard(e) et je n'ai pas écrit de biographie. 😅",
@@ -31,10 +42,29 @@ function PreferencesForms() {
     profile_picture: user?.profile_picture || "https://randomuser.me/api/portraits/men/1.jpg",
   });
   const { updateProfile } = useAuth();
-  console.log(">>>>>profileData", profileData);
-  console.log(">>>>>user", user);
   const [newTag, setNewTag] = useState("");
   const [isGeolocationEnabled, setIsGeolocationEnabled] = useState(true);
+  const [formErrors, setFormErrors] = useState<Record<string, boolean>>({
+    basicInfo: false,
+    biography: false,
+    photos: false
+  });
+
+  // Check completion status for tabs
+  const checkTabCompletion = () => {
+    const errors = {
+      basicInfo: !profileData.gender || !profileData.sexual_preferences || profileData.sexual_preferences.length === 0,
+      biography: !profileData.biography || profileData.biography.length < 10 || profileData.interests.length === 0,
+      photos: !profileData.profile_picture || !profileData.pictures || profileData.pictures.length === 0
+    };
+    
+    setFormErrors(errors);
+    return errors;
+  };
+
+  useEffect(() => {
+    checkTabCompletion();
+  }, [profileData]);
 
   useEffect(() => {
     if ("geolocation" in navigator) {
@@ -53,7 +83,7 @@ function PreferencesForms() {
     } else {
       getLocationByIP();
     }
-  });
+  }, []);
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && newTag.trim() !== "") {
@@ -93,7 +123,11 @@ function PreferencesForms() {
           pictures: [...profileData.pictures, ...Array.from(files)],
         });
       } else {
-        alert("Maximum 4 additional pictures allowed");
+        toast({
+          title: "Too many pictures",
+          description: "Maximum 4 additional pictures allowed",
+          variant: "destructive",
+        });
       }
     }
   };
@@ -106,7 +140,6 @@ function PreferencesForms() {
   };
 
   const handleLocalisation = (value: boolean) => {
-    // Update the form state with the new value
     setProfileData((prevData) => ({
       ...prevData,
       authorize_location: value,
@@ -121,10 +154,6 @@ function PreferencesForms() {
       const city = data.address.city || data.address.town || data.address.village || "";
       const country = data.address.country || "";
 
-      console.log("City: " + city);
-      console.log("Country: " + country);
-
-      // Update state
       setProfileData((prevData) => ({
         ...prevData,
         location: {
@@ -144,7 +173,6 @@ function PreferencesForms() {
       if (profileData.location.longitude && profileData.location.latitude && profileData.location.city && profileData.location.country) {
         return true;
       }
-      console.log("Getting approximate location by IP...");
       const response = await fetch("https://ipapi.co/json/");
       const data: {
         city: string;
@@ -153,13 +181,6 @@ function PreferencesForms() {
         longitude: number;
       } = await response.json();
 
-      console.log("Approximate location by IP:");
-      console.log("City: " + data.city);
-      console.log("Country: " + data.country_name);
-      console.log("Latitude: " + data.latitude);
-      console.log("Longitude: " + data.longitude);
-
-      // Store coordinates in state
       setProfileData((prevData) => ({
         ...prevData,
         location: {
@@ -176,14 +197,62 @@ function PreferencesForms() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (handleProfileUpdateError(profileData)) return true;
+    
+    // Check for errors
+    const errors = checkTabCompletion();
+    const hasErrors = Object.values(errors).some(error => error);
+    
+    if (hasErrors) {
+      // Find first tab with error and switch to it
+      if (errors.basicInfo) {
+        setActiveTab("basic-info");
+      } else if (errors.biography) {
+        setActiveTab("bio-interests");
+      } else if (errors.photos) {
+        setActiveTab("photos");
+      }
+      
+      toast({
+        title: "Please complete all required information",
+        description: "Check that all tabs are filled correctly",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (handleProfileUpdateError(profileData)) return;
 
     try {
       await updateProfile(profileData);
+      toast({
+        title: "Profile updated successfully",
+        description: "Your profile has been saved",
+        variant: "default",
+      });
+      setProfileComplete(true);
     } catch (error) {
       console.error("Error updating profile:", error);
-    } finally {
-      setProfileComplete(true);
+      toast({
+        title: "Error updating profile",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const goToNextTab = () => {
+    if (activeTab === "basic-info") {
+      setActiveTab("bio-interests");
+    } else if (activeTab === "bio-interests") {
+      setActiveTab("photos");
+    }
+  };
+
+  const goToPreviousTab = () => {
+    if (activeTab === "photos") {
+      setActiveTab("bio-interests");
+    } else if (activeTab === "bio-interests") {
+      setActiveTab("basic-info");
     }
   };
 
@@ -191,226 +260,350 @@ function PreferencesForms() {
     return <ProfileView setProfileComplete={setProfileComplete} />;
   }
 
+  // Get profile initials for avatar fallback
+  const getInitials = () => {
+    return user?.username ? user.username.substring(0, 2).toUpperCase() : "PF";
+  };
+
   return (
     <div className="w-full px-4 py-8 sm:px-6 md:py-12">
-      <Card className="max-w-xl mx-auto">
-        <CardHeader>
+      <Card className="max-w-4xl mx-auto shadow-lg">
+        <CardHeader className=" border-b flex flex-col sm:flex-row justify-between items-center gap-4">
           <CardTitle className="text-2xl font-bold">Edit Profile</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Gender Selection */}
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">Gender</Label>
-              <RadioGroup value={profileData.gender} onValueChange={(value) => setProfileData({ ...profileData, gender: value })} className="flex flex-col sm:flex-row gap-3">
-                {["male", "female", "other"].map((option) => (
-                  <div key={option} className="flex items-center space-x-2">
-                    <RadioGroupItem value={option} id={`gender-${option}`} />
-                    <Label htmlFor={`gender-${option}`} className="text-base">
-                      {option.charAt(0).toUpperCase() + option.slice(1)}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
-
-            {/* Sexual Preferences */}
-                <SexualPreferencesSelector profileData={profileData} setProfileData={setProfileData} />
-            {/* <div className="space-y-3">
-              <Label className="text-base font-semibold">Sexual Preferences</Label>
-              <RadioGroup
-                value={profileData.sexual_preferences}
-                onValueChange={(value) => setProfileData({ ...profileData, sexual_preferences: value })}
-                className="flex flex-col sm:flex-row gap-3">
-                {["men", "women", "both"].map((option) => (
-                  <div key={option} className="flex items-center space-x-2">
-                    <RadioGroupItem value={option} id={`preference-${option}`} />
-                    <Label htmlFor={`preference-${option}`} className="text-base">
-                      {option.charAt(0).toUpperCase() + option.slice(1)}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div> */}
-
-            {/* Localisation */}
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">Would you like to share your location?</Label>
-              <RadioGroup value={String(profileData.authorize_location)} onValueChange={(value) => handleLocalisation(value === "true")} className="flex flex-col sm:flex-row gap-3">
-                {[
-                  { label: "Yes", value: "true", disabled: !isGeolocationEnabled },
-                  { label: "No", value: "false", disabled: false },
-                ].map((option) => (
-                  <div key={option.value} className="flex items-center space-x-2">
-                    <RadioGroupItem value={option.value} id={`location-${option.value}`} disabled={option.disabled} />
-                    <Label htmlFor={`location-${option.value}`} className="text-base">
-                      {option.label}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
-
-            {/* Biography */}
-            <div className="space-y-3">
-              <Label htmlFor="bio" className="text-base font-semibold">
-                Biography
-              </Label>
-              <Textarea
-                id="bio"
-                name="biography"
-                value={profileData.biography}
-                onChange={(e) => setProfileData({ ...profileData, biography: e.target.value })}
-                className="min-h-32 text-base"
-                placeholder="Tell us about yourself..."
-              />
-            </div>
-
-            {/* Interests/Tags */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="interests" className="text-base font-semibold">
-                  Interests (Press Enter to add)
-                </Label>
-                {profileData.interests && profileData.interests.length >= 5 && <span className="text-red-500 text-sm">Maximum 5 reached</span>}
-              </div>
-              <Input
-                id="interests"
-                name="interests"
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
-                onKeyDown={handleAddTag}
-                className="text-base"
-                placeholder="Add interests (e.g. vegan, geek, piercing)"
-                disabled={profileData.interests && profileData.interests.length >= 5}
-              />
-              <div className="flex flex-wrap gap-2 mt-3">
-                {profileData.interests.map((tag, index) => (
-                  <Badge key={index} variant="secondary" className="text-base py-1 px-3 flex items-center gap-1">
-                    {tag}
-                    <Button
-                      type="button"
-                      onClick={() => handleRemoveTag(tag)}
-                      variant="ghost"
-                      size="sm"
-                      className="h-5 w-5 p-0 ml-1 text-blue-600 hover:text-blue-800 hover:bg-transparent">
-                      <X className="h-3 w-3" />
-                      <span className="sr-only">Remove</span>
-                    </Button>
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            {/* Profile Picture */}
-            <div className="space-y-3">
-              <Label htmlFor="profilePic" className="text-base font-semibold">
-                Profile Picture
-              </Label>
-              <Input id="profilePic" name="profile_picture" type="file" onChange={(e) => handleImageUpload(e, true)} className="text-base" />
-              {profileData.profile_picture && (
-                <div className="aspect-square rounded-md overflow-hidden">
-                  {profileData.profile_picture && profileData.profile_picture instanceof File && (
-                    <img src={URL.createObjectURL(profileData.profile_picture)} alt="Profile" className="w-full h-full object-cover" />
-                  )}
-                  {profileData.profile_picture && typeof profileData.profile_picture === "string" && (
-                    <img src={profileData.profile_picture} alt="Profile" className="w-full h-full object-cover" />
-                  )}
-                </div>
+          
+          <div className="flex items-center space-x-4">
+            <div className="text-sm text-right text-gray-600">
+              {user?.username && <div className="font-medium">{user.username}</div>}
+              {profileData.location.city && (
+                <div className="text-xs">{profileData.location.city}, {profileData.location.country}</div>
               )}
             </div>
-
-            {/* Additional Pictures */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="additionalPics" className="text-base font-semibold">
-                  Additional Pictures
-                </Label>
-                <span className="text-muted-foreground text-sm">{profileData.pictures?.length || 0}/4</span>
-              </div>
-              <Input
-                id="additionalPics"
-                name="additionalPictures"
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={(e) => handleImageUpload(e, false)}
-                disabled={profileData.pictures && profileData.pictures.length >= 4}
-                className="text-base"
-              />
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
-                {profileData.pictures &&
-                  profileData.pictures.map((pic, index) => (
-                    <div key={index} className="relative group">
-                      <div className="aspect-square rounded-md overflow-hidden bg-slate-100">
-                        {typeof pic === "string" ? (
-                          <img src={pic} alt={`Additional ${index + 1}`} className="w-full h-full object-cover" />
-                        ) : (
-                          <img src={URL.createObjectURL(pic)} alt={`Additional ${index + 1}`} className="w-full h-full object-cover" />
-                        )}
+            
+            <Avatar className="h-12 w-12 border-2 border-white">
+              {typeof profileData.profile_picture === "string" ? (
+                <AvatarImage src={profileData.profile_picture} alt="Profile" />
+              ) : profileData.profile_picture ? (
+                <AvatarImage src={URL.createObjectURL(profileData.profile_picture)} alt="Profile" />
+              ) : null}
+              <AvatarFallback>{getInitials()}</AvatarFallback>
+            </Avatar>
+          </div>
+        </CardHeader>
+        
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="w-full grid grid-cols-3">
+            <TabsTrigger value="basic-info" className="relative">
+              Basic Info
+              {formErrors.basicInfo && (
+                <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="bio-interests" className="relative">
+              Bio & Interests
+              {formErrors.biography && (
+                <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="photos" className="relative">
+              Photos
+              {formErrors.photos && (
+                <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
+              )}
+            </TabsTrigger>
+          </TabsList>
+          
+          <form onSubmit={handleSubmit}>
+            <CardContent className="p-6">
+              <TabsContent value="basic-info" className="space-y-6 mt-4">
+                {/* Gender Selection */}
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">Gender</Label>
+                  <RadioGroup 
+                    value={profileData.gender} 
+                    onValueChange={(value) => setProfileData({ ...profileData, gender: value })} 
+                    className="flex flex-row gap-4"
+                  >
+                    {["male", "female", "other"].map((option) => (
+                      <div key={option} className="flex items-center space-x-2">
+                        <RadioGroupItem value={option} id={`gender-${option}`} />
+                        <Label htmlFor={`gender-${option}`} className="text-base">
+                          {option.charAt(0).toUpperCase() + option.slice(1)}
+                        </Label>
                       </div>
-                      <Button type="button" onClick={() => handleRemoveImage(index)} variant="destructive" size="sm" className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0">
-                        <X className="h-4 w-4" />
-                        <span className="sr-only">Remove</span>
-                      </Button>
+                    ))}
+                  </RadioGroup>
+                </div>
+
+                {/* Sexual Preferences */}
+                <SexualPreferencesSelector profileData={profileData} setProfileData={setProfileData} />
+
+                {/* Localisation */}
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">Would you like to share your location?</Label>
+                  <RadioGroup 
+                    value={String(profileData.authorize_location)} 
+                    onValueChange={(value) => handleLocalisation(value === "true")} 
+                    className="flex flex-row gap-4"
+                  >
+                    {[
+                      { label: "Yes", value: "true", disabled: !isGeolocationEnabled },
+                      { label: "No", value: "false", disabled: false },
+                    ].map((option) => (
+                      <div key={option.value} className="flex items-center space-x-2">
+                        <RadioGroupItem value={option.value} id={`location-${option.value}`} disabled={option.disabled} />
+                        <Label htmlFor={`location-${option.value}`} className="text-base">
+                          {option.label}
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                  {profileData.location.city && profileData.location.country && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      Current location: {profileData.location.city}, {profileData.location.country}
+                    </p>
+                  )}
+                </div>
+                
+                <div className="flex justify-end mt-6 pt-4 border-t">
+                  <Button type="button" onClick={goToNextTab} className="ml-2">
+                    Next
+                  </Button>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="bio-interests" className="space-y-6 mt-4">
+                {/* Biography */}
+                <div className="space-y-3">
+                  <Label htmlFor="bio" className="text-base font-semibold">
+                    Biography
+                  </Label>
+                  <Textarea
+                    id="bio"
+                    name="biography"
+                    value={profileData.biography}
+                    onChange={(e) => setProfileData({ ...profileData, biography: e.target.value })}
+                    className="min-h-32 text-base"
+                    placeholder="Tell us about yourself..."
+                  />
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>10-200 characters</span>
+                    <span className={profileData.biography.length < 10 || profileData.biography.length > 200 ? "text-red-500" : ""}>
+                      {profileData.biography.length}/200 characters
+                    </span>
+                  </div>
+                </div>
+
+                {/* Interests/Tags */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="interests" className="text-base font-semibold">
+                      Interests (Press Enter to add)
+                    </Label>
+                    <span className={profileData.interests && profileData.interests.length >= 5 ? "text-red-500 text-sm" : "text-gray-500 text-sm"}>
+                      {profileData.interests.length}/5
+                    </span>
+                  </div>
+                  <Input
+                    id="interests"
+                    name="interests"
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    onKeyDown={handleAddTag}
+                    className="text-base"
+                    placeholder="Add interests (e.g. vegan, geek, piercing)"
+                    disabled={profileData.interests && profileData.interests.length >= 5}
+                  />
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {profileData.interests.map((tag, index) => (
+                      <Badge key={index} variant="secondary" className="text-base py-1 px-3 flex items-center gap-1">
+                        {tag}
+                        <Button
+                          type="button"
+                          onClick={() => handleRemoveTag(tag)}
+                          variant="ghost"
+                          size="sm"
+                          className="h-5 w-5 p-0 ml-1 text-blue-600 hover:text-blue-800 hover:bg-transparent">
+                          <X className="h-3 w-3" />
+                          <span className="sr-only">Remove</span>
+                        </Button>
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="flex justify-between mt-6 pt-4 border-t">
+                  <Button type="button" onClick={goToPreviousTab} variant="outline">
+                    Previous
+                  </Button>
+                  <Button type="button" onClick={goToNextTab}>
+                    Next
+                  </Button>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="photos" className="space-y-6 mt-4">
+                {/* Profile Picture */}
+                <div className="space-y-3">
+                  <Label htmlFor="profilePic" className="text-base font-semibold">
+                    Profile Picture
+                  </Label>
+                  <div className="flex flex-col sm:flex-row gap-4 items-center">
+                    <div className="w-32 h-32 rounded-md overflow-hidden flex-shrink-0 bg-gray-100 flex justify-center items-center">
+                      {profileData.profile_picture ? (
+                        typeof profileData.profile_picture === "string" ? (
+                          <img src={profileData.profile_picture} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                          <img src={URL.createObjectURL(profileData.profile_picture)} alt="Profile" className="w-full h-full object-cover" />
+                        )
+                      ) : (
+                        <span className="text-gray-400">No image</span>
+                      )}
                     </div>
-                  ))}
+                    <div className="flex-grow w-full">
+                      <Input 
+                        id="profilePic" 
+                        name="profile_picture" 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, true)} 
+                        className="text-base" 
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        This will be your main profile picture visible to others
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Pictures */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="additionalPics" className="text-base font-semibold">
+                      Additional Pictures
+                    </Label>
+                    <span className={
+                      profileData.pictures?.length === 0 
+                        ? "text-red-500 text-sm" 
+                        : "text-gray-500 text-sm"
+                    }>
+                      {profileData.pictures?.length || 0}/4 (at least 1 required)
+                    </span>
+                  </div>
+                  <Input
+                    id="additionalPics"
+                    name="additionalPictures"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(e) => handleImageUpload(e, false)}
+                    disabled={profileData.pictures && profileData.pictures.length >= 4}
+                    className="text-base"
+                  />
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+                    {profileData.pictures &&
+                      profileData.pictures.map((pic, index) => (
+                        <div key={index} className="relative group">
+                          <div className="aspect-square rounded-md overflow-hidden bg-slate-100">
+                            {typeof pic === "string" ? (
+                              <img src={pic} alt={`Additional ${index + 1}`} className="w-full h-full object-cover" />
+                            ) : (
+                              <img src={URL.createObjectURL(pic)} alt={`Additional ${index + 1}`} className="w-full h-full object-cover" />
+                            )}
+                          </div>
+                          <Button 
+                            type="button" 
+                            onClick={() => handleRemoveImage(index)} 
+                            variant="destructive" 
+                            size="sm" 
+                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                          >
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Remove</span>
+                          </Button>
+                        </div>
+                      ))}
+                    
+                    {/* Empty slots */}
+                    {profileData.pictures && profileData.pictures.length < 4 && 
+                      Array.from({ length: 4 - profileData.pictures.length }).map((_, i) => (
+                        <div key={`empty-${i}`} className="aspect-square rounded-md border-2 border-dashed border-gray-200 flex items-center justify-center bg-gray-50">
+                          <span className="text-gray-400 text-xs">Empty slot</span>
+                        </div>
+                      ))
+                    }
+                  </div>
+                </div>
+                
+                <div className="flex justify-between mt-6 pt-4 border-t">
+                  <Button type="button" onClick={goToPreviousTab} variant="outline">
+                    Previous
+                  </Button>
+                  <Button type="submit" variant="default">
+                    Save Profile
+                  </Button>
+                </div>
+              </TabsContent>
+            </CardContent>
+            
+            {/* Progress indicator */}
+            <div className="px-6 pb-6">
+              <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+              <Progress 
+              value={activeTab === "basic-info" 
+                ? 33 
+                : activeTab === "bio-interests" 
+                  ? 66 
+                  : 100
+              } 
+              className="w-full bg-gray-200 h-2 rounded-full overflow-hidden"
+            />
+                {/* <div className="bg-blue-600 h-full" 
+                  style={{ 
+                    width: activeTab === "basic-info" 
+                      ? "33%" 
+                      : activeTab === "bio-interests" 
+                        ? "66%" 
+                        : "100%" 
+                  }}>
+                </div> */}
+              </div>
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>Basic Info</span>
+                <span>Bio & Interests</span>
+                <span>Photos</span>
               </div>
             </div>
-
-            {/* Submit Button */}
-            <Button type="submit" className="w-full text-base" size="lg">
-              Save Profile
-            </Button>
           </form>
-        </CardContent>
+        </Tabs>
       </Card>
     </div>
   );
 }
 
 export default PreferencesForms;
+
 function handleProfileUpdateError(profileData: UpdateProfileData) {
   let description: string | null = null;
 
   if (!profileData.interests || profileData.interests.length === 0) {
     description = "Please add at least one interest";
-  }
-
-  if (!profileData.profile_picture) {
+  } else if (!profileData.profile_picture) {
     description = "Please add a profile picture";
-  }
-
-  if (profileData.pictures && profileData.pictures.length === 0) {
+  } else if (profileData.pictures && profileData.pictures.length === 0) {
     description = "Please add at least one additional picture";
-  }
-
-  if (!profileData.location.city || !profileData.location.country) {
+  } else if (!profileData.location.city || !profileData.location.country) {
     description = "Please authorize location sharing";
-  }
-
-  if (profileData.interests.length > 5) {
+  } else if (profileData.interests.length > 5) {
     description = "Maximum 5 interests allowed";
-  }
-
-  if (profileData.pictures && profileData.pictures.length > 4) {
+  } else if (profileData.pictures && profileData.pictures.length > 4) {
     description = "Maximum 4 additional pictures allowed";
-  }
-
-  if (profileData.biography.length > 200 || profileData.biography.length < 10) {
+  } else if (profileData.biography.length > 200 || profileData.biography.length < 10) {
     description = "Biography must be between 10 and 200 characters";
-  }
-
-  if (profileData.interests.some((tag) => tag.length > 20)) {
+  } else if (profileData.interests.some((tag) => tag.length > 20)) {
     description = "Interests must be less than 20 characters";
   }
 
   if (description) {
-    toast({
-      title: "Profile update failed",
-      description: description,
-      variant: "destructive",
-    });
     return true;
   }
   return false;
