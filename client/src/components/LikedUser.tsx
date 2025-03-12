@@ -16,7 +16,7 @@ interface LikedUser {
   created_at: string;
   profile?: {
     username: string;
-	fisrtname: string;
+	  fisrtname: string;
     profile_picture: string;
   };
 }
@@ -54,11 +54,11 @@ const LikedUsers: React.FC<LikedUsersProps> = ({ username, onUnlike }) => {
     const fetchLikedUsers = async () => {
       try {
         setIsLoading(true);
-        const response = await api.get(`/users/${username}/likes/sent`);
-		const res = response.data as LikedUser[];
+        const response = await api.get(`/like/${username}/sent`);
+		    const res = response.data as LikedUser[];
 
-		setLikedUsers(res);
-		console.log(res);
+		    setLikedUsers(res);
+		    console.log(res);
         
       } catch (err) {
         setError('Impossible de charger les utilisateurs likés');

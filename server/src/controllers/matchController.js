@@ -13,6 +13,7 @@ exports.getMatches = async (req, res) => {
 
     const { rows } = await pool.query(query, [username]);
 
+    // Transformer les résultats pour ne pas afficher l'utilisateur lui-même deux fois
     const matches = rows.map(row => ({
       match_with: row.user1 === username ? row.user2 : row.user1,
       matched_at: row.matched_at

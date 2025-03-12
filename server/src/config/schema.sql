@@ -42,6 +42,12 @@ CREATE TABLE "_Views" (
   PRIMARY KEY ("A", "B")
 );
 
+CREATE TABLE "_Like" (
+  "A" VARCHAR NOT NULL REFERENCES "User" (username),
+  "B" VARCHAR NOT NULL REFERENCES "User" (username),
+  PRIMARY KEY ("A", "B")
+);
+
 -- Create index for better query performance
 CREATE INDEX "Views_A_index" ON "_Views" ("A");
 CREATE INDEX "Views_B_index" ON "_Views" ("B");
@@ -60,17 +66,9 @@ BEFORE UPDATE ON "User"
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at();
 
--- Table Like pour stocker les likes entre utilisateurs
-CREATE TABLE "Like" (
-  liker VARCHAR NOT NULL REFERENCES "User" (username),
-  liked VARCHAR NOT NULL REFERENCES "User" (username),
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (liker, liked)
-);
-
 -- Index pour améliorer les performances des requêtes
-CREATE INDEX "Like_liker_index" ON "Like" (liker);
-CREATE INDEX "Like_liked_index" ON "Like" (liked);
+CREATE INDEX "Like_A_index" ON "_Like" ("A");
+CREATE INDEX "Like_B_index" ON "_Like" ("B");
 
 -- Fonction pour créer un like entre deux utilisateurs
 CREATE OR REPLACE FUNCTION create_like(liker_username VARCHAR, liked_username VARCHAR)
@@ -81,7 +79,7 @@ DECLARE
 BEGIN
   -- Vérifier si le like existe déjà
   SELECT EXISTS (
-    SELECT 1 FROM "Like" 
+    SELECT 1 FROM "_Like" 
     WHERE liker = liker_username AND liked = liked_username
   ) INTO already_exists;
   
@@ -91,7 +89,7 @@ BEGIN
   END IF;
   
   -- Insérer le nouveau like
-  INSERT INTO "Like" (liker, liked, created_at)
+  INSERT INTO "_Like" (liker, liked, created_at)
   VALUES (liker_username, liked_username, NOW());
   
   -- Vérifier s'il y a un match (le trigger create_match() va automatiquement créer un match si nécessaire)
@@ -122,7 +120,7 @@ CREATE OR REPLACE FUNCTION create_match()
 RETURNS TRIGGER AS $$
 BEGIN
   IF EXISTS (
-    SELECT 1 FROM "Like" WHERE liker = NEW.liked AND liked = NEW.liker
+    SELECT 1 FROM "_Like" WHERE liker = NEW.liked AND liked = NEW.liker
   ) THEN
     INSERT INTO "Match" (user1, user2, matched_at)
     VALUES (LEAST(NEW.liker, NEW.liked), GREATEST(NEW.liker, NEW.liked), NOW())
@@ -134,6 +132,6 @@ $$ LANGUAGE plpgsql;
 
 -- Trigger pour appeler la fonction après chaque insertion dans la table Like
 CREATE TRIGGER check_for_match
-AFTER INSERT ON "Like"
+AFTER INSERT ON "_Like"
 FOR EACH ROW
 EXECUTE FUNCTION create_match();

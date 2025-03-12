@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, MessageSquare, Heart } from 'lucide-react';
-import axios from 'axios';
+import api from "@/lib/axios";
 import { formatDistance } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useRouter } from 'next/router';
@@ -9,6 +9,7 @@ interface Match {
   match_with: string;
   matched_at: string;
   profile?: {
+    username: string;
     firstname: string;
     profile_picture: string;
   };
@@ -21,7 +22,6 @@ interface MatchesProps {
 const Matches: React.FC<MatchesProps> = ({ username }) => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const router = useRouter();
 
@@ -29,29 +29,15 @@ const Matches: React.FC<MatchesProps> = ({ username }) => {
     const fetchMatches = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.get(`/api/users/${username}/matches`);
         
         // Récupérer les informations de profil pour chaque match
-        const matchesWithProfiles = await Promise.all(
-          response.data.matches.map(async (match: Match) => {
-            try {
-              const profileResponse = await axios.get(`/api/users/${match.match_with}`);
-              return {
-                ...match,
-                profile: {
-                  firstname: profileResponse.data.firstname,
-                  profile_picture: profileResponse.data.profile_picture
-                }
-              };
-            } catch (error) {
-              return match;
-            }
-          })
-        );
+        const matchResponse = await api.get(`/:username`);
+        const matchData = matchResponse.data as Match[];
         
-        setMatches(matchesWithProfiles);
+        setMatches(matchData);
+        console.log(matchData);
+
       } catch (err) {
-        setError('Impossible de charger les matchs');
         console.error(err);
       } finally {
         setIsLoading(false);
@@ -92,13 +78,13 @@ const Matches: React.FC<MatchesProps> = ({ username }) => {
         </div>
       )}
 
-      {error && isExpanded && (
+      {/* {error && isExpanded && (
         <div className="p-4 text-center text-red-500">
           {error}
         </div>
-      )}
+      )} */}
 
-      {!isLoading && !error && isExpanded && (
+      {!isLoading && isExpanded && (
         <>
           {matches.length === 0 ? (
             <div className="p-4 text-center text-gray-500">

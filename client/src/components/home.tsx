@@ -1,15 +1,17 @@
+
 import React, { useState, useEffect, use } from "react";
 import Footer from "./Footer";
 import Nav from "./Nav";
 import { Heart, X, Star, MapPin, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import MenuFilter from "./MenuFilter";
-import api from "@/lib/axios";
+import {api} from "@/context/auth-context";
 
 // Définir l'interface UserProfile pour le typage
 export interface UserProfile {
   id: number;
   email: string;
+  username: string;
   firstname: string;
   lastname?: string;
   birth_date?: string;
@@ -45,6 +47,7 @@ const Home: React.FC = () => {
   const [userProfile, setUserProfile] = useState<UserProfile>({
     id: 0,
     email: "",
+    username: "",
     firstname: "You",
     interests: [],
     gender: "non-binary",
@@ -308,22 +311,14 @@ const Home: React.FC = () => {
     new Set(matchedProfiles.flatMap((p) => p.interests))
   );
 
-  const sendLike = async (liker: UserProfile, liked: UserProfile) => {
+  const sendLike = async (username: string) => {
     try {
-      const requestData = await fetch("http://localhost:3000/users/likes/add", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({liker, liked,}),
+      const meResponse = await api.post("/like/", {
+        liked_user: username,
       });
-
-      if (!requestData.ok) {
-        throw new Error("Erreur lors de l'envoi du like");
-      }
-
-      const responseData = await requestData.json();
-      console.log("Like envoyé avec succès:", responseData);
+      const res = meResponse.data;
+      console.log(res);
+      console.log("Like envoyé avec succès:", res);
     } catch (error) {
       console.error("Erreur :", error);
     }
@@ -405,7 +400,6 @@ const Home: React.FC = () => {
       {currentProfile && (
         <div
           className={`relative w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden transition-all duration-300 ease-out
-            onClick={() => sendLike(userProfile, currentProfile)}
             ${
               direction === "left"
                 ? "translate-x-full opacity-0"
@@ -473,7 +467,7 @@ const Home: React.FC = () => {
             </button>
             <button 
               onClick={() => {
-                sendLike(userProfile, currentProfile);
+                sendLike(currentProfile.username);
                 handleSwipe("right");
               }} 
               className="bg-white rounded-full p-4 shadow-lg text-green-500 hover:bg-green-50 transition-colors">

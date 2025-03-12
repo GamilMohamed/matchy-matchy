@@ -3,6 +3,6 @@ const { getMatches } = require("../controllers/matchController");
 
 const router = express.Router();
 
-router.get("/matches/:username", getMatches);
+router.get("/:username", getMatches);
 
 module.exports = router;
