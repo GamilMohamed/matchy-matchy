@@ -273,8 +273,8 @@ exports.updateUser = async function (req, res) {
     // Upload new pictures
     if (files && files["pictures[]"]) {
       for (const picture of files["pictures[]"]) {
-        const dataURI = `data:${picture.mimetype};base64,${picture.buffer.toString("base64")}`;
-        const cloudinaryResult = await cloudinary.uploader.upload(dataURI);
+        const dataURI = `data:${picture.mimetype};base64,${picture.buffer.toString("base64")}`;      console.log("avant");
+        const cloudinaryResult = await cloudinary.uploader.upload(dataURI);      console.log("apres");
         picturesSet.add(cloudinaryResult.secure_url);
       }
     }

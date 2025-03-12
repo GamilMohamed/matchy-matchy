@@ -1,12 +1,17 @@
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+// import { Button } from "@/components/ui/button";
+import { Bubble, Button, Card, Popup } from "pixel-retroui";
+// import { Input } from "@/components/ui/input";
+import { Input } from "pixel-retroui";
+
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 // import Cookies from 'js-cookie';
 import { useAuth } from "@/context/auth-context";
 import { RegisterData } from "@/types/auth";
+// import { Mail } from "lucide-react";
+import {Mail} from "../assets/mail.svg"
 
 const LoginForm = () => {
   const { login, register } = useAuth();
@@ -34,8 +39,7 @@ const LoginForm = () => {
 
   useEffect(() => {
     checkUsernameAvailability(formData.username);
-  }
-  , [usernameDesign]);
+  }, [usernameDesign]);
 
   const checkUsernameAvailability = async (username: string) => {
     if (!username) return;
@@ -120,7 +124,6 @@ const LoginForm = () => {
     } catch (error) {
       console.log("error", error);
     }
-
   };
 
   const handleUsernameChange = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -135,13 +138,80 @@ const LoginForm = () => {
   // };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-4">
-        <div className="bg-white p-8 rounded-lg shadow-lg space-y-4">
-          <h1 className="text-2xl font-bold text-center text-gray-900">Bienvenue</h1>
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 w-full">
+      <Card bg="#fefcd0" textColor="black" borderColor="black" shadowColor="#c381b5" className="p-4 text-center">
+        <h1 className="text-2xl font-bold text-center text-gray-900 mb-4">Bienvenue</h1>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Button onClick={() => setIsLoginOpen(true)} className="flex-1 w-64 h-12" bg="orange">
+            Se connecter
+          </Button>
+          <Popup isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} className="w-screen">
+            <form onSubmit={handleLogin} className="space-y-4 w-[500px] p-4">
+              <div className="flex justify-between items-center">
+                <p className="text-xl">Email</p>
+                <Input 
+                icon="/assets/mail.svg"
+                id="email" name="email" type="email" required value={formData.email} onChange={handleInputChange} />
+              </div>
+              <div className="flex justify-between items-center">
+                <Label htmlFor="password">Mot de passe</Label>
+                <Input id="password" name="password" type="password" required value={formData.password} onChange={handleInputChange} />
+              </div>
+              <Button type="submit" className="w-full">
+                Se connecter
+              </Button>
+            </form>
+          </Popup>
+          <Button onClick={() => setIsSignupOpen(true)} className="flex-1 w-64 h-12" bg="lightgrey">
+            S'inscrire
+          </Button>
+          <Popup isOpen={isSignupOpen} onClose={() => setIsSignupOpen(false)}>
+            <form onSubmit={handleSignup} className="space-y-4 w-[500px] p-4">
+              <div className="flex justify-between items-center">
+                <Label htmlFor="signup-email">Email</Label>
+                <Input id="signup-email" name="email" type="email" required value={formData.email} onChange={handleInputChange} />
+              </div>
+              <div className="flex justify-between items-center">
+                <Label htmlFor="username">Username</Label>
+                <div className="flex items-center gap-2">
+                  <Input id="username" name="username" type="text" required value={formData.username} onChange={handleInputChange} />
+                  {/* {usernameImage && <img onClick={handleUsernameDesignChange} src={usernameImage} alt="Username" className="w-14 h-14" />} */}
+                </div>
+                {/* <p className="text-xs text-gray-500">Cliquez sur l'icône pour changer de design</p> */}
+              </div>
+              <div className="flex justify-between items-center">
+                <Label htmlFor="firstname">Prénom</Label>
+                <Input id="firstname" name="firstname" type="text" required value={formData.firstname} onChange={handleInputChange} />
+              </div>
+              <div className="flex justify-between items-center">
+                <Label htmlFor="lastname">Nom</Label>
+                <Input id="lastname" name="lastname" type="text" required value={formData.lastname} onChange={handleInputChange} />
+              </div>
+              <div className="flex justify-between items-center">
+                <Label htmlFor="birth_date">Date de naissance</Label>
+                <Input
+                  id="birth_date"
+                  name="birth_date"
+                  type="date"
+                  required
+                  value={formData.birth_date}
+                  onChange={handleInputChange}
+                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split("T")[0]}
+                  className="[&::-webkit-calendar-picker-indicator]:bg-white [&::-webkit-calendar-picker-indicator]:p-1 [&::-webkit-calendar-picker-indicator]:rounded"
+                />
+                {birthdateError && <p className="text-sm text-red-500">{birthdateError}</p>}
+              </div>
+              <div className="flex justify-between items-center">
+                <Label htmlFor="signup-password">Mot de passe</Label>
+                <Input id="signup-password" name="password" type="password" required value={formData.password} onChange={handleInputChange} />
+              </div>
+              <Button type="submit" className="w-full" disabled={!!birthdateError} bg="orange">
+                S'inscrire
+              </Button>
+            </form>
+          </Popup>
 
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
+          {/* <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
               <DialogTrigger asChild>
                 <Button className="flex-1">Se connecter</Button>
               </DialogTrigger>
@@ -163,70 +233,65 @@ const LoginForm = () => {
                   </Button>
                 </form>
               </DialogContent>
-            </Dialog>
+            </Dialog> */}
 
-            <Dialog open={isSignupOpen} onOpenChange={setIsSignupOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="flex-1">
+          {/* <Dialog open={isSignupOpen} onOpenChange={setIsSignupOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="flex-1">
+                S'inscrire
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Inscription</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSignup} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="signup-email">Email</Label>
+                  <Input id="signup-email" name="email" type="email" required value={formData.email} onChange={handleInputChange} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <div className="flex items-center gap-2">
+                    <Input id="username" name="username" type="text" required value={formData.username} onChange={handleInputChange} />
+                    {usernameImage && <img onClick={handleUsernameDesignChange} src={usernameImage} alt="Username" className="w-14 h-14" />}
+                  </div>
+                  <p className="text-xs text-gray-500">Cliquez sur l'icône pour changer de design</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="firstname">Prénom</Label>
+                  <Input id="firstname" name="firstname" type="text" required value={formData.firstname} onChange={handleInputChange} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastname">Nom</Label>
+                  <Input id="lastname" name="lastname" type="text" required value={formData.lastname} onChange={handleInputChange} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="birth_date">Date de naissance</Label>
+                  <Input
+                    id="birth_date"
+                    name="birth_date"
+                    type="date"
+                    required
+                    value={formData.birth_date}
+                    onChange={handleInputChange}
+                    max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split("T")[0]}
+                    className="[&::-webkit-calendar-picker-indicator]:bg-white [&::-webkit-calendar-picker-indicator]:p-1 [&::-webkit-calendar-picker-indicator]:rounded"
+                  />
+                  {birthdateError && <p className="text-sm text-red-500">{birthdateError}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-password">Mot de passe</Label>
+                  <Input id="signup-password" name="password" type="password" required value={formData.password} onChange={handleInputChange} />
+                </div>
+                <Button type="submit" className="w-full" disabled={!!birthdateError}>
                   S'inscrire
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Inscription</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSignup} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input id="signup-email" name="email" type="email" required value={formData.email} onChange={handleInputChange} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="username">Username</Label>
-                    <div className="flex items-center gap-2">
-                    <Input id="username" name="username" type="text" required value={formData.username} onChange={handleInputChange} />
-                    {usernameImage && <img 
-                    onClick={handleUsernameDesignChange}
-                    
-                    src={usernameImage} alt="Username" className="w-14 h-14" />}
-                    </div>
-                    <p 
-                    className="text-xs text-gray-500">Cliquez sur l'icône pour changer de design</p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="firstname">Prénom</Label>
-                    <Input id="firstname" name="firstname" type="text" required value={formData.firstname} onChange={handleInputChange} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastname">Nom</Label>
-                    <Input id="lastname" name="lastname" type="text" required value={formData.lastname} onChange={handleInputChange} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="birth_date">Date de naissance</Label>
-                    <Input
-                      id="birth_date"
-                      name="birth_date"
-                      type="date"
-                      required
-                      value={formData.birth_date}
-                      onChange={handleInputChange}
-                      max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split("T")[0]}
-                      className="[&::-webkit-calendar-picker-indicator]:bg-white [&::-webkit-calendar-picker-indicator]:p-1 [&::-webkit-calendar-picker-indicator]:rounded"
-                    />
-                    {birthdateError && <p className="text-sm text-red-500">{birthdateError}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Mot de passe</Label>
-                    <Input id="signup-password" name="password" type="password" required value={formData.password} onChange={handleInputChange} />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={!!birthdateError}>
-                    S'inscrire
-                  </Button>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
+              </form>
+            </DialogContent>
+          </Dialog> */}
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

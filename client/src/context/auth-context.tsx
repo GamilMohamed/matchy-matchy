@@ -5,6 +5,7 @@ import { MyError, RegisterData, UpdateProfileData } from "../types/auth";
 import { useToast } from "@/hooks/use-toast";
 import { AxiosError } from "axios";
 import { User } from "@/types/auth";
+import { io } from "socket.io-client";
 
 // Auth context type
 interface AuthContextType {
@@ -29,6 +30,16 @@ const api = axios.create({
     Authorization: `Bearer ${localStorage.getItem("token")}`,
   },
 });
+
+const socket = io("http://localhost:3000", {
+  withCredentials: true,
+  autoConnect: true,
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+  transports: ['websocket', 'polling'] // Try both transport methods
+});
+
 
 // Add request interceptor to include the token
 api.interceptors.request.use(
@@ -55,6 +66,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setProfileCompleted(user.profile_complete || false);
     }
   }, [user]);
+
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("Connected to the server");
+    });
+    socket.on("disconnect", () => {
+      console.log("Disconnected from the server");
+    });
+  }, []);
+
   const handleRequest = async (requestFn: () => Promise<unknown>, successMessage?: string) => {
     try {
       // setLoading(true);
@@ -202,4 +223,4 @@ export const useAuth = () => {
 };
 
 // Export the configured axios instance
-export { api };
+export { api, socket };

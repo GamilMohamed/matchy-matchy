@@ -59,3 +59,31 @@ CREATE TRIGGER update_user_updated_at
 BEFORE UPDATE ON "User"
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at();
+
+-- Create Messages table for chat functionality
+CREATE TABLE "Message" (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  sender VARCHAR NOT NULL REFERENCES "User" (username),
+  recipient VARCHAR NOT NULL REFERENCES "User" (username),
+  content TEXT NOT NULL,
+  read BOOLEAN NOT NULL DEFAULT false,
+  timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+-- Create indexes for better query performance
+CREATE INDEX "message_sender_recipient_index" ON "Message" (sender, recipient);
+CREATE INDEX "message_recipient_sender_index" ON "Message" (recipient, sender);
+CREATE INDEX "message_timestamp_index" ON "Message" (timestamp DESC);
+
+-- Create match table to track user matches
+CREATE TABLE "Match" (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user1 VARCHAR NOT NULL REFERENCES "User" (username),
+  user2 VARCHAR NOT NULL REFERENCES "User" (username),
+  matched_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  UNIQUE(user1, user2)
+);
+
+-- Create index for match queries
+CREATE INDEX "match_user1_index" ON "Match" (user1);
+CREATE INDEX "match_user2_index" ON "Match" (user2);

@@ -11,6 +11,7 @@ import PreferencesForms from "./components/PrefForms";
 import Elias, { Elias1, Elias2 } from "./components/Elias.tsx";
 import Error from "./components/Error";
 import { useAuth } from "./context/auth-context";
+import Web from "./components/web.tsx";
 // import Nav from "./components/Nav";
 
 function randomString() {
@@ -94,6 +95,14 @@ function App() {
           element={
             <>
               <TestCarousel />
+            </>
+          }
+        />
+        <Route
+          path="/web"
+          element={
+            <>
+              <Web />
             </>
           }
         />

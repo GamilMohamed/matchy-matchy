@@ -6,30 +6,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { ProgressBar } from "pixel-retroui";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
-} from "./ui/tabs";
-import { 
-  Avatar,
-  AvatarFallback,
-  AvatarImage 
-} from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import ProfileView from "./ProfileView";
 import { Checkbox } from "./ui/checkbox";
 import SexualPreferencesSelector from "./SexualPreferencesSelector";
 import { Progress } from "./ui/progress";
 
+
 function PreferencesForms() {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [profileComplete, setProfileComplete] = useState(user?.profileComplete || false);
+  const [profileComplete, setProfileComplete] = useState(user?.profile_complete || false);
   const [activeTab, setActiveTab] = useState("basic-info");
   const [profileData, setProfileData] = useState<UpdateProfileData>({
     gender: user?.gender || "male",
@@ -38,7 +31,10 @@ function PreferencesForms() {
     location: user?.location || { latitude: 0, longitude: 0, city: "", country: "" },
     biography: user?.biography || "Pitié pour moi, je suis un(e) flemmard(e) et je n'ai pas écrit de biographie. 😅",
     interests: user?.interests?.length > 0 ? user?.interests : ["#coding", "#gaming", "#music"],
-    pictures: user?.pictures.length > 0 ? user?.pictures : ["https://randomuser.me/api/portraits/men/4.jpg", "https://randomuser.me/api/portraits/men/3.jpg", "https://randomuser.me/api/portraits/men/4.jpg"],
+    pictures:
+      user?.pictures.length > 0
+        ? user?.pictures
+        : ["https://randomuser.me/api/portraits/men/4.jpg", "https://randomuser.me/api/portraits/men/3.jpg", "https://randomuser.me/api/portraits/men/4.jpg"],
     profile_picture: user?.profile_picture || "https://randomuser.me/api/portraits/men/1.jpg",
   });
   const { updateProfile } = useAuth();
@@ -47,7 +43,7 @@ function PreferencesForms() {
   const [formErrors, setFormErrors] = useState<Record<string, boolean>>({
     basicInfo: false,
     biography: false,
-    photos: false
+    photos: false,
   });
 
   // Check completion status for tabs
@@ -55,9 +51,9 @@ function PreferencesForms() {
     const errors = {
       basicInfo: !profileData.gender || !profileData.sexual_preferences || profileData.sexual_preferences.length === 0,
       biography: !profileData.biography || profileData.biography.length < 10 || profileData.interests.length === 0,
-      photos: !profileData.profile_picture || !profileData.pictures || profileData.pictures.length === 0
+      photos: !profileData.profile_picture || !profileData.pictures || profileData.pictures.length === 0,
     };
-    
+
     setFormErrors(errors);
     return errors;
   };
@@ -197,11 +193,11 @@ function PreferencesForms() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     // Check for errors
     const errors = checkTabCompletion();
-    const hasErrors = Object.values(errors).some(error => error);
-    
+    const hasErrors = Object.values(errors).some((error) => error);
+
     if (hasErrors) {
       // Find first tab with error and switch to it
       if (errors.basicInfo) {
@@ -211,7 +207,7 @@ function PreferencesForms() {
       } else if (errors.photos) {
         setActiveTab("photos");
       }
-      
+
       toast({
         title: "Please complete all required information",
         description: "Check that all tabs are filled correctly",
@@ -219,7 +215,7 @@ function PreferencesForms() {
       });
       return;
     }
-    
+
     if (handleProfileUpdateError(profileData)) return;
 
     try {
@@ -266,19 +262,21 @@ function PreferencesForms() {
   };
 
   return (
-    <div className="w-full px-4 py-8 sm:px-6 md:py-12">
+    <div className="w-full px-4 py-8 sm:px-6 md:py-12 bg-green-500 h-full">
       <Card className="max-w-4xl mx-auto shadow-lg">
         <CardHeader className=" border-b flex flex-col sm:flex-row justify-between items-center gap-4">
           <CardTitle className="text-2xl font-bold">Edit Profile</CardTitle>
-          
+
           <div className="flex items-center space-x-4">
             <div className="text-sm text-right text-gray-600">
               {user?.username && <div className="font-medium">{user.username}</div>}
               {profileData.location.city && (
-                <div className="text-xs">{profileData.location.city}, {profileData.location.country}</div>
+                <div className="text-xs">
+                  {profileData.location.city}, {profileData.location.country}
+                </div>
               )}
             </div>
-            
+
             <Avatar className="h-12 w-12 border-2 border-white">
               {typeof profileData.profile_picture === "string" ? (
                 <AvatarImage src={profileData.profile_picture} alt="Profile" />
@@ -289,9 +287,9 @@ function PreferencesForms() {
             </Avatar>
           </div>
         </CardHeader>
-        
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full grid grid-cols-3">
+          {/* <TabsList className="w-full grid grid-cols-3">
             <TabsTrigger value="basic-info" className="relative">
               Basic Info
               {formErrors.basicInfo && (
@@ -310,19 +308,15 @@ function PreferencesForms() {
                 <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
               )}
             </TabsTrigger>
-          </TabsList>
-          
+          </TabsList> */}
+
           <form onSubmit={handleSubmit}>
             <CardContent className="p-6">
               <TabsContent value="basic-info" className="space-y-6 mt-4">
                 {/* Gender Selection */}
                 <div className="space-y-3">
                   <Label className="text-base font-semibold">Gender</Label>
-                  <RadioGroup 
-                    value={profileData.gender} 
-                    onValueChange={(value) => setProfileData({ ...profileData, gender: value })} 
-                    className="flex flex-row gap-4"
-                  >
+                  <RadioGroup value={profileData.gender} onValueChange={(value) => setProfileData({ ...profileData, gender: value })} className="flex flex-row gap-4">
                     {["male", "female", "other"].map((option) => (
                       <div key={option} className="flex items-center space-x-2">
                         <RadioGroupItem value={option} id={`gender-${option}`} />
@@ -340,11 +334,7 @@ function PreferencesForms() {
                 {/* Localisation */}
                 <div className="space-y-3">
                   <Label className="text-base font-semibold">Would you like to share your location?</Label>
-                  <RadioGroup 
-                    value={String(profileData.authorize_location)} 
-                    onValueChange={(value) => handleLocalisation(value === "true")} 
-                    className="flex flex-row gap-4"
-                  >
+                  <RadioGroup value={String(profileData.authorize_location)} onValueChange={(value) => handleLocalisation(value === "true")} className="flex flex-row gap-4">
                     {[
                       { label: "Yes", value: "true", disabled: !isGeolocationEnabled },
                       { label: "No", value: "false", disabled: false },
@@ -363,14 +353,14 @@ function PreferencesForms() {
                     </p>
                   )}
                 </div>
-                
+
                 <div className="flex justify-end mt-6 pt-4 border-t">
                   <Button type="button" onClick={goToNextTab} className="ml-2">
                     Next
                   </Button>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="bio-interests" className="space-y-6 mt-4">
                 {/* Biography */}
                 <div className="space-y-3">
@@ -430,7 +420,7 @@ function PreferencesForms() {
                     ))}
                   </div>
                 </div>
-                
+
                 <div className="flex justify-between mt-6 pt-4 border-t">
                   <Button type="button" onClick={goToPreviousTab} variant="outline">
                     Previous
@@ -440,7 +430,7 @@ function PreferencesForms() {
                   </Button>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="photos" className="space-y-6 mt-4">
                 {/* Profile Picture */}
                 <div className="space-y-3">
@@ -460,17 +450,8 @@ function PreferencesForms() {
                       )}
                     </div>
                     <div className="flex-grow w-full">
-                      <Input 
-                        id="profilePic" 
-                        name="profile_picture" 
-                        type="file" 
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(e, true)} 
-                        className="text-base" 
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        This will be your main profile picture visible to others
-                      </p>
+                      <Input id="profilePic" name="profile_picture" type="file" accept="image/*" onChange={(e) => handleImageUpload(e, true)} className="text-base" />
+                      <p className="text-xs text-gray-500 mt-1">This will be your main profile picture visible to others</p>
                     </div>
                   </div>
                 </div>
@@ -478,27 +459,13 @@ function PreferencesForms() {
                 {/* Additional Pictures */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="additionalPics" className="text-base font-semibold">
+                    {/* <Label htmlFor="additionalPics" className="text-base font-semibold">
                       Additional Pictures
-                    </Label>
-                    <span className={
-                      profileData.pictures?.length === 0 
-                        ? "text-red-500 text-sm" 
-                        : "text-gray-500 text-sm"
-                    }>
+                    </Label> */}
+                    <span className={profileData.pictures?.length === 0 ? "text-red-500 text-sm" : "text-gray-500 text-sm"}>
                       {profileData.pictures?.length || 0}/4 (at least 1 required)
                     </span>
                   </div>
-                  <Input
-                    id="additionalPics"
-                    name="additionalPictures"
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={(e) => handleImageUpload(e, false)}
-                    disabled={profileData.pictures && profileData.pictures.length >= 4}
-                    className="text-base"
-                  />
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
                     {profileData.pictures &&
                       profileData.pictures.map((pic, index) => (
@@ -510,30 +477,42 @@ function PreferencesForms() {
                               <img src={URL.createObjectURL(pic)} alt={`Additional ${index + 1}`} className="w-full h-full object-cover" />
                             )}
                           </div>
-                          <Button 
-                            type="button" 
-                            onClick={() => handleRemoveImage(index)} 
-                            variant="destructive" 
-                            size="sm" 
-                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
-                          >
+                          <Button
+                            type="button"
+                            onClick={() => handleRemoveImage(index)}
+                            variant="destructive"
+                            size="sm"
+                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0">
                             <X className="h-4 w-4" />
                             <span className="sr-only">Remove</span>
                           </Button>
                         </div>
                       ))}
-                    
+
                     {/* Empty slots */}
-                    {profileData.pictures && profileData.pictures.length < 4 && 
+                    {profileData.pictures &&
+                      profileData.pictures.length < 4 &&
                       Array.from({ length: 4 - profileData.pictures.length }).map((_, i) => (
-                        <div key={`empty-${i}`} className="aspect-square rounded-md border-2 border-dashed border-gray-200 flex items-center justify-center bg-gray-50">
-                          <span className="text-gray-400 text-xs">Empty slot</span>
-                        </div>
-                      ))
-                    }
+                        <Label
+                          htmlFor="additionalPics"
+                          key={`empty-${i}`}
+                          className="aspect-square rounded-md border-2 border-dashed border-gray-200 flex items-center justify-center bg-gray-50">
+                          <Input
+                            id="additionalPics"
+                            name="additionalPictures"
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={(e) => handleImageUpload(e, false)}
+                            disabled={profileData.pictures && profileData.pictures.length >= 4}
+                            className="text-base hidden"
+                          />
+                          <p className="text-gray-400 text-xs">Empty slot</p>
+                        </Label>
+                      ))}
                   </div>
                 </div>
-                
+
                 <div className="flex justify-between mt-6 pt-4 border-t">
                   <Button type="button" onClick={goToPreviousTab} variant="outline">
                     Previous
@@ -544,20 +523,11 @@ function PreferencesForms() {
                 </div>
               </TabsContent>
             </CardContent>
-            
+
             {/* Progress indicator */}
             <div className="px-6 pb-6">
-              <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-              <Progress 
-              value={activeTab === "basic-info" 
-                ? 33 
-                : activeTab === "bio-interests" 
-                  ? 66 
-                  : 100
-              } 
-              className="w-full bg-gray-200 h-2 rounded-full overflow-hidden"
-            />
-                {/* <div className="bg-blue-600 h-full" 
+              <ProgressBar progress={activeTab === "basic-info" ? 33 : activeTab === "bio-interests" ? 66 : 100} size="md" color="#facc15" borderColor="black" className="w-full" />
+              {/* <div className="bg-blue-600 h-full" 
                   style={{ 
                     width: activeTab === "basic-info" 
                       ? "33%" 
@@ -566,7 +536,6 @@ function PreferencesForms() {
                         : "100%" 
                   }}>
                 </div> */}
-              </div>
               <div className="flex justify-between text-xs text-gray-500 mt-1">
                 <span>Basic Info</span>
                 <span>Bio & Interests</span>
