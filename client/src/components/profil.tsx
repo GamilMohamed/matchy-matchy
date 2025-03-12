@@ -1,6 +1,6 @@
 import Nav from './Nav';
 import Footer from './Footer';
-import PreferencesForms from './PrefForms';
+import PreferencesForms from './ProfileForm/ProfileForm';
 
 function Profile() {
 

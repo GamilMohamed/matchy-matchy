@@ -7,7 +7,7 @@ import About from "./components/about-us";
 import Settings from "./components/settings";
 import Profil from "./components/profil";
 import UserPage from "./components/UserPage";
-import PreferencesForms from "./components/PrefForms";
+import PreferencesForms from "./components/ProfileForm/ProfileForm.tsx";
 import Elias, { Elias1, Elias2 } from "./components/Elias.tsx";
 import Error from "./components/Error";
 import { useAuth } from "./context/auth-context";
