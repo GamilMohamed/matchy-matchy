@@ -12,13 +12,10 @@ import { Badge } from '@/components/ui/badge';
 import api from "@/lib/axios";
 
 interface LikedUser {
-  liked_user: string;
-  created_at: string;
-  profile?: {
-    username: string;
-	  fisrtname: string;
-    profile_picture: string;
-  };
+  username: string;
+  firstname: string;
+  profile_picture: string;
+  birth_date: string;
 }
 
 interface ProfileResponse {
@@ -73,26 +70,6 @@ const LikedUsers: React.FC<LikedUsersProps> = ({ username, onUnlike }) => {
     }
   }, [username]);
 
-//   const handleUnlike = async (likedUsername: string) => {
-//     try {
-//       // Appel API pour supprimer le like
-//       const requestData: UnlikeRequestData = { liker: username, liked: likedUsername };
-//       await axios.delete(`/api/likes`, {
-//         data: requestData
-//       });
-      
-//       // Mettre à jour l'état local
-//       setLikedUsers(prev => prev.filter(user => user.liked_user !== likedUsername));
-      
-//       // Informer le composant parent
-//       if (onUnlike) {
-//         onUnlike(likedUsername);
-//       }
-//     } catch (error) {
-//       console.error('Erreur lors de la suppression du like:', error);
-//     }
-//   };
-
   const formatDate = (dateString: string) => {
     return formatDistance(new Date(dateString), new Date(), {
       addSuffix: true,
@@ -137,7 +114,12 @@ const LikedUsers: React.FC<LikedUsersProps> = ({ username, onUnlike }) => {
                 </div>
               ) : (
                 <div className="max-h-60 overflow-y-auto">
-                  {likedUsers.map((user) => (
+                  {likedUsers.likes.map((name) => (
+                    <div>
+                      <p>{JSON.stringify(name.liked_user)}</p>
+                    </div>
+                  ))}
+                  {/* {likedUsers.map((user) => (
                     <div 
                       key={user.liked_user} 
                       className="p-3 border-b hover:bg-purple-50 transition-colors flex items-center justify-between"
@@ -168,7 +150,7 @@ const LikedUsers: React.FC<LikedUsersProps> = ({ username, onUnlike }) => {
                         <X size={14} />
                       </Button>
                     </div>
-                  ))}
+                  ))} */}
                 </div>
               )}
             </>

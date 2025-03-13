@@ -91,6 +91,7 @@ exports.getMe = async function (req, res) {
         u.pictures,
         l.id AS "location_id", l.latitude, l.longitude, 
         l.city, l.country
+
       FROM "User" u
       LEFT JOIN "Location" l ON u."location_id" = l.id
       WHERE u.username = $1
@@ -102,9 +103,9 @@ exports.getMe = async function (req, res) {
       return res.status(404).json({ message: "User not found" });
     }
     
-    // Get viewed users
+    // Get viewed users (users that this user has viewed)
     const viewedQuery = `
-      SELECT u.username
+      SELECT u.username, u.firstname, u.lastname, u.profile_picture
       FROM "User" u
       JOIN "_Views" v ON u.username = v."B"
       WHERE v."A" = $1
@@ -114,7 +115,7 @@ exports.getMe = async function (req, res) {
     
     // Get users who viewed this user
     const viewed_byQuery = `
-      SELECT u.username
+      SELECT u.username, u.firstname, u.lastname, u.profile_picture
       FROM "User" u
       JOIN "_Views" v ON u.username = v."A"
       WHERE v."B" = $1
@@ -122,11 +123,47 @@ exports.getMe = async function (req, res) {
     
     const viewed_byResult = await client.query(viewed_byQuery, [username]);
     
+    // Get users liked by this user
+    const likedQuery = `
+      SELECT u.username, u.firstname, u.lastname, u.profile_picture, l.created_at AS liked_at
+      FROM "User" u
+      JOIN "_Like" l ON u.username = l.liked
+      WHERE l.liker = $1
+      ORDER BY l.created_at DESC
+    `;
+    
+    const likedResult = await client.query(likedQuery, [username]);
+    
+    // Get users who liked this user
+    const liked_byQuery = `
+      SELECT u.username, u.firstname, u.lastname, u.profile_picture, l.created_at AS liked_at
+      FROM "User" u
+      JOIN "_Like" l ON u.username = l.liker
+      WHERE l.liked = $1
+      ORDER BY l.created_at DESC
+    `;
+    
+    const liked_byResult = await client.query(liked_byQuery, [username]);
+    
+    // Get matched users
+    const matchedQuery = `
+      SELECT 
+        u.username, u.firstname, u.lastname, u.profile_picture, m.matched_at
+      FROM "User" u
+      JOIN "Match" m ON 
+        (m.user1 = $1 AND m.user2 = u.username) OR
+        (m.user2 = $1 AND m.user1 = u.username)
+      ORDER BY m.matched_at DESC
+    `;
+    
+    const matchedResult = await client.query(matchedQuery, [username]);
+    
     // Format user data
     const userData = userResult.rows[0];
     
     // Format location data
     const location = userData.location_id ? {
+      id: userData.location_id,
       latitude: userData.latitude,
       longitude: userData.longitude,
       country: userData.country,
@@ -138,25 +175,31 @@ exports.getMe = async function (req, res) {
     delete userData.longitude;
     delete userData.country;
     delete userData.city;
+    delete userData.location_id;
     
     // Format viewed and viewed_by arrays
-    const viewed = viewedResult.rows.map(row => ({ username: row.username }));
-    const viewed_by = viewed_byResult.rows.map(row => ({ username: row.username }));
+    const viewed = viewedResult.rows;
+    const viewed_by = viewed_byResult.rows;
+    const liked = likedResult.rows;
+    const liked_by = liked_byResult.rows;
+    const matches = matchedResult.rows;
     
     return res.status(200).json({
       ...userData,
       location,
       viewed,
-      viewed_by
+      viewed_by,
+      liked,
+      liked_by,
+      matches
     });
   } catch (error) {
     console.error("Error in getMe:", error);
-    return res.status(500).json({ message: "Failed to retrieve user profile" });
+    return res.status(500).json({ message: "Failed to retrieve user profile", error: error.message });
   } finally {
     client.release();
   }
 };
-
 /**
  * Get all users with completed profiles
  */

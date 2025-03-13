@@ -58,3 +58,14 @@ docker run -d \
   -e POSTGRES_DB="matchy-matchy-db" \
   -p "$DB_PORT":5432 \
   docker.io/postgres && echo "Database container '$DB_CONTAINER_NAME' was successfully created"
+
+if [ -f "schema.sql" ]; then
+  echo "Applying migrations from schema.sql..."
+  # Wait for PostgreSQL to start up properly
+  sleep 3
+  # Run psql inside the container to execute the SQL file
+  docker exec -i $DB_CONTAINER_NAME psql -U moha -d matchy-matchy-db < schema.sql
+  echo "Migrations applied successfully."
+else
+  echo "No schema.sql file found. Skipping migrations."
+fi

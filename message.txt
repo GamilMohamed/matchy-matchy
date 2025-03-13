@@ -30,9 +30,10 @@ CREATE TABLE "User" (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
   interests VARCHAR[] NOT NULL,
-  location_id UUID UNIQUE REFERENCES "Location" (id),
+  location_id UUID REFERENCES "Location" (id),
   authorize_location BOOLEAN NOT NULL DEFAULT false,
-  pictures VARCHAR[] NOT NULL DEFAULT '{}'::VARCHAR[]
+  pictures VARCHAR[] NOT NULL DEFAULT '{}'::VARCHAR[],
+  city VARCHAR  -- Added missing city field referenced in _Like table
 );
 
 -- Create junction table for the self-relation (Views)
@@ -42,10 +43,12 @@ CREATE TABLE "_Views" (
   PRIMARY KEY ("A", "B")
 );
 
+-- Fix the _Like table
 CREATE TABLE "_Like" (
-  "A" VARCHAR NOT NULL REFERENCES "User" (username),
-  "B" VARCHAR NOT NULL REFERENCES "User" (username),
-  PRIMARY KEY ("A", "B")
+  liker VARCHAR NOT NULL REFERENCES "User" (username),
+  liked VARCHAR NOT NULL REFERENCES "User" (username),  -- Corrected column name from liked_username
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (liker, liked)
 );
 
 -- Create index for better query performance
@@ -66,33 +69,41 @@ BEFORE UPDATE ON "User"
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at();
 
--- Index pour améliorer les performances des requêtes
-CREATE INDEX "Like_A_index" ON "_Like" ("A");
-CREATE INDEX "Like_B_index" ON "_Like" ("B");
+-- Index to improve query performance
+CREATE INDEX "Like_liker_index" ON "_Like" (liker);
+CREATE INDEX "Like_liked_index" ON "_Like" (liked);
 
--- Fonction pour créer un like entre deux utilisateurs
+-- Create Match table before the function that references it
+CREATE TABLE "Match" (
+  user1 VARCHAR NOT NULL REFERENCES "User" (username),
+  user2 VARCHAR NOT NULL REFERENCES "User" (username),
+  matched_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user1, user2)
+);
+
+-- Function to create a like between two users
 CREATE OR REPLACE FUNCTION create_like(liker_username VARCHAR, liked_username VARCHAR)
 RETURNS BOOLEAN AS $$
 DECLARE
   already_exists BOOLEAN;
   is_match BOOLEAN DEFAULT FALSE;
 BEGIN
-  -- Vérifier si le like existe déjà
+  -- Check if the like already exists
   SELECT EXISTS (
     SELECT 1 FROM "_Like" 
     WHERE liker = liker_username AND liked = liked_username
   ) INTO already_exists;
   
-  -- Si le like existe déjà, retourner FALSE
+  -- If the like already exists, return FALSE
   IF already_exists THEN
     RETURN FALSE;
   END IF;
   
-  -- Insérer le nouveau like
+  -- Insert the new like
   INSERT INTO "_Like" (liker, liked, created_at)
   VALUES (liker_username, liked_username, NOW());
   
-  -- Vérifier s'il y a un match (le trigger create_match() va automatiquement créer un match si nécessaire)
+  -- Check if there's a match
   SELECT EXISTS (
     SELECT 1 FROM "Match" 
     WHERE (user1 = liker_username AND user2 = liked_username) OR 
@@ -103,19 +114,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Table Match pour stocker les correspondances mutuelles
-CREATE TABLE "Match" (
-  user1 VARCHAR NOT NULL REFERENCES "User" (username),
-  user2 VARCHAR NOT NULL REFERENCES "User" (username),
-  matched_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (user1, user2)
-);
-
--- Index pour optimiser les recherches de matchs
+-- Index to optimize match searches
 CREATE INDEX "Match_user1_index" ON "Match" (user1);
 CREATE INDEX "Match_user2_index" ON "Match" (user2);
 
--- Fonction pour détecter les matchs et les insérer dans la table Match
+-- Function to detect matches and insert them into the Match table
 CREATE OR REPLACE FUNCTION create_match()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -130,7 +133,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger pour appeler la fonction après chaque insertion dans la table Like
+-- Trigger to call the function after each insertion in the Like table
 CREATE TRIGGER check_for_match
 AFTER INSERT ON "_Like"
 FOR EACH ROW

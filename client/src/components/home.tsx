@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   home.tsx                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mvachera <mvachera@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/03/13 20:16:47 by mvachera          #+#    #+#             */
+/*   Updated: 2025/03/13 20:18:45 by mvachera         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 
 import React, { useState, useEffect, use } from "react";
 import Footer from "./Footer";
@@ -6,7 +18,9 @@ import { Heart, X, Star, MapPin, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import MenuFilter from "./MenuFilter";
 import {api} from "@/context/auth-context";
-
+import {toast} from "@/hooks/use-toast";
+import { Card, CardContent } from "./ui/card";
+import LikedUsers from "./LikedUser";
 // Définir l'interface UserProfile pour le typage
 export interface UserProfile {
   id: number;
@@ -312,14 +326,23 @@ const Home: React.FC = () => {
   );
 
   const sendLike = async (username: string) => {
+    console.log("Envoi du like à", username);
     try {
       const meResponse = await api.post("/like/", {
-        liked_user: username,
+        liked: username,
       });
       const res = meResponse.data;
       console.log(res);
+      toast({
+        variant: "default",
+        title: "Like envoyé avec succès",
+      })
       console.log("Like envoyé avec succès:", res);
     } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erreur: " + error.response.data.error, 
+      })
       console.error("Erreur :", error);
     }
   };
@@ -395,11 +418,12 @@ const Home: React.FC = () => {
 
       {/* Matching stats */}
       <div className="text-sm text-purple-700 mb-2">{matchedProfiles.length} profil(s) correspondant à vos critères</div>
+      <div className="flex flex-row w-full justify-around">
 
       {/* Profile card */}
       {currentProfile && (
         <div
-          className={`relative w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden transition-all duration-300 ease-out
+        className={`relative w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden transition-all duration-300 ease-out
             ${
               direction === "left"
                 ? "translate-x-full opacity-0"
@@ -433,7 +457,7 @@ const Home: React.FC = () => {
 
           {/* Profile info */}
           <div className="p-4">
-            <p className="mb-3 text-gray-700">{currentProfile.biography || currentProfile.bio || ""}</p>
+            <p className="mb-3 text-gray-700">{currentProfile.biography || currentProfile.bio || "helloworld"}</p>
 
             {/* Common interests section */}
             <div className="mb-3">
@@ -476,6 +500,10 @@ const Home: React.FC = () => {
           </div>
         </div>
       )}
+      <div>
+        <LikedUsers username={userProfile.username} />
+      </div>
+      </div>
 
       <Footer />
     </div>

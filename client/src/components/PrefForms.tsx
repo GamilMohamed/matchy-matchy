@@ -17,7 +17,6 @@ import { Checkbox } from "./ui/checkbox";
 import SexualPreferencesSelector from "./SexualPreferencesSelector";
 
 function PreferencesForms() {
-  const { toast } = useToast();
   const { user } = useAuth();
   const [profileComplete, setProfileComplete] = useState(user?.profileComplete || false);
   const [profileData, setProfileData] = useState<UpdateProfileData>({
