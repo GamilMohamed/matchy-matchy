@@ -30,7 +30,7 @@ export default function UserList({ users = [] }: UserListProps) {
 function UserCard({ userx, user }: { userx: User; user: User }) {
   const [showDialog, setShowDialog] = useState(false);
   const age = calculateAge(new Date(userx.birth_date));
-  const joinedDate = formatDistanceToNow(new Date(userx.createdAt), { addSuffix: true });
+  const joinedDate = formatDistanceToNow(new Date(userx.created_at), { addSuffix: true });
   const appendHashtag = (str: string) => (str.charAt(0) === "#" ? str : `#${str}`);
 
   // Create a copy of the interests array to avoid modifying the original

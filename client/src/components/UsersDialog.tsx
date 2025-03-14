@@ -23,7 +23,7 @@ export function UserProfileDialog({ user, isOpen, onClose }: UserProfileDialogPr
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const images = [user.profile_picture, ...user.pictures].filter(Boolean);
   const age = calculateAge(new Date(user.birth_date));
-  const joinedDate = formatDistanceToNow(new Date(user.createdAt), { addSuffix: true });
+  const joinedDate = formatDistanceToNow(new Date(user.created_at), { addSuffix: true });
   const formattedBirthDate = format(new Date(user.birth_date), "MMMM d, yyyy");
 
   useEffect(() => {
