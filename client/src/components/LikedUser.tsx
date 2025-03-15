@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { User, Heart, X } from 'lucide-react';
-import axios from 'axios';
 import { formatDistance, set } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import {api} from "@/context/auth-context";
 
 // Import shadcn components
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import api from "@/lib/axios";
+import { calculateAge } from "./utils/dateUtils";
 
 interface LikedUser {
   username: string;
@@ -18,30 +18,17 @@ interface LikedUser {
   birth_date: string;
 }
 
-interface ProfileResponse {
-  firstname: string;
-  profile_picture: string;
-  [key: string]: any; // Pour les autres propriétés potentielles
-}
-
-// interface LikesResponse {
-//   likes: {
-//     liked_user: string;
-//     created_at: string;
-//   }[];
-// }
-
 interface LikedUsersProps {
   username: string;
-  onUnlike?: (username: string) => void;
+  // onUnlike?: (username: string) => void;
 }
 
-interface UnlikeRequestData {
-  liker: string;
-  liked: string;
-}
+// interface UnlikeRequestData {
+//   liker: string;
+//   liked: string;
+// }
 
-const LikedUsers: React.FC<LikedUsersProps> = ({ username, onUnlike }) => {
+const LikedUsers: React.FC<LikedUsersProps> = ({ username }) => {
   const [likedUsers, setLikedUsers] = useState<LikedUser[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -52,8 +39,8 @@ const LikedUsers: React.FC<LikedUsersProps> = ({ username, onUnlike }) => {
       try {
         setIsLoading(true);
         const response = await api.get(`/like/${username}/sent`);
-		    const res = response.data as LikedUser[];
-
+		    const res = Array.isArray(response.data) ? response.data : [];
+        
 		    setLikedUsers(res);
 		    console.log(res);
         
@@ -70,12 +57,19 @@ const LikedUsers: React.FC<LikedUsersProps> = ({ username, onUnlike }) => {
     }
   }, [username]);
 
-  const formatDate = (dateString: string) => {
-    return formatDistance(new Date(dateString), new Date(), {
-      addSuffix: true,
-      locale: fr
-    });
-  };
+  const unlikeUser = (username: string) => async () => {
+    try {
+      setIsLoading(true);
+      const unlike = await api.delete(`/like/delete/${username}`);
+
+      setLikedUsers(likedUsers.filter((user) => user.username !== username));
+      console.log(unlike.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  } 
 
   return (
     <Card className={`transition-all duration-300 overflow-hidden ${isExpanded ? 'w-64' : 'w-16'}`}>
@@ -93,70 +87,54 @@ const LikedUsers: React.FC<LikedUsersProps> = ({ username, onUnlike }) => {
       </CardHeader>
 
       {isExpanded && (
-        <CardContent className="p-0">
-          {isLoading && (
-            <div className="p-4 text-center text-gray-500">
-              Chargement...
-            </div>
-          )}
-
-          {error && (
-            <div className="p-4 text-center text-red-500">
-              {error}
-            </div>
-          )}
-
-          {!isLoading && !error && (
-            <>
-              {likedUsers.length === 0 ? (
-                <div className="p-4 text-center text-gray-500">
-                  Vous n'avez liké personne
+      <CardContent className="p-0">
+        {/* Condition pour afficher le chargement */}
+        {isLoading ? (
+          <div className="p-4 text-center text-gray-500">
+            Chargement...
+          </div>
+        ) : error ? (
+          <div className="p-4 text-center text-red-500">
+            {error}
+          </div>
+        ) : !likedUsers || likedUsers.length === 0 ? (
+          <div className="p-4 text-center text-gray-500">
+            Vous n'avez liké personne
+          </div>
+        ) : (
+          <div className="max-h-60 overflow-y-auto">
+            {likedUsers.map((user) => (
+              <div key={user.username} className="p-3 border-b hover:bg-purple-50 transition-colors flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Avatar>
+                    {user.profile_picture ? (
+                      <AvatarImage 
+                        src={user.profile_picture} 
+                        alt={user.firstname || user.username} 
+                      />
+                    ) : (
+                      <AvatarFallback className="bg-purple-200">
+                        <User size={16} className="text-purple-600" />
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <div>
+                    <p className="font-medium text-sm">{user.firstname} {calculateAge(user.birth_date)}ans</p>
+                  </div>
                 </div>
-              ) : (
-                <div className="max-h-60 overflow-y-auto">
-                  {likedUsers.likes.map((name) => (
-                    <div>
-                      <p>{JSON.stringify(name.liked_user)}</p>
-                    </div>
-                  ))}
-                  {/* {likedUsers.map((user) => (
-                    <div 
-                      key={user.liked_user} 
-                      className="p-3 border-b hover:bg-purple-50 transition-colors flex items-center justify-between"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <Avatar>
-                          {user.profile?.profile_picture ? (
-                            <AvatarImage 
-                              src={user.profile.profile_picture} 
-                              alt={user.profile?.fisrtname || user.liked_user} 
-                            />
-                          ) : null}
-                          <AvatarFallback className="bg-purple-200">
-                            <User size={16} className="text-purple-600" />
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium text-sm">{user.profile?.fisrtname || user.liked_user}</p>
-                          <p className="text-xs text-gray-500">{formatDate(user.created_at)}</p>
-                        </div>
-                      </div>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        // onClick={() => handleUnlike(user.liked_user)}
-                        className="h-7 w-7 rounded-full hover:bg-red-100 hover:text-red-500"
-                      >
-                        <X size={14} />
-                      </Button>
-                    </div>
-                  ))} */}
-                </div>
-              )}
-            </>
-          )}
-        </CardContent>
-      )}
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={unlikeUser(user.username)}
+                  className="h-7 w-7 rounded-full hover:bg-red-100 hover:text-red-500">
+                  <X size={14} />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    )}
     </Card>
   );
 };

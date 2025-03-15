@@ -1,16 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   home.tsx                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mvachera <mvachera@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/13 20:16:47 by mvachera          #+#    #+#             */
-/*   Updated: 2025/03/13 20:18:45 by mvachera         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
-
 import React, { useState, useEffect, use } from "react";
 import Footer from "./Footer";
 import Nav from "./Nav";
@@ -21,7 +8,9 @@ import {api} from "@/context/auth-context";
 import {toast} from "@/hooks/use-toast";
 import { Card, CardContent } from "./ui/card";
 import LikedUsers from "./LikedUser";
+import { calculateAge } from "./utils/dateUtils";
 // Définir l'interface UserProfile pour le typage
+
 export interface UserProfile {
   id: number;
   email: string;
@@ -117,30 +106,6 @@ const Home: React.FC = () => {
     }
     return profile1.sexual_preferences.includes(profile2.gender) && profile2.sexual_preferences.includes(profile1.gender);
   };
-
-  const calculateAge = (birth_date: string): number => {
-    const birth = new Date(birth_date);
-    const today = new Date();
-
-    // Extraire l'année, le mois et le jour de la date de naissance
-    const birthYear = birth.getUTCFullYear();
-    const birthMonth = birth.getUTCMonth(); // 0 = Janvier, 11 = Décembre
-    const birthDay = birth.getUTCDate();
-
-    // Extraire l'année, le mois et le jour d'aujourd'hui
-    const todayYear = today.getUTCFullYear();
-    const todayMonth = today.getUTCMonth();
-    const todayDay = today.getUTCDate();
-
-    let age = todayYear - birthYear;
-
-    // Si l'anniversaire n'est pas encore passé cette année, on enlève 1 an
-    if (todayMonth < birthMonth || (todayMonth === birthMonth && todayDay < birthDay)) {
-        age--;
-    }
-
-    return age;
-};
 
   // Apply all matching criteria to generate suggested profiles
   const findMatches = () => {

@@ -2,6 +2,7 @@ const express = require("express");
 const { addLike } = require("../controllers/likeController");
 const { body } = require("express-validator");
 const likeController = require("../controllers/likeController");
+const unlikeUser = require("../controllers/likeController");
 const { isAuthenticated } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
@@ -10,6 +11,10 @@ router.post("/",
 	body("username").isString().notEmpty(),
 	isAuthenticated,
 	addLike);
+
+router.delete("/delete/:username",
+	isAuthenticated,
+	likeController.unlikeUser);
 
 router.get("/:username/sent", 
 	isAuthenticated,
