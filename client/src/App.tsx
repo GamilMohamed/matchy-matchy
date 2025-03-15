@@ -70,7 +70,6 @@ function App() {
       </Router>
     );
   }
- 
 
   return (
     <Router>

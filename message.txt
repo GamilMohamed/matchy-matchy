@@ -30,9 +30,10 @@ CREATE TABLE "User" (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
   interests VARCHAR[] NOT NULL,
-  location_id UUID UNIQUE REFERENCES "Location" (id),
+  location_id UUID REFERENCES "Location" (id),
   authorize_location BOOLEAN NOT NULL DEFAULT false,
-  pictures VARCHAR[] NOT NULL DEFAULT '{}'::VARCHAR[]
+  pictures VARCHAR[] NOT NULL DEFAULT '{}'::VARCHAR[],
+  city VARCHAR  -- Added missing city field referenced in _Like table
 );
 
 -- Create junction table for the self-relation (Views)

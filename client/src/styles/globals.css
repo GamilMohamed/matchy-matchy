@@ -36,7 +36,45 @@ body {
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-  }
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+   }
+  .dark {
+    --background: 323 50% 10%;
+    --foreground: 323 5% 90%;
+    --card: 323 50% 10%;
+    --card-foreground: 323 5% 90%;
+    --popover: 323 50% 5%;
+    --popover-foreground: 323 5% 90%;
+    --primary: 323 82% 39%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 323 30% 20%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 285 30% 25%;
+    --muted-foreground: 323 5% 60%;
+    --accent: 285 30% 25%;
+    --accent-foreground: 323 5% 90%;
+    --destructive: 0 86% 34%;
+    --destructive-foreground: 323 5% 90%;
+    --border: 323 30% 34%;
+    --input: 323 30% 34%;
+    --ring: 323 82% 39%;
+    --radius: 0.5rem;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+   }
 }
 
 .animate-modal-appear {

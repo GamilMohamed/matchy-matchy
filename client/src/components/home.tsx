@@ -4,12 +4,17 @@ import Nav from "./Nav";
 import { Heart, X, Star, MapPin, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import MenuFilter from "./MenuFilter";
-import api from "@/lib/axios";
-
+import {api} from "@/context/auth-context";
+import {toast} from "@/hooks/use-toast";
+import { Card, CardContent } from "./ui/card";
+import LikedUsers from "./LikedUser";
+import { calculateAge } from "./utils/dateUtils";
 // Définir l'interface UserProfile pour le typage
+
 export interface UserProfile {
   id: number;
   email: string;
+  username: string;
   firstname: string;
   lastname?: string;
   birth_date?: string;
@@ -45,6 +50,7 @@ const Home: React.FC = () => {
   const [userProfile, setUserProfile] = useState<UserProfile>({
     id: 0,
     email: "",
+    username: "",
     firstname: "You",
     interests: [],
     gender: "non-binary",
@@ -75,8 +81,22 @@ const Home: React.FC = () => {
   // Calculate common interests score (percentage of matched interests)
   const calculateCommonInterestsScore = (profile1: UserProfile, profile2: UserProfile): number => {
     if (!profile1.interests.length) return 0;
-    const commonInterests = profile1.interests.filter((interest) => profile2.interests.includes(interest));
-    return (commonInterests.length / profile1.interests.length) * 100;
+    
+    // Normaliser les intérêts en supprimant le "#" et en convertissant en minuscules
+    const normalizeInterest = (interest) => {
+      if (typeof interest !== 'string') return String(interest).toLowerCase();
+      return interest.startsWith('#') ? interest.substring(1).toLowerCase() : interest.toLowerCase();
+    };
+    
+    const normalizedInterests1 = profile1.interests.map(normalizeInterest);
+    const normalizedInterests2 = profile2.interests.map(normalizeInterest);
+    
+    // Trouver les intérêts communs avec les valeurs normalisées
+    const commonInterests = normalizedInterests1.filter(interest => 
+      normalizedInterests2.includes(interest)
+    );
+    
+    return (commonInterests.length / normalizedInterests1.length) * 100;
   };
 
   // Check if two profiles match based on sexual preference
@@ -84,32 +104,8 @@ const Home: React.FC = () => {
     if (!profile1.sexual_preferences || !profile2.sexual_preferences || !profile1.gender || !profile2.gender) {
       return false;
     }
-    return profile1.sexual_preferences === profile2.gender && profile2.sexual_preferences === profile1.gender;
+    return profile1.sexual_preferences.includes(profile2.gender) && profile2.sexual_preferences.includes(profile1.gender);
   };
-
-  const calculateAge = (birth_date: string): number => {
-    const birth = new Date(birth_date);
-    const today = new Date();
-
-    // Extraire l'année, le mois et le jour de la date de naissance
-    const birthYear = birth.getUTCFullYear();
-    const birthMonth = birth.getUTCMonth(); // 0 = Janvier, 11 = Décembre
-    const birthDay = birth.getUTCDate();
-
-    // Extraire l'année, le mois et le jour d'aujourd'hui
-    const todayYear = today.getUTCFullYear();
-    const todayMonth = today.getUTCMonth();
-    const todayDay = today.getUTCDate();
-
-    let age = todayYear - birthYear;
-
-    // Si l'anniversaire n'est pas encore passé cette année, on enlève 1 an
-    if (todayMonth < birthMonth || (todayMonth === birthMonth && todayDay < birthDay)) {
-        age--;
-    }
-
-    return age;
-};
 
   // Apply all matching criteria to generate suggested profiles
   const findMatches = () => {
@@ -118,7 +114,6 @@ const Home: React.FC = () => {
     }
 
     const userAge = calculateAge(userProfile.birth_date || "");
-    console.log("User age:", userAge);
 
     return allUsers
       .filter((profile) => {
@@ -128,40 +123,41 @@ const Home: React.FC = () => {
         // Check mutual sexual preference match
         // const preferenceMatch = checkSexualPreferenceMatch(userProfile, profile);
         // if (!preferenceMatch) return false;
-        // // Check distance if coordinates are available
-        // // if (me.latitude && me.longitude && profile.latitude && profile.longitude && me.maxDistance) {
-        // //   const distance = calculateDistance(me.latitude, me.longitude, profile.latitude, profile.longitude);
-        // //   if (distance > me.maxDistance) return false;
-        // // }
 
-        // // Check age range
-        // const profileAge = calculateAge(profile.birth_date || "");
-        // console.log("Profile age:", profileAge);
-        // console.log("User age range:", userProfile.ageRange);
-        // if (
-        //   (userProfile.ageRange &&
-        //       (profileAge < userProfile.ageRange.min || profileAge > userProfile.ageRange.max)) ||
-        //   (profile.ageRange &&
-        //       (userAge < profile.ageRange.min || userAge > profile.ageRange.max))
-        // )
-        // return false;
+        // Check distance if coordinates are available
+        if (userProfile.location && profile.location && userProfile.location.latitude && userProfile.location.longitude &&
+          profile.location.latitude && profile.location.longitude && userProfile.maxDistance
+        ) {
+          const distance = calculateDistance(userProfile.location.latitude, userProfile.location.longitude, profile.location.latitude, profile.location.longitude);
+          if (distance > userProfile.maxDistance) return false;
+        }
+
+        // Check age range
+        const profileAge = calculateAge(profile.birth_date || "");
+        if (
+          (userProfile.ageRange &&
+              (profileAge < userProfile.ageRange.min || profileAge > userProfile.ageRange.max)) ||
+          (profile.ageRange &&
+              (userAge < profile.ageRange.min || userAge > profile.ageRange.max))
+        )
+        return false;
 
         // Check interest filters if any are selected
-        // if (me.activeFilters?.interests.length) {
-        //   const hasMatchingInterests = profile.interests.some((interest) => 
-        //     me.activeFilters?.interests.includes(interest)
-        //   );
-        //   if (!hasMatchingInterests) return false;
-        // }
+        if (userProfile.activeFilters?.interests.length) {
+          const hasMatchingInterests = profile.interests.some((interest) => 
+            userProfile.activeFilters?.interests.includes(interest)
+          );
+          if (!hasMatchingInterests) return false;
+        }
 
         return true;
       })
-      // .sort((a, b) => {
-      //   // Sort by common interests score (higher is better)
-      //   const scoreA = calculateCommonInterestsScore(me, a);
-      //   const scoreB = calculateCommonInterestsScore(me, b);
-      //   return scoreB - scoreA;
-      // });
+      .sort((a, b) => {
+        // Sort by common interests score (higher is better)
+        const scoreA = calculateCommonInterestsScore(userProfile, a);
+        const scoreB = calculateCommonInterestsScore(userProfile, b);
+        return scoreB - scoreA;
+      });
   };
 
   // Fetch users data on component mount
@@ -195,23 +191,31 @@ const Home: React.FC = () => {
     const matches = findMatches();
     setMatchedProfiles(matches);
     setCurrentProfileIndex(0);
-    console.log("Updated matched profiles:", matches);
   }, [userProfile, allUsers]);
 
   // Update matches when filters change
   // useEffect(() => {
-  //   const fetchAndUpdateMatches = async () => {
+  //   const updateMatches = () => {
   //     try {
+  //       // Trouver les nouveaux matchs
   //       const newMatches = findMatches();
+        
+  //       // Mettre à jour l'état
   //       setMatchedProfiles(newMatches);
   //       setCurrentProfileIndex(0);
+        
+  //       console.log("Profil utilisateur mis à jour:", userProfile);
+  //       console.log("Nouveaux matchs trouvés:", newMatches.length);
   //     } catch (error) {
-  //       console.error("Error updating matches:", error);
+  //       console.error("Erreur lors de la mise à jour des matchs:", error);
   //     }
   //   };
     
-  //   fetchAndUpdateMatches();
-  // }, [userProfile]);
+  //   // Ne pas exécuter immédiatement lors du premier rendu
+  //   if (allUsers.length > 0) {
+  //     updateMatches();
+  //   }
+  // }, [userProfile, allUsers]);
 
   // Handle swipe actions
   const handleSwipe = (dir: "left" | "right" | "up") => {
@@ -286,6 +290,28 @@ const Home: React.FC = () => {
     new Set(matchedProfiles.flatMap((p) => p.interests))
   );
 
+  const sendLike = async (username: string) => {
+    console.log("Envoi du like à", username);
+    try {
+      const meResponse = await api.post("/like/", {
+        liked: username,
+      });
+      const res = meResponse.data;
+      console.log(res);
+      toast({
+        variant: "default",
+        title: "Like envoyé avec succès",
+      })
+      console.log("Like envoyé avec succès:", res);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erreur: " + error.response.data.error, 
+      })
+      console.error("Erreur :", error);
+    }
+  };
+
   // Handle loading state
   if (isLoading) {
     return (
@@ -357,11 +383,12 @@ const Home: React.FC = () => {
 
       {/* Matching stats */}
       <div className="text-sm text-purple-700 mb-2">{matchedProfiles.length} profil(s) correspondant à vos critères</div>
+      <div className="flex flex-row w-full justify-around">
 
       {/* Profile card */}
       {currentProfile && (
         <div
-          className={`relative w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden transition-all duration-300 ease-out
+        className={`relative w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden transition-all duration-300 ease-out
             ${
               direction === "left"
                 ? "translate-x-full opacity-0"
@@ -380,7 +407,7 @@ const Home: React.FC = () => {
             /> */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
               <h2 className="text-2xl font-bold">
-                {currentProfile.firstname}, {currentProfile.age}
+                {currentProfile.firstname}, {calculateAge(currentProfile.birth_date || "")}
               </h2>
               <p className="flex items-center gap-1">
                 <MapPin size={16} />
@@ -395,7 +422,7 @@ const Home: React.FC = () => {
 
           {/* Profile info */}
           <div className="p-4">
-            <p className="mb-3 text-gray-700">{currentProfile.biography || currentProfile.bio || ""}</p>
+            <p className="mb-3 text-gray-700">{currentProfile.biography || currentProfile.bio || "helloworld"}</p>
 
             {/* Common interests section */}
             <div className="mb-3">
@@ -427,14 +454,23 @@ const Home: React.FC = () => {
             <button onClick={() => handleSwipe("up")} className="bg-white rounded-full p-4 shadow-lg text-blue-500 hover:bg-blue-50 transition-colors">
               <Star size={32} />
             </button>
-            <button onClick={() => handleSwipe("right")} className="bg-white rounded-full p-4 shadow-lg text-green-500 hover:bg-green-50 transition-colors">
+            <button 
+              onClick={() => {
+                sendLike(currentProfile.username);
+                handleSwipe("right");
+              }} 
+              className="bg-white rounded-full p-4 shadow-lg text-green-500 hover:bg-green-50 transition-colors">
               <Heart size={32} />
             </button>
           </div>
         </div>
       )}
+      <div>
+        <LikedUsers username={userProfile.username} />
+      </div>
+      </div>
 
-      {/* <Footer /> */}
+      <Footer />
     </div>
   );
 };

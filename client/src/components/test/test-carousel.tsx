@@ -50,7 +50,7 @@ const TinderCardStack: React.FC = () => {
 
       // Mark the first card as seen when the component mounts and cards are loaded
       if (data.length > 0) {
-        setSeenUsers([data[0].email]);
+        setSeenUsers([data[0].username]);
       }
     }
     fetchUsers();
@@ -69,7 +69,7 @@ const TinderCardStack: React.FC = () => {
     if (showDetailView) {
       setShowDetailView(false);
     }
-    if (!likedUsers.includes(cards[currentIndex].email)) setLikedUsers([...likedUsers, cards[currentIndex].email]);
+    if (!likedUsers.includes(cards[currentIndex].username)) setLikedUsers([...likedUsers, cards[currentIndex].username]);
     setIsAnimating(true);
     setSwipeDirection("right");
 
@@ -81,9 +81,9 @@ const TinderCardStack: React.FC = () => {
       setSwipeDirection(null);
       setIsAnimating(false);
 
-      // Add the next card's email to seenUsers
-      if (!seenUsers.includes(cards[nextIndex].email)) {
-        setSeenUsers((prev) => [...prev, cards[nextIndex].email]);
+      // Add the next card's username to seenUsers
+      if (!seenUsers.includes(cards[nextIndex].username)) {
+        setSeenUsers((prev) => [...prev, cards[nextIndex].username]);
       }
     }, 300);
   };
@@ -104,9 +104,9 @@ const TinderCardStack: React.FC = () => {
       setSwipeDirection(null);
       setIsAnimating(false);
 
-      // Add the next card's email to seenUsers
-      if (!seenUsers.includes(cards[nextIndex].email)) {
-        setSeenUsers((prev) => [...prev, cards[nextIndex].email]);
+      // Add the next card's username to seenUsers
+      if (!seenUsers.includes(cards[nextIndex].username)) {
+        setSeenUsers((prev) => [...prev, cards[nextIndex].username]);
       }
     }, 300);
   };
@@ -545,9 +545,9 @@ const TinderCardStack: React.FC = () => {
         <div className="mb-4">
           <h4 className="font-medium text-black700 mb-1">Seen Users ({seenUsers.length})</h4>
           <div className="max-h-32 overflow-y-auto bg-gray-50 p-2 rounded text-sm">
-            {seenUsers.map((email) => (
-              <div key={email} className="py-1 border-gray-100 last:border-b-0">
-                {email}
+            {seenUsers.map((username) => (
+              <div key={username} className="py-1 border-gray-100 last:border-b-0">
+                {username}
               </div>
             ))}
           </div>
@@ -556,9 +556,9 @@ const TinderCardStack: React.FC = () => {
         <div className="mb-2">
           <h4 className="font-medium text-black700 mb-1">Liked Users ({likedUsers.length})</h4>
           <div className="max-h-32 overflow-y-auto bg-gray-50 p-2 rounded text-sm">
-            {likedUsers.map((email) => (
-              <div key={email} className="py-1 border-b border-gray-100 last:border-b-0">
-                {email}
+            {likedUsers.map((username) => (
+              <div key={username} className="py-1 border-b border-gray-100 last:border-b-0">
+                {username}
               </div>
             ))}
           </div>
