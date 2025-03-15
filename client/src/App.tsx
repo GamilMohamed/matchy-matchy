@@ -10,6 +10,7 @@ import UserPage from "./components/UserPage";
 import PreferencesForms from "./components/ProfileForm/ProfileForm.tsx";
 import Elias, { Elias1, Elias2 } from "./components/Elias.tsx";
 import Error from "./components/Error";
+import Globe from "./components/Globe";
 import { useAuth } from "./context/auth-context";
 import Web from "./components/web.tsx";
 // import Nav from "./components/Nav";
@@ -80,6 +81,12 @@ function App() {
             <main className="flex flex-col items-center justify-center h-screen">
               <Home />
             </main>
+          }
+        />
+        <Route
+          path="/globe"
+          element={
+              <Globe />
           }
         />
         <Route
