@@ -163,7 +163,7 @@ export default function MyGlobe() {
           }).join('') || ''}
           </div>`}
         onPointClick={(point) => {
-          alert("point" + JSON.stringify(point.Username));
+          alert("point" + JSON.stringify(point.username));
         }}
       />
     </>

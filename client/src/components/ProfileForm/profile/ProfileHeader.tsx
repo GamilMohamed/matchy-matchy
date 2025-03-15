@@ -19,7 +19,7 @@ const ProfileHeader = ({ user, profileData }: ProfileHeaderProps) => {
   };
 
   return (
-    <div className="bg-green-400 flex items-center space-x-4 justify-center">
+    <div className="bg-grexen-400 flex items-center space-x-4 justify-center bg-gxreen-400">
       <div className="text-sm text-center text-gray-600">
         <p className="text-xl font-bold">{user.firstname} {user.lastname} (@{user.username})</p>
         <p className="text-right">{formatDate(user.birth_date)}</p>

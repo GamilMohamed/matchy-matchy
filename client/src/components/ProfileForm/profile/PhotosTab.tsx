@@ -142,10 +142,10 @@ const PhotosTab = ({
       </div>
 
       <div className="flex justify-between mt-6 pt-4">
-        <Button type="button" onClick={goToPreviousTab} variant="outline">
+        <Button type="button" onClick={goToPreviousTab} variant="outline" className="mb-5">
           Previous
         </Button>
-        <Button type="submit" variant="default">
+        <Button type="submit" variant="default" className="mb-5">
           Save Profile
         </Button>
       </div>

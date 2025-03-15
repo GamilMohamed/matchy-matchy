@@ -5,7 +5,6 @@ import { Toaster } from "./components/ui/toaster.tsx";
 import { AuthProvider } from "./context/auth-context.tsx";
 import { ThemeProvider } from "./components/theme-provider.tsx";
 import { ModeToggle } from "./components/mode-toggle.tsx";
-import "../pixel-retroui-setup.js";
 
 export default App;
 

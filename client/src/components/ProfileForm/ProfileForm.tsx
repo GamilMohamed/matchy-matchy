@@ -2,11 +2,11 @@
 import { useState, FormEvent, useEffect } from "react";
 import { useAuth } from "@/context/auth-context";
 import { UpdateProfileData } from "@/types/auth";
-import { Card } from "pixel-retroui";
+import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import ProfileView from "./ProfileView";
-import { ProgressBar } from "pixel-retroui";
+import { Progress } from "@/components/ui/progress";
 import BasicInfoTab from "./profile/BasicInfoTab";
 import BioInterestsTab from "./profile/BioInterestsTab";
 import PhotosTab from "./profile/PhotosTab";
@@ -191,46 +191,26 @@ function PreferencesForms() {
   return (
     <div className="w-full px-4 py-8 sm:px-6 md:py-12 h-full flex justify-center items-center">
       <Card>
-        <div className="w-[700px] h-[600px] max-w-xl mx-auto p-5 flex flex-col justify-between">
+        <div className="w-[700px] h-[600px] max-w-xl mx-auto p-5 flex flex-col justify-between bg-yelloxw-900">
           <ProfileHeader user={user} profileData={profileData} />
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full bg-x-600">
             <form onSubmit={handleSubmit}>
               <TabsContent value="basic-info" className="space-y-6 mt-4">
-                <BasicInfoTab 
-                  profileData={profileData} 
-                  setProfileData={setProfileData} 
-                  isGeolocationEnabled={isGeolocationEnabled} 
-                  goToNextTab={goToNextTab} 
-                />
+                <BasicInfoTab profileData={profileData} setProfileData={setProfileData} isGeolocationEnabled={isGeolocationEnabled} goToNextTab={goToNextTab} />
               </TabsContent>
 
               <TabsContent value="bio-interests" className="space-y-6 mt-4">
-                <BioInterestsTab 
-                  profileData={profileData} 
-                  setProfileData={setProfileData} 
-                  goToNextTab={goToNextTab} 
-                  goToPreviousTab={goToPreviousTab} 
-                />
+                <BioInterestsTab profileData={profileData} setProfileData={setProfileData} goToNextTab={goToNextTab} goToPreviousTab={goToPreviousTab} />
               </TabsContent>
 
               <TabsContent value="photos" className="space-y-6 mt-4">
-                <PhotosTab 
-                  profileData={profileData} 
-                  setProfileData={setProfileData} 
-                  goToPreviousTab={goToPreviousTab} 
-                />
+                <PhotosTab profileData={profileData} setProfileData={setProfileData} goToPreviousTab={goToPreviousTab} />
               </TabsContent>
-            
+
               {/* Progress indicator */}
               <div className="px-6 pb-6">
-                <ProgressBar
-                  progress={activeTab === "basic-info" ? 33 : activeTab === "bio-interests" ? 66 : 100}
-                  size="md"
-                  color="#facc15"
-                  borderColor="black"
-                  className="w-full"
-                />
+                <Progress value={activeTab === "basic-info" ? 33 : activeTab === "bio-interests" ? 66 : 100} className="w-full" />
                 <div className="flex justify-between text-xs text-gray-500 mt-1">
                   <span>Basic Info</span>
                   <span>Bio & Interests</span>
