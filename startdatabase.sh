@@ -81,6 +81,8 @@ else
   fi
 fi
 
+docker network connect $NETWORK_NAME $DB_CONTAINER_NAME
+
 # Check if pgAdmin container is running
 if [ "$(docker ps -q -f name=$PGADMIN_CONTAINER_NAME)" ]; then
   echo "pgAdmin container '$PGADMIN_CONTAINER_NAME' already running"
@@ -113,7 +115,7 @@ else
     echo "   - Port: 5432"
     echo "   - Database: matchy-matchy-db"
     echo "   - Username: moha"
-    echo "   - Password: [Your database password from .env]"
+    echo "   - Password: $DB_PASSWORD"
     echo "-------------------------------------------------------------"
   fi
 fi
