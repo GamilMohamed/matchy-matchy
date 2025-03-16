@@ -9,12 +9,10 @@ import { SocketProvider } from "./context/socket-context.tsx";
 export default App;
 
 createRoot(document.getElementById("root")!).render(
-  <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
     <AuthProvider>
       <SocketProvider>
-      <App />
-      <Toaster />
+        <App />
+        <Toaster />
       </SocketProvider>
-    </AuthProvider>{" "}
-  </ThemeProvider>
+    </AuthProvider>
 );

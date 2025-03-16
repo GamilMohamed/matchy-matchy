@@ -3,11 +3,11 @@ import Nav from "./Nav";
 import { Heart, X, Star, MapPin, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import MenuFilter from "./MenuFilter";
-import { api } from "@/context/auth-context";
 import { toast } from "@/hooks/use-toast";
 import LikedUsers from "./LikedUser";
 import { calculateAge } from "./utils/dateUtils";
 import { Badge } from "./ui/badge";
+import { api } from "@/services";
 
 export interface UserProfile {
   id: number;

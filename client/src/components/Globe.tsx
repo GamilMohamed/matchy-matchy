@@ -1,10 +1,10 @@
 import Globe from "react-globe.gl";
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import * as satellite from "https://esm.sh/satellite.js";
-import { api, useAuth } from "@/context/auth-context";
 import { User } from "@/types/auth";
 import { Dialog } from "@headlessui/react";
-
+import { useAuth } from "@/context/auth-context";
+import api from "@/services/api";
 function convertUsernameToColor(username: string) {
   const hash = username.split("").reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
   const color = `hsl(${hash % 360}, 100%, 50%)`;

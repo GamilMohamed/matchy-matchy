@@ -15,21 +15,18 @@ import { handleProfileUpdateError } from "@/components/utils/profileValidation";
 
 function PreferencesForms() {
   const { toast } = useToast();
-  const { user } = useAuth();
-  const [profileComplete, setProfileComplete] = useState(user?.profile_complete || false);
+  const { user, loading } = useAuth();
+  const [profileComplete, setProfileComplete] = useState(false);
   const [activeTab, setActiveTab] = useState("basic-info");
   const [profileData, setProfileData] = useState<UpdateProfileData>({
-    gender: user?.gender || "male",
-    sexual_preferences: user?.sexual_preferences?.length > 0 ? user?.sexual_preferences : ["women", "other"],
-    authorize_location: user?.authorize_location || false,
-    location: user?.location || { latitude: 0, longitude: 0, city: "", country: "" },
-    biography: user?.biography || "Pitié pour moi, je suis un(e) flemmard(e) et je n'ai pas écrit de biographie. 😅",
-    interests: user?.interests?.length > 0 ? user?.interests : ["#coding", "#gaming", "#music"],
-    pictures:
-      user?.pictures.length > 0
-        ? user?.pictures
-        : ["https://randomuser.me/api/portraits/men/4.jpg", "https://randomuser.me/api/portraits/men/3.jpg", "https://randomuser.me/api/portraits/men/4.jpg"],
-    profile_picture: user?.profile_picture || "https://randomuser.me/api/portraits/men/1.jpg",
+    gender: "male",
+    sexual_preferences: ["women", "other"],
+    authorize_location: false,
+    location: { latitude: 0, longitude: 0, city: "", country: "" },
+    biography: "Pitié pour moi, je suis un(e) flemmard(e) et je n'ai pas écrit de biographie. 😅",
+    interests: ["#coding", "#gaming", "#music"],
+    pictures: ["https://randomuser.me/api/portraits/men/4.jpg", "https://randomuser.me/api/portraits/men/3.jpg", "https://randomuser.me/api/portraits/men/4.jpg"],
+    profile_picture: "https://randomuser.me/api/portraits/men/1.jpg",
   });
   const { updateProfile } = useAuth();
   const [isGeolocationEnabled, setIsGeolocationEnabled] = useState(true);
@@ -38,6 +35,23 @@ function PreferencesForms() {
     biography: false,
     photos: false,
   });
+
+  // Update profileData when user data is loaded
+  useEffect(() => {
+    if (user) {
+      setProfileComplete(user.profile_complete || false);
+      setProfileData({
+        gender: user.gender || profileData.gender,
+        sexual_preferences: user.sexual_preferences?.length > 0 ? user.sexual_preferences : profileData.sexual_preferences,
+        authorize_location: user.authorize_location || profileData.authorize_location,
+        location: user.location || profileData.location,
+        biography: user.biography || profileData.biography,
+        interests: user.interests?.length > 0 ? user.interests : profileData.interests,
+        pictures: user.pictures?.length > 0 ? user.pictures : profileData.pictures,
+        profile_picture: user.profile_picture || profileData.profile_picture,
+      });
+    }
+  }, [user]);
 
   // Check completion status for tabs
   const checkTabCompletion = () => {
@@ -74,6 +88,22 @@ function PreferencesForms() {
     }
   }, []);
 
+  // If still loading or no user, show loading state
+  if (loading) {
+    return <div>Loading profile information...</div>;
+  }
+
+  // If not loading and no user, redirect to login
+  if (!loading && !user) {
+    // You could use a React Router redirect here
+    // Or show a message with a link to login
+    return (
+      <div>
+        <h2>Please log in to access your preferences</h2>
+        <button onClick={() => (window.location.href = "/login")}>Go to Login</button>
+      </div>
+    );
+  }
   async function fetchCityAndCountryFromCoords(latitude: number, longitude: number): Promise<void> {
     try {
       const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);

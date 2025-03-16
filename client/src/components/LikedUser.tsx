@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Heart, X } from 'lucide-react';
 import { formatDistance, set } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import {api} from "@/context/auth-context";
-
+import api from '@/services/api';
 // Import shadcn components
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

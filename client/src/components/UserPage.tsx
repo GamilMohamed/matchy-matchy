@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import { api, useAuth } from "@/context/auth-context";
+import api from "@/services/api";
+import { useAuth } from "@/context/auth-context";
 import { User } from "@/types/auth";
 import { format } from "date-fns";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
