@@ -22,8 +22,8 @@ const Nav = () => {
 			    <Link to="/" className="px-3 py-2 text-white-600 hover:text-gray-900">
 			      Accueil
 			    </Link>
-			    <Link to="/about-us" className="px-3 py-2 text-white-600 hover:text-gray-900">
-			      About us
+			    <Link to="/globe" className="px-3 py-2 text-white-600 hover:text-gray-900">
+			      Globe
 			    </Link>
 			  </div>
 				<div className="flex items-center space-x-4">

@@ -1,19 +1,12 @@
 import { BrowserRouter as Router, Route, Routes } from "react-router";
 import { LoginForm } from "@/components/login-form";
 import Home from "./components/home";
-import Test from "./components/test";
-import TestCarousel from "./components/test/test-carousel.tsx";
-import About from "./components/about-us";
-import Settings from "./components/settings";
 import Profil from "./components/profil";
 import UserPage from "./components/UserPage";
 import PreferencesForms from "./components/ProfileForm/ProfileForm.tsx";
-import Elias from "./components/Elias.tsx";
 import Error from "./components/Error";
 import Globe from "./components/Globe";
 import { useAuth } from "./context/auth-context";
-import ChatPage from "./pages/ChatPage.tsx";
-// import Nav from "./components/Nav";
 
 function randomString() {
   return Math.random().toString(36).substring(7);
@@ -40,14 +33,7 @@ function App() {
     return (
       <Router>
         <Routes>
-          <Route
-            path="*"
-            element={
-              <main className="flex flex-col items-center justify-center h-screen">
-                <LoginForm />
-              </main>
-            }
-          />
+          <Route path="*" element={<LoginForm />} />
         </Routes>
       </Router>
     );
@@ -57,14 +43,7 @@ function App() {
     return (
       <Router>
         <Routes>
-          <Route
-            path="*"
-            element={
-              <main className="h-screen flex flex-col items-center justify-center w-full">
-                <PreferencesForms />
-              </main>
-            }
-          />
+          <Route path="*" element={<PreferencesForms />} />
         </Routes>
       </Router>
     );
@@ -74,78 +53,11 @@ function App() {
     <>
       <Router>
         <Routes>
-          <Route
-            path="/"
-            element={
-              <main className="flex flex-col items-center justify-center h-screen">
-                <Home />
-              </main>
-            }
-          />
+          <Route path="/" element={<Home />} />
           <Route path="/globe" element={<Globe />} />
-          <Route
-            path="/test"
-            element={
-              <>
-                <Test />
-              </>
-            }
-          />
-          <Route
-            path="/carousel"
-            element={
-              <>
-                <TestCarousel />
-              </>
-            }
-          />
-          <Route
-            path="/about-us"
-            element={
-              <main className="flex flex-col items-center justify-center h-screen">
-                <About />
-              </main>
-            }
-          />
-          <Route
-            path="/elias"
-            element={
-              <main className="flex flex-col items-center justify-center h-screen">
-                <Elias initialUsers={initialUsers} />
-              </main>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <main className="flex flex-col items-center justify-center h-screen">
-                <Settings />
-              </main>
-            }
-          />
-          <Route
-            path="/profil"
-            element={
-              <main className="flex flex-col items-center justify-center h-screen">
-                <Profil />
-              </main>
-            }
-          />
+          <Route path="/profil" element={<Profil />} />
           <Route path="/user/:username" element={<UserPage />} />
-          <Route
-            path="/*"
-            element={
-              <main className="flex flex-col items-center justify-center h-screen">
-                <Error />
-              </main>
-            }
-          />
-            <Route 
-          path="/chat/:username" 
-          element={
-              <ChatPage />
-          } 
-        />
+          <Route path="/*" element={<Error />} />
         </Routes>
       </Router>
       <pre>{JSON.stringify(user, null, 2)}</pre>

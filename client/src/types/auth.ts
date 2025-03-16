@@ -9,12 +9,7 @@ export interface User  extends UpdateProfileData {
   username: string;
 }
 
-export interface AuthResponse {
-  token: string;
-  user: User;
-}
-
-export interface LoginCredentials {
+interface LoginCredentials {
   email: string;
   password: string;
 }
@@ -41,12 +36,4 @@ export interface UpdateProfileData {
   interests: string[];
   pictures: File[] | string[];
   profile_picture: string | File | null;
-}
-
-export interface AuthContextType {
-  user: User | null;
-  token: string | null;
-  isAuthenticated: boolean;
-  login: (token: string, user: User) => void;
-  logout: () => void;
 }

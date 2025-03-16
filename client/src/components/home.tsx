@@ -1,16 +1,13 @@
-import React, { useState, useEffect, use } from "react";
-import Footer from "./Footer";
+import React, { useState, useEffect } from "react";
 import Nav from "./Nav";
 import { Heart, X, Star, MapPin, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import MenuFilter from "./MenuFilter";
 import {api} from "@/context/auth-context";
 import {toast} from "@/hooks/use-toast";
-import { Card, CardContent } from "./ui/card";
 import LikedUsers from "./LikedUser";
 import { calculateAge } from "./utils/dateUtils";
 import { Badge } from "./ui/badge";
-// Définir l'interface UserProfile pour le typage
 
 export interface UserProfile {
   id: number;

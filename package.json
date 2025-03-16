@@ -1,0 +1,10 @@
+{
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "knip": "^5.46.0",
+    "typescript": "^5.8.2"
+  },
+  "scripts": {
+    "knip": "knip"
+  }
+}
