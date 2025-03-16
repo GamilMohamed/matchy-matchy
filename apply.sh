@@ -1,1 +1,0 @@
-docker exec -i matchy-matchy-db psql -U moha -d matchy-matchy-db < schema.sql

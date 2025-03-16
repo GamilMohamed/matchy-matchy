@@ -39,7 +39,6 @@ exports.isMatch = async function (req, res) {
   }
 };
 
-
 exports.getUser = async function (req, res) {
   const client = await pool.connect();
   const username = req.params.username;
@@ -199,7 +198,7 @@ exports.getMe = async function (req, res) {
 
     // Get users liked by this user
     const likedQuery = `
-      SELECT u.username, u.firstname, u.lastname, u.profile_picture, l.created_at AS liked_at
+      SELECT u.username, u.firstname, u.lastname, u.profile_picture
       FROM "User" u
       JOIN "_Like" l ON u.username = l.liked
       WHERE l.liker = $1
@@ -210,7 +209,7 @@ exports.getMe = async function (req, res) {
 
     // Get users who liked this user
     const liked_byQuery = `
-      SELECT u.username, u.firstname, u.lastname, u.profile_picture, l.created_at AS liked_at
+      SELECT u.username, u.firstname, u.lastname, u.profile_picture
       FROM "User" u
       JOIN "_Like" l ON u.username = l.liker
       WHERE l.liked = $1
