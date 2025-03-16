@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { useNavigate } from 'react-router-dom';
 import { calculateAge } from "./utils/dateUtils";
 
 interface LikedUser {
@@ -33,6 +34,7 @@ const LikedUsers: React.FC<LikedUsersProps> = ({ username }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchLikedUsers = async () => {
@@ -104,7 +106,9 @@ const LikedUsers: React.FC<LikedUsersProps> = ({ username }) => {
         ) : (
           <div className="max-h-60 overflow-y-auto">
             {likedUsers.map((user) => (
-              <div key={user.username} className="p-3 border-b hover:bg-purple-50 transition-colors flex items-center justify-between">
+              <div key={user.username} 
+              onClick={() => navigate(`/user/${user.username}`)}
+              className="p-3 border-b hover:bg-purple-50 transition-colors flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Avatar>
                     {user.profile_picture ? (

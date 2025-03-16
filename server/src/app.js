@@ -28,6 +28,10 @@ app.use('/auth', authRouter);
 app.use('/match', matchRouter);
 app.use('/like', likeRouter);
 
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', socketConnections: io.engine.clientsCount });
+});
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
@@ -35,7 +39,6 @@ app.use(function(req, res, next) {
 
 // error handler
 app.use(function(err, req, res, next) {
-  console.log("ss")
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

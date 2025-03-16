@@ -11,39 +11,111 @@ const pool = require("../config/database"); // Use the exported pool
 /**
  * Record when a user views another user's profile
  */
+
+exports.isMatch = async function (req, res) {
+  const client = await pool.connect();
+  try {
+    const user1 = req.user.username;
+    const user2 = req.params.username;
+    const doesUser1LikeUser2 = `
+      SELECT * FROM "_Like"
+      WHERE liker = $1 AND liked = $2
+    `;
+    const doesUser2LikeUser1 = `
+      SELECT * FROM "_Like"
+      WHERE liker = $2 AND liked = $1
+    `;
+    const user1LikesUser2 = await client.query(doesUser1LikeUser2, [user1, user2]);
+    const user2LikesUser1 = await client.query(doesUser2LikeUser1, [user1, user2]);
+    if (user1LikesUser2.rowCount === 1 && user2LikesUser1.rowCount === 1) {
+      return res.status(200).json({ isMatch: true });
+    }
+    return res.status(200).json({ isMatch: false });
+  } catch (error) {
+    console.error("Error in isMatch:", error);
+    return res.status(500).json({ message: "Failed to check if users are a match" });
+  } finally {
+    client.release();
+  }
+};
+
+
+exports.getUser = async function (req, res) {
+  const client = await pool.connect();
+  const username = req.params.username;
+  // console.log("username", username);
+  try {
+    const query = `
+    SELECT username, firstname, lastname, sexual_preferences, gender, birth_date, biography, profile_picture, interests, location_id, authorize_location, pictures
+      FROM "User"
+      WHERE username = $1
+    `;
+
+    const isUserLiked = `
+    SELECT * FROM "_Like"
+    WHERE liker = $1 AND liked = $2
+    `;
+
+    const isLikedBack = `
+    SELECT * FROM "_Like"
+    WHERE liker = $2 AND liked = $1
+    `;
+
+    const isUserLikedResult = await client.query(isUserLiked, [req.user.username, username]);
+    // console.log("isUserLikedResult", isUserLikedResult.rows);
+    const isLikedBackResult = await client.query(isLikedBack, [req.user.username, username]);
+    // console.log("isLikedBackResult", isLikedBackResult.rows);
+
+    const result = await client.query(query, [username]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    result.rows[0].is_liked = isUserLikedResult.rowCount > 0;
+    result.rows[0].is_likedback = isLikedBackResult.rowCount > 0;
+
+    return res.status(200).json(result.rows[0]);
+  } catch (error) {
+    console.error("Error in getUser:", error);
+    return res.status(500).json({ message: "Failed to retrieve user" });
+  } finally {
+    client.release();
+  }
+};
+
 exports.viewUser = async function (req, res) {
   const client = await pool.connect();
-  
+
   try {
     const viewer = req.user.username;
     const viewedUser = req.params.username;
-    
+
     if (viewer === viewedUser) {
       return res.status(400).json({ message: "You cannot view yourself" });
     }
-    
+
     // Start transaction
-    await client.query('BEGIN');
-    
+    await client.query("BEGIN");
+
     // Check if both users exist
     const userExistsQuery = `
       SELECT username FROM "User" 
       WHERE username IN ($1, $2)
     `;
     const usersResult = await client.query(userExistsQuery, [viewer, viewedUser]);
-    
+
     if (usersResult.rowCount !== 2) {
-      await client.query('ROLLBACK');
+      await client.query("ROLLBACK");
       return res.status(404).json({ message: "One or both users not found" });
     }
-    
+
     // Check if the view relationship already exists to avoid duplicates
     const viewExistsQuery = `
       SELECT * FROM "_Views" 
       WHERE "A" = $1 AND "B" = $2
     `;
     const viewExists = await client.query(viewExistsQuery, [viewer, viewedUser]);
-    
+
     // If relationship doesn't exist, create it
     if (viewExists.rowCount === 0) {
       const createViewQuery = `
@@ -52,14 +124,14 @@ exports.viewUser = async function (req, res) {
       `;
       await client.query(createViewQuery, [viewer, viewedUser]);
     }
-    
+
     // Commit transaction
-    await client.query('COMMIT');
-    
+    await client.query("COMMIT");
+
     return res.status(200).json({ message: "User viewed successfully" });
   } catch (error) {
     // Rollback in case of error
-    await client.query('ROLLBACK');
+    await client.query("ROLLBACK");
     console.error("Error in viewUser:", error);
     return res.status(500).json({ message: "Failed to record user view" });
   } finally {
@@ -73,11 +145,13 @@ exports.viewUser = async function (req, res) {
  */
 exports.getMe = async function (req, res) {
   const client = await pool.connect();
-  
+
   try {
     const username = req.user.username;
-    console.log("user in getme", req.user);
-    
+    // const activeUsers = getActiveUsers();
+    // console.log("activeUsers", activeUsers);
+    // console.log("user in getme", req.user);
+
     // Get user data
     const userQuery = `
       SELECT 
@@ -96,13 +170,13 @@ exports.getMe = async function (req, res) {
       LEFT JOIN "Location" l ON u."location_id" = l.id
       WHERE u.username = $1
     `;
-    
+
     const userResult = await client.query(userQuery, [username]);
-    
+
     if (userResult.rowCount === 0) {
       return res.status(404).json({ message: "User not found" });
     }
-    
+
     // Get viewed users (users that this user has viewed)
     const viewedQuery = `
       SELECT u.username, u.firstname, u.lastname, u.profile_picture
@@ -110,9 +184,9 @@ exports.getMe = async function (req, res) {
       JOIN "_Views" v ON u.username = v."B"
       WHERE v."A" = $1
     `;
-    
+
     const viewedResult = await client.query(viewedQuery, [username]);
-    
+
     // Get users who viewed this user
     const viewed_byQuery = `
       SELECT u.username, u.firstname, u.lastname, u.profile_picture
@@ -120,9 +194,9 @@ exports.getMe = async function (req, res) {
       JOIN "_Views" v ON u.username = v."A"
       WHERE v."B" = $1
     `;
-    
+
     const viewed_byResult = await client.query(viewed_byQuery, [username]);
-    
+
     // Get users liked by this user
     const likedQuery = `
       SELECT u.username, u.firstname, u.lastname, u.profile_picture, l.created_at AS liked_at
@@ -131,9 +205,9 @@ exports.getMe = async function (req, res) {
       WHERE l.liker = $1
       ORDER BY l.created_at DESC
     `;
-    
+
     const likedResult = await client.query(likedQuery, [username]);
-    
+
     // Get users who liked this user
     const liked_byQuery = `
       SELECT u.username, u.firstname, u.lastname, u.profile_picture, l.created_at AS liked_at
@@ -142,9 +216,9 @@ exports.getMe = async function (req, res) {
       WHERE l.liked = $1
       ORDER BY l.created_at DESC
     `;
-    
+
     const liked_byResult = await client.query(liked_byQuery, [username]);
-    
+
     // Get matched users
     const matchedQuery = `
       SELECT 
@@ -155,35 +229,37 @@ exports.getMe = async function (req, res) {
         (m.user2 = $1 AND m.user1 = u.username)
       ORDER BY m.matched_at DESC
     `;
-    
+
     const matchedResult = await client.query(matchedQuery, [username]);
-    
+
     // Format user data
     const userData = userResult.rows[0];
-    
+
     // Format location data
-    const location = userData.location_id ? {
-      id: userData.location_id,
-      latitude: userData.latitude,
-      longitude: userData.longitude,
-      country: userData.country,
-      city: userData.city
-    } : null;
-    
+    const location = userData.location_id
+      ? {
+          id: userData.location_id,
+          latitude: userData.latitude,
+          longitude: userData.longitude,
+          country: userData.country,
+          city: userData.city,
+        }
+      : null;
+
     // Remove location fields from user object
     delete userData.latitude;
     delete userData.longitude;
     delete userData.country;
     delete userData.city;
     delete userData.location_id;
-    
+
     // Format viewed and viewed_by arrays
     const viewed = viewedResult.rows;
     const viewed_by = viewed_byResult.rows;
     const liked = likedResult.rows;
     const liked_by = liked_byResult.rows;
     const matches = matchedResult.rows;
-    
+
     return res.status(200).json({
       ...userData,
       location,
@@ -191,7 +267,7 @@ exports.getMe = async function (req, res) {
       viewed_by,
       liked,
       liked_by,
-      matches
+      matches,
     });
   } catch (error) {
     console.error("Error in getMe:", error);
@@ -205,7 +281,7 @@ exports.getMe = async function (req, res) {
  */
 exports.getUsers = async function (req, res) {
   const client = await pool.connect();
-  
+
   try {
     const usersQuery = `
       SELECT 
@@ -222,31 +298,33 @@ exports.getUsers = async function (req, res) {
       LEFT JOIN "Location" l ON u.location_id = l.id
       WHERE u.profile_complete = true
     `;
-    
+
     const usersResult = await client.query(usersQuery);
-    
+
     // Format user data
-    const users = usersResult.rows.map(user => {
+    const users = usersResult.rows.map((user) => {
       // Format location data
-      const location = user.location_id ? {
-        latitude: user.latitude,
-        longitude: user.longitude,
-        country: user.country,
-        city: user.city
-      } : null;
-      
+      const location = user.location_id
+        ? {
+            latitude: user.latitude,
+            longitude: user.longitude,
+            country: user.country,
+            city: user.city,
+          }
+        : null;
+
       // Remove location fields from user object
       delete user.latitude;
       delete user.longitude;
       delete user.country;
       delete user.city;
-      
+
       return {
         ...user,
-        location
+        location,
       };
     });
-    
+
     return res.status(200).json(users);
   } catch (error) {
     console.error("Error in getUsers:", error);
@@ -261,13 +339,18 @@ exports.getUsers = async function (req, res) {
  */
 exports.updateUser = async function (req, res) {
   const client = await pool.connect();
-  
+
   try {
     // Validate request
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        message: "Invalid Values: " + errors.array().map(error => error.path).join(", "),
+        message:
+          "Invalid Values: " +
+          errors
+            .array()
+            .map((error) => error.path)
+            .join(", "),
       });
     }
 
@@ -276,7 +359,7 @@ exports.updateUser = async function (req, res) {
     let { location, pictures } = req.body;
     let profile_picture = req.body.profile_picture;
     const files = req.files;
-    
+
     // Process location data
     let locationData = {};
     if (typeof location === "string") {
@@ -309,36 +392,38 @@ exports.updateUser = async function (req, res) {
     } else {
       picturesArray = pictures || [];
     }
-    
+
     // Convert to Set for uniqueness then back to Array
     let picturesSet = new Set(picturesArray);
-    
+
     // Upload new pictures
     if (files && files["pictures[]"]) {
       for (const picture of files["pictures[]"]) {
-        const dataURI = `data:${picture.mimetype};base64,${picture.buffer.toString("base64")}`;      console.log("avant");
-        const cloudinaryResult = await cloudinary.uploader.upload(dataURI);      console.log("apres");
+        const dataURI = `data:${picture.mimetype};base64,${picture.buffer.toString("base64")}`;
+        console.log("avant");
+        const cloudinaryResult = await cloudinary.uploader.upload(dataURI);
+        console.log("apres");
         picturesSet.add(cloudinaryResult.secure_url);
       }
     }
-    
+
     // Start transaction
-    await client.query('BEGIN');
-    
+    await client.query("BEGIN");
+
     const username = req.user.username;
-    
+
     // Check if user has a location
     const locationQuery = `
       SELECT "location_id" 
       FROM "User" 
       WHERE username = $1
     `;
-    
+
     const locationResult = await client.query(locationQuery, [username]);
     const existinglocation_id = locationResult.rows[0]?.location_id;
-    
+
     let location_id = existinglocation_id;
-    
+
     // Handle location update or creation
     if (locationData.latitude && locationData.longitude) {
       if (existinglocation_id) {
@@ -353,18 +438,15 @@ exports.updateUser = async function (req, res) {
           WHERE id = $5
           RETURNING id
         `;
-        
-        const updateLocationResult = await client.query(
-          updateLocationQuery, 
-          [
-            Number(locationData.latitude),
-            Number(locationData.longitude),
-            locationData.city,
-            locationData.country,
-            existinglocation_id
-          ]
-        );
-        
+
+        const updateLocationResult = await client.query(updateLocationQuery, [
+          Number(locationData.latitude),
+          Number(locationData.longitude),
+          locationData.city,
+          locationData.country,
+          existinglocation_id,
+        ]);
+
         location_id = updateLocationResult.rows[0].id;
       } else {
         // Create new location
@@ -373,21 +455,18 @@ exports.updateUser = async function (req, res) {
           VALUES (gen_random_uuid(), $1, $2, $3, $4)
           RETURNING id
         `;
-        
-        const createLocationResult = await client.query(
-          createLocationQuery, 
-          [
-            Number(locationData.latitude),
-            Number(locationData.longitude),
-            locationData.city,
-            locationData.country
-          ]
-        );
-        
+
+        const createLocationResult = await client.query(createLocationQuery, [
+          Number(locationData.latitude),
+          Number(locationData.longitude),
+          locationData.city,
+          locationData.country,
+        ]);
+
         location_id = createLocationResult.rows[0].id;
       }
     }
-    
+
     // Update user profile
     const updateUserQuery = `
       UPDATE "User"
@@ -405,37 +484,34 @@ exports.updateUser = async function (req, res) {
       WHERE username = $9
       RETURNING *
     `;
-    
-    const updateUserResult = await client.query(
-      updateUserQuery, 
-      [
-        gender,
-        sexual_preferences,
-        biography,
-        interests,
-        profile_picture,
-        req.body.authorize_location === "true",
-        location_id,
-        Array.from(picturesSet),
-        username
-      ]
-    );
-    
+
+    const updateUserResult = await client.query(updateUserQuery, [
+      gender,
+      sexual_preferences,
+      biography,
+      interests,
+      profile_picture,
+      req.body.authorize_location === "true",
+      location_id,
+      Array.from(picturesSet),
+      username,
+    ]);
+
     // Get updated location data
     const updatedLocationQuery = `
       SELECT *
       FROM "Location"
       WHERE id = $1
     `;
-    
+
     const updatedLocationResult = await client.query(updatedLocationQuery, [location_id]);
-    
+
     // Commit transaction
-    await client.query('COMMIT');
-    
+    await client.query("COMMIT");
+
     // Format user data for response
     const updatedUser = updateUserResult.rows[0];
-    
+
     // Convert snake_case to camelCase for response
     const formattedUser = {
       username: updatedUser.username,
@@ -452,9 +528,9 @@ exports.updateUser = async function (req, res) {
       updated_at: updatedUser.updated_at,
       interests: updatedUser.interests,
       authorize_location: updatedUser.authorize_location,
-      pictures: updatedUser.pictures
+      pictures: updatedUser.pictures,
     };
-    
+
     // Add location data if it exists
     if (location_id && updatedLocationResult.rowCount > 0) {
       const locationData = updatedLocationResult.rows[0];
@@ -462,14 +538,14 @@ exports.updateUser = async function (req, res) {
         latitude: locationData.latitude,
         longitude: locationData.longitude,
         city: locationData.city,
-        country: locationData.country
+        country: locationData.country,
       };
     }
-    
+
     return res.status(200).json(formattedUser);
   } catch (error) {
     // Rollback in case of error
-    await client.query('ROLLBACK');
+    await client.query("ROLLBACK");
     console.error("Error in updateUser:", error);
     return res.status(500).json({ message: "Failed to update user profile" });
   } finally {

@@ -8,23 +8,22 @@ import Settings from "./components/settings";
 import Profil from "./components/profil";
 import UserPage from "./components/UserPage";
 import PreferencesForms from "./components/ProfileForm/ProfileForm.tsx";
-import Elias, { Elias1, Elias2 } from "./components/Elias.tsx";
+import Elias from "./components/Elias.tsx";
 import Error from "./components/Error";
 import Globe from "./components/Globe";
 import { useAuth } from "./context/auth-context";
-import Web from "./components/web.tsx";
+import ChatPage from "./pages/ChatPage.tsx";
 // import Nav from "./components/Nav";
 
 function randomString() {
   return Math.random().toString(36).substring(7);
 }
 const initialUsers = Array.from({ length: 100 }, (_, i) => ({
-    rank: i + 1,
+  rank: i + 1,
   username: randomString(),
   avatar: `https://robohash.org/${i + 1}.png`,
-  points: Math.floor(Math.random() * 10000)
+  points: Math.floor(Math.random() * 10000),
 }));
-
 
 function App() {
   const { user, profileCompleted, loading } = useAuth();
@@ -72,96 +71,85 @@ function App() {
   }
 
   return (
-    <Router>
-      <Routes>
-        <Route
-          path="/"
+    <>
+      <Router>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <main className="flex flex-col items-center justify-center h-screen">
+                <Home />
+              </main>
+            }
+          />
+          <Route path="/globe" element={<Globe />} />
+          <Route
+            path="/test"
+            element={
+              <>
+                <Test />
+              </>
+            }
+          />
+          <Route
+            path="/carousel"
+            element={
+              <>
+                <TestCarousel />
+              </>
+            }
+          />
+          <Route
+            path="/about-us"
+            element={
+              <main className="flex flex-col items-center justify-center h-screen">
+                <About />
+              </main>
+            }
+          />
+          <Route
+            path="/elias"
+            element={
+              <main className="flex flex-col items-center justify-center h-screen">
+                <Elias initialUsers={initialUsers} />
+              </main>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <main className="flex flex-col items-center justify-center h-screen">
+                <Settings />
+              </main>
+            }
+          />
+          <Route
+            path="/profil"
+            element={
+              <main className="flex flex-col items-center justify-center h-screen">
+                <Profil />
+              </main>
+            }
+          />
+          <Route path="/user/:username" element={<UserPage />} />
+          <Route
+            path="/*"
+            element={
+              <main className="flex flex-col items-center justify-center h-screen">
+                <Error />
+              </main>
+            }
+          />
+            <Route 
+          path="/chat/:username" 
           element={
-            <main className="flex flex-col items-center justify-center h-screen">
-              <Home />
-            </main>
-          }
+              <ChatPage />
+          } 
         />
-        <Route
-          path="/globe"
-          element={
-              <Globe />
-          }
-        />
-        <Route
-          path="/test"
-          element={
-            <>
-              <Test />
-            </>
-          }
-        />
-        <Route
-          path="/carousel"
-          element={
-            <>
-              <TestCarousel />
-            </>
-          }
-        />
-        <Route
-          path="/web"
-          element={
-            <>
-              <Web />
-            </>
-          }
-        />
-        <Route
-          path="/about-us"
-          element={
-            <main className="flex flex-col items-center justify-center h-screen">
-              <About />
-            </main>
-          }
-        />
-        <Route
-          path="/elias"
-          element={
-            <main className="flex flex-col items-center justify-center h-screen">
-              <Elias initialUsers={initialUsers} />
-            </main>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <main className="flex flex-col items-center justify-center h-screen">
-              <Settings />
-            </main>
-          }
-        />
-        <Route
-          path="/profil"
-          element={
-            <main className="flex flex-col items-center justify-center h-screen">
-              <Profil />
-            </main>
-          }
-        />
-        <Route
-          path="/user/:username"
-          element={
-            <main className="flex flex-col items-center justify-center h-screen">
-              <UserPage />
-            </main>
-          }
-        />
-        <Route
-          path="/*"
-          element={
-            <main className="flex flex-col items-center justify-center h-screen">
-              <Error />
-            </main>
-          }
-        />
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
+      <pre>{JSON.stringify(user, null, 2)}</pre>
+    </>
   );
 }
 

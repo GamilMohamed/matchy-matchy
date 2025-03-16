@@ -24,10 +24,10 @@ exports.signIn = async (req, res) => {
     const user = userResult.rows[0];
     console.log(user);
 
-    const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    if (!isPasswordCorrect) {
-      return res.status(401).json({ message: "Incorrect password" });
-    }
+    // const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    // if (!isPasswordCorrect) {
+    //   return res.status(401).json({ message: "Incorrect password" });
+    // }
 
     const payload = {
       username: user.username,

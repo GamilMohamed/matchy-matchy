@@ -9,6 +9,7 @@ import {toast} from "@/hooks/use-toast";
 import { Card, CardContent } from "./ui/card";
 import LikedUsers from "./LikedUser";
 import { calculateAge } from "./utils/dateUtils";
+import { Badge } from "./ui/badge";
 // Définir l'interface UserProfile pour le typage
 
 export interface UserProfile {
@@ -171,7 +172,7 @@ const Home: React.FC = () => {
         const me = meResponse.data as UserProfile;
 
         setUserProfile(me);
-  
+        console.log("Profil utilisateur chargé:", me);
         // Récupérer tous les utilisateurs
         const allUsersResponse = await api.get("/users/all");
         const allUsersData = allUsersResponse.data as UserProfile[];
@@ -399,15 +400,16 @@ const Home: React.FC = () => {
                 : "translate-x-0 opacity-100"
             }`}>
           {/* Profile image */}
-          <div onClick={() => handleProfileClick(currentProfile.firstname)} className="relative h-80 w-full">
-            {/* <img 
+          <div onClick={() => handleProfileClick(currentProfile.username)} className="relative h-80 w-full">
+            {}
+            <img 
               src={currentProfile.imageUrl || currentProfile.profile_picture || "https://placehold.co/400x400/png"} 
               alt={`Photo de ${currentProfile.firstname}`} 
               className="h-full w-full object-cover object-center" 
-            /> */}
+            />
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
               <h2 className="text-2xl font-bold">
-                {currentProfile.firstname}, {calculateAge(currentProfile.birth_date || "")}
+                {currentProfile.firstname}, {calculateAge(currentProfile.birth_date || "")} ({currentProfile.username}, {currentProfile.email})
               </h2>
               <p className="flex items-center gap-1">
                 <MapPin size={16} />
@@ -427,6 +429,12 @@ const Home: React.FC = () => {
             {/* Common interests section */}
             <div className="mb-3">
               <h3 className="font-semibold mb-1 text-purple-800">Points communs</h3>
+              <Badge variant="secondary" className="bg-green-950 text-white">
+                {userProfile.liked_by?.map((user) => user.username).includes(currentProfile.username) ? "Likes you" : "Doesnt like you"}
+              </Badge>
+              <Badge variant="secondary" className="bg-red-950 text-white">
+                {userProfile.liked?.map((user) => user.username).includes(currentProfile.username) ? "You like him" : "You dont like him"}
+              </Badge>
               <div className="text-sm text-purple-700">
                 <p>{calculateCommonInterestsScore(userProfile, currentProfile).toFixed(0)}% d'intérêts en commun</p>
               </div>

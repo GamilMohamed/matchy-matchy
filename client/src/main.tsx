@@ -4,15 +4,17 @@ import "@/styles/globals.css";
 import { Toaster } from "./components/ui/toaster.tsx";
 import { AuthProvider } from "./context/auth-context.tsx";
 import { ThemeProvider } from "./components/theme-provider.tsx";
-import { ModeToggle } from "./components/mode-toggle.tsx";
+import { SocketProvider } from "./context/socket-context.tsx";
 
 export default App;
 
 createRoot(document.getElementById("root")!).render(
   <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
     <AuthProvider>
+      <SocketProvider>
       <App />
       <Toaster />
+      </SocketProvider>
     </AuthProvider>{" "}
   </ThemeProvider>
 );

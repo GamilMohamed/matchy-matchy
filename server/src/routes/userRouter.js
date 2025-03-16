@@ -20,6 +20,8 @@ router.get("/", function (req, res) {
 
 router.get("/all", isAuthenticated, userController.getUsers);
 
+router.get("/isMatch/:username", isAuthenticated, userController.isMatch);
+
 router.get("/me", isAuthenticated, userController.getMe);
 const handleMulterError = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
@@ -70,5 +72,6 @@ router.put(
 
 router.post("/view/:username", isAuthenticated, userController.viewUser);
 
+router.get("/:username", isAuthenticated, userController.getUser);
 
 module.exports = router;

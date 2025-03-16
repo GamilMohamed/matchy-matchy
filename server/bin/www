@@ -7,7 +7,9 @@
 var app = require('../src/app');
 var debug = require('debug')('server:server');
 var http = require('http');
-var { Server } = require("socket.io");
+const { initializeSocket } = require('../src/config/socket');
+const { setupSocketHandlers } = require('../src/controllers/socketController');
+
 /**
  * Get port from environment and store in Express.
  */
@@ -25,17 +27,13 @@ var server = http.createServer(app);
  * Socket.io setup
  */
 
-const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:5173", // Your frontend origin
-    methods: ["GET", "POST", "OPTIONS"],
-    credentials: true,
-    allowedHeaders: ["my-custom-header"]
-  }
-});
+
+
+const io = initializeSocket(server);
+setupSocketHandlers(io);
 
 // Import socket handlers
-require('../src/socket/socket')(io);
+// require('../src/socket/socket')(io);
 
 /**
  * Listen on provided port, on all network interfaces.

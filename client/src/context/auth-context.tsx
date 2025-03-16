@@ -5,7 +5,6 @@ import { MyError, RegisterData, UpdateProfileData } from "../types/auth";
 import { useToast } from "@/hooks/use-toast";
 import { AxiosError } from "axios";
 import { User } from "@/types/auth";
-import { io } from "socket.io-client";
 
 // Auth context type
 interface AuthContextType {
@@ -17,6 +16,7 @@ interface AuthContextType {
   updateProfile: (userData: UpdateProfileData) => Promise<unknown>;
   logout: () => void;
   profileCompleted: boolean;
+  connectedUsers: string[];
 }
 
 // Create the context
@@ -30,16 +30,6 @@ const api = axios.create({
     Authorization: `Bearer ${localStorage.getItem("token")}`,
   },
 });
-
-const socket = io("http://localhost:3000", {
-  withCredentials: true,
-  autoConnect: true,
-  reconnection: true,
-  reconnectionAttempts: 5,
-  reconnectionDelay: 1000,
-  transports: ['websocket', 'polling'] // Try both transport methods
-});
-
 
 // Add request interceptor to include the token
 api.interceptors.request.use(
@@ -59,7 +49,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
   const [loading, setLoading] = useState<boolean>(false);
   const [profileCompleted, setProfileCompleted] = useState<boolean>(false);
+  const [connectedUsers, setConnectedUsers] = useState<string[]>([]);
   const { toast } = useToast();
+
 
   useEffect(() => {
     if (user) {
@@ -67,14 +59,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [user]);
 
-  useEffect(() => {
-    socket.on("connect", () => {
-      console.log("Connected to the server");
-    });
-    socket.on("disconnect", () => {
-      console.log("Disconnected from the server");
-    });
-  }, []);
 
   const handleRequest = async (requestFn: () => Promise<unknown>, successMessage?: string) => {
     try {
@@ -206,6 +190,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     register,
     updateProfile,
     profileCompleted,
+    connectedUsers,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -223,4 +208,4 @@ export const useAuth = () => {
 };
 
 // Export the configured axios instance
-export { api, socket };
+export { api };
