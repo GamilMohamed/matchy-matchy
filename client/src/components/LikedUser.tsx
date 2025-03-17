@@ -32,7 +32,7 @@ const LikedUsers: React.FC<LikedUsersProps> = ({ username }) => {
   const [likedUsers, setLikedUsers] = useState<LikedUser[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  const [isExpanded, setIsExpanded] = useState<boolean>(true);
   const navigate = useNavigate();
 
   useEffect(() => {

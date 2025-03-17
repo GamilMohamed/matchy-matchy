@@ -1,17 +1,14 @@
 import Globe from "react-globe.gl";
-import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import * as satellite from "https://esm.sh/satellite.js";
-import { User } from "@/types/auth";
-import { Dialog } from "@headlessui/react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useAuth } from "@/context/auth-context";
 import api from "@/services/api";
-function convertUsernameToColor(username: string) {
+import Navbar from "@/components/Nav";
+function convertUsernameToColor(username) {
   const hash = username.split("").reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
   const color = `hsl(${hash % 360}, 100%, 50%)`;
   return color;
 }
 
-// import a from "../assets/earth-blue-marble.jpeg
 export default function MyGlobe() {
   const { user } = useAuth();
   const [users, setUsers] = useState([]);
@@ -28,9 +25,8 @@ export default function MyGlobe() {
     async function fetchData() {
       try {
         const response = await api.get("/users/all");
-        console.log("response", response);
         //All users except the current user
-        const filteredUsers = response.data.filter((u: User) => u.username !== user.username);
+        const filteredUsers = response.data.filter((u) => u.username !== user.username);
         setUsers(filteredUsers);
         setLoading(false);
       } catch (err) {
@@ -131,18 +127,20 @@ export default function MyGlobe() {
   }, [users]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="w-screen h-screen flex items-center justify-center">Loading...</div>;
   }
 
   if (error) {
-    return <div>Error loading data</div>;
+    return <div className="w-screen h-screen flex items-center justify-center">Error loading data</div>;
   }
-  console.log("locationOfUsers", locationOfUsers);
 
   return (
-    <>
+    <div className="w-screen h-screen overflow-hidden">
+      <Navbar isGlobePage={true} />
       <Globe
         ref={myGlobe}
+        width={window.innerWidth}
+        height={window.innerHeight}
         globeImageUrl="//unpkg.com/three-globe@2.42.2/example/img/earth-blue-marble.jpg"
         pointsData={locationOfUsers}
         backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
@@ -151,21 +149,25 @@ export default function MyGlobe() {
         pointResolution={24}
         pointLabel={(point) => `
           <div class="p-2 rounded-lg shadow-md">
-          ${point.users?.map((u, i) => {
-            if (i > 2) {
-              return "";
-            }
-            return `
+          ${
+            point.users
+              ?.map((u, i) => {
+                if (i > 2) {
+                  return "";
+                }
+                return `
             <div key="${i}" class="flex items-center">
             <img src="${u.profile_picture}" class="w-54 h-54 rounded-full" />
             <p class="ml-2 text-sm font-semibold">${u.firstname} ${new Date().getFullYear() - new Date(u.birth_date).getFullYear()} ans</p>
             </div>`;
-          }).join('') || ''}
+              })
+              .join("") || ""
+          }
           </div>`}
         onPointClick={(point) => {
           alert("point" + JSON.stringify(point.username));
         }}
       />
-    </>
+    </div>
   );
 }

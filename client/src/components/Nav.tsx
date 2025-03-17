@@ -1,53 +1,172 @@
+import React, { useState, useEffect } from "react";
+import { Menu, Globe, Home, User, LogOut, Heart } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/context/auth-context";
-import { UserCircle, Home, Settings, LogOut } from 'lucide-react';
-import { Link } from 'react-router-dom'
+import { useNavigate } from "react-router-dom";
 
-const Nav = () => {
-	const { logout } = useAuth();
-	const handleLogout = () => {
-		logout();
-	};
 
-	return (
-    	<nav className="top-0 left-0 right-0 bg-black/10 shadow-sm border-b z-50 h-1/7 w-full">
-    	  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    	    <div className="flex justify-center h-16 items-center">
-    	      <div className="flex items-center space-x-8">
-			  <Link to="/" className="flex items-center">
-  				<Home className="h-6 w-6 text-blue-600" />
-					<span className="ml-2 text-xl font-bold text-white-900">Matchy matchy</span>
-			  </Link>
-			  <div className="flex space-x-6">
-			    <Link to="/" className="px-3 py-2 text-white-600 hover:text-gray-900">
-			      Accueil
-			    </Link>
-			    <Link to="/globe" className="px-3 py-2 text-white-600 hover:text-gray-900">
-			      Globe
-			    </Link>
-			  </div>
-				<div className="flex items-center space-x-4">
-  					<Link to="/settings">
-  					  <Button variant="ghost" size="icon">
-  					    <Settings className="h-5 w-5" />
-  					  </Button>
-  					</Link>
-  					<Link to="/profil">
-  					  <Button variant="ghost" size="icon">
-  					    <UserCircle className="h-5 w-5" />
-  					  </Button>
-  					</Link>
-  					<Link to="/">
-					  <Button variant="ghost" size="icon" onClick={handleLogout}>
-        				<LogOut className="h-5 w-5" />
-      				  </Button>
-  					</Link>
-				</div>
-			  </div>
-			</div>
-		  </div>
-		</nav>
-	);
+const Navbar = ({ isGlobePage=false }: { isGlobePage?: boolean }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  if (!user) {
+    return null;
+  }
+  // Mock user data - replace with your actual user data
+
+  const handleLogout = () => {
+	logout();
+    // Add your logout logic here
+  };
+
+  const handleNavigate = (path: string) => {
+    navigate(path);
+    // Add your navigation logic here
+    setIsMobileMenuOpen(false);
+  };
+
+  const NavLinks = ({ isMobile = false }) => (
+    <>
+      <Button
+        variant="ghost"
+        className={`${isMobile ? "justify-start w-full py-6" : "h-12"} rounded-lg transition-colors ${!isMobile && isGlobePage ? "text-white hover:bg-white/10" : ""}`}
+        onClick={() => handleNavigate("/")}>
+        <Home className={`${isMobile ? "mr-3" : "mr-2"} h-5 w-5`} />
+        <span className={isMobile ? "text-base" : ""}>Home</span>
+      </Button>
+      <Button
+        variant="ghost"
+        className={`${isMobile ? "justify-start w-full py-6" : "h-12"} rounded-lg transition-colors ${!isMobile && isGlobePage ? "text-white hover:bg-white/10" : ""}`}
+        onClick={() => handleNavigate("/globe")}>
+        <Globe className={`${isMobile ? "mr-3" : "mr-2"} h-5 w-5`} />
+        <span className={isMobile ? "text-base" : ""}>Globe</span>
+      </Button>
+    </>
+  );
+
+  const UserMenu = ({ isMobile = false }) => {
+    const content = isMobile ? (
+      <div className="space-y-3 pt-3">
+        <div className="flex items-center p-2 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors" onClick={() => handleNavigate("/profile")}>
+          <User className="mr-3 h-5 w-5 text-indigo-500" />
+          <span className="text-base">Edit Profile</span>
+        </div>
+        <div className="flex items-center p-2 rounded-lg hover:bg-red-50 cursor-pointer transition-colors text-red-600" onClick={handleLogout}>
+          <LogOut className="mr-3 h-5 w-5" />
+          <span className="text-base">Logout</span>
+        </div>
+      </div>
+    ) : (
+      <>
+        <DropdownMenuItem className="flex items-center cursor-pointer p-3" onClick={() => handleNavigate("/profile")}>
+          <User className="mr-2 h-4 w-4 text-indigo-500" />
+          <span>Edit Profile</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className="flex items-center cursor-pointer p-3 text-red-600" onClick={handleLogout}>
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Logout</span>
+        </DropdownMenuItem>
+      </>
+    );
+
+    if (isMobile) {
+      return (
+        <div className="border-t border-slate-200 mt-4 pt-4">
+          <div className="flex items-center p-2 mb-3">
+            <Avatar className="h-10 w-10 mr-3 border-2 border-indigo-100">
+              <AvatarImage src={user.profile_picture} alt={user.firstname} />
+            </Avatar>
+            <div>
+              <p className="font-medium text-slate-800">{user.firstname}</p>
+              <p className="text-xs text-slate-500">Your Profile</p>
+            </div>
+          </div>
+          {content}
+        </div>
+      );
+    }
+
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className={`rounded-full h-10 w-10 p-0 ml-2 ${isGlobePage ? "hover:bg-white/10" : ""}`}>
+            <Avatar className={`h-9 w-9 ${isGlobePage ? "border-2 border-white/30" : "border-2 border-indigo-100"}`}>
+              <AvatarImage src={user.profile_picture} alt={user.firstname} />
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56 p-2">
+          <div className="flex items-center p-2 mb-1">
+            <Avatar className="h-10 w-10 mr-3">
+              <AvatarImage src={user.profile_picture} alt={user.firstname} />
+            </Avatar>
+            <div>
+              <p className="font-medium text-slate-800">{user.firstname}</p>
+              <p className="font-s text-slate-800">{user.username}</p>
+              <p className="text-xs text-slate-500">Your Profile</p>
+            </div>
+          </div>
+          <DropdownMenuSeparator />
+          {content}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
+
+  // Mobile menu using Sheet from shadcn/ui
+  const MobileMenu = () => (
+    <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+      <SheetTrigger asChild>
+        <Button variant="ghost" size="icon" className={`md:hidden h-10 w-10 ${isGlobePage ? "text-white hover:bg-white/10" : ""}`}>
+          <Menu className="h-6 w-6" />
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-80 p-0">
+        <SheetHeader className="p-6 border-b">
+          <SheetTitle className="flex items-center">
+            <Heart className="h-6 w-6 text-pink-500 mr-2" />
+            <span className="text-2xl font-bold bg-gradient-to-r from-indigo-500 to-pink-500 bg-clip-text text-transparent">Matchy-matchy</span>
+          </SheetTitle>
+        </SheetHeader>
+        <div className="flex flex-col p-6">
+          <div className="space-y-1">
+            <NavLinks isMobile={true} />
+          </div>
+          <UserMenu isMobile={true} />
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+
+  return (
+    <nav className={`${isGlobePage ? "absolute top-0 left-0 right-0 z-50 bg-transparent" : "sticky top-0 z-50 bg-white shadow-sm border-b"}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex items-center">
+            <MobileMenu />
+            <div className="flex-shrink-0 flex items-center">
+              <Heart className="h-6 w-6 text-pink-500 mr-2 hidden md:block" />
+              <span className={`text-xl font-bold ${isGlobePage ? "text-white drop-shadow-md" : "bg-gradient-to-r from-indigo-500 to-pink-500 bg-clip-text text-transparent"}`}>
+                Matchy-matchy
+              </span>
+            </div>
+            <div className="hidden md:ml-10 md:flex md:space-x-4">
+              <NavLinks />
+            </div>
+          </div>
+          <div className="flex items-center">
+            <div className="block">
+              <UserMenu />
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
 };
 
-export default Nav;
+export default Navbar;

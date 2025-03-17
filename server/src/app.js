@@ -10,6 +10,19 @@ var authRouter = require('./routes/authRouter');
 var matchRouter = require('./routes/matchRouter');
 var likeRouter = require('./routes/likeRouter');
 var cors = require('cors')
+const nodemailer = require('nodemailer');
+
+// Create a transporter (for testing, you can use a test account)
+const transporter = nodemailer.createTransport({
+  host: 'smtp.example.com',
+  port: 587,
+  secure: false, // true for 465, false for other ports
+  auth: {
+    user: 'your_email@example.com',
+    pass: 'your_password'
+  }
+});
+
 
 var app = express();
 app.use(cors())

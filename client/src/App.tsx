@@ -7,7 +7,9 @@ import PreferencesForms from "./components/ProfileForm/ProfileForm.tsx";
 import Error from "./components/Error";
 import Globe from "./components/Globe";
 import { useAuth } from "./context/auth-context";
-
+import VerifyEmail from './pages/VerifyEmail.tsx';
+import ForgotPassword from './pages/ForgotPassword.tsx';
+import ResetPassword from './pages/ResetPassword.tsx';
 function randomString() {
   return Math.random().toString(36).substring(7);
 }
@@ -34,6 +36,10 @@ function App() {
       <Router>
         <Routes>
           <Route path="*" element={<LoginForm />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+
         </Routes>
       </Router>
     );
@@ -55,12 +61,15 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/globe" element={<Globe />} />
-          <Route path="/profil" element={<Profil />} />
+          <Route path="/profile" element={<Profil />} />
           <Route path="/user/:username" element={<UserPage />} />
+          {/* <Route path="/verify-email" element={<VerifyEmail />} /> */}
+          {/* <Route path="/forgot-password" element={<ForgotPassword />} /> */}
+          {/* <Route path="/reset-password" element={<ResetPassword />} /> */}
           <Route path="/*" element={<Error />} />
         </Routes>
       </Router>
-      <pre>{JSON.stringify(user, null, 2)}</pre>
+      {/* <pre>{JSON.stringify(user, null, 2)}</pre> */}
     </>
   );
 }

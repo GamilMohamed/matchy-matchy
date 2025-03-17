@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { HeartIcon, MessageCircleIcon, MapPinIcon, CalendarIcon, SendIcon } from "lucide-react";
 import { useSocketContext } from "@/context/socket-context";
+import Navbar from "./Nav";
 
 const UserPage = () => {
   const { username} = useParams();
@@ -151,6 +152,8 @@ const UserPage = () => {
   const isRecipientOnline = username ? connectedUsers.includes(username) : false;
 
   return (
+    <>
+      <Navbar />
     <div className="container mx-auto max-w-4xl px-4 sm:px-6 py-4 sm:py-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Main Profile Card */}
@@ -207,8 +210,14 @@ const UserPage = () => {
                     {interest}
                   </Badge>
                 ))}
+
               </div>
             </div>
+                {userData.sexual_preferences && (
+                  <Badge variant="outline" className="capitalize py-1 px-2 text-sm">
+                    {userData.sexual_preferences.join(", ")}
+                  </Badge>
+                )}
           </CardContent>
         </Card>
 
@@ -301,6 +310,8 @@ const UserPage = () => {
         </DialogContent>
       </Dialog>
     </div>
+    </>
+
   );
 };
 

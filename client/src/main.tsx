@@ -3,16 +3,17 @@ import App from "./App.tsx";
 import "@/styles/globals.css";
 import { Toaster } from "./components/ui/toaster.tsx";
 import { AuthProvider } from "./context/auth-context.tsx";
-import { ThemeProvider } from "./components/theme-provider.tsx";
 import { SocketProvider } from "./context/socket-context.tsx";
 
 export default App;
 
 createRoot(document.getElementById("root")!).render(
-    <AuthProvider>
-      <SocketProvider>
+  <AuthProvider>
+    <SocketProvider>
+      <div className="font-sans antialiased  min-h-screen min-w-screen">
         <App />
         <Toaster />
-      </SocketProvider>
-    </AuthProvider>
+      </div>
+    </SocketProvider>
+  </AuthProvider>
 );

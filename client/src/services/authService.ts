@@ -2,10 +2,10 @@
 import api from "./api";
 import { RegisterData, UpdateProfileData } from "../types/auth";
 import axios from "axios";
-
 export const authService = {
   login: async (email: string, password: string) => {
     const response = await api.post("/auth/signin", { email, password });
+    
     return response.data;
   },
 
@@ -19,9 +19,24 @@ export const authService = {
     return response.data;
   },
 
+  forgotPassword: (email: string) => {
+    return api.post(`/auth/forgot-password`, { email });
+  },
+
+  resetPassword: (token: string, newPassword: string) => {
+    return api.post(`/auth/reset-password`, { token, newPassword });
+  },
+
+  verifyEmail: (token: string) => {
+    return api.post(`/auth/verify-email`, { token });
+  },
+
+  resendVerification: (email: string) => {
+    return api.post(`/auth/resend-verification`, { email });
+  },
   updateProfile: async (userData: UpdateProfileData) => {
     const convertedData = new FormData();
-    
+
     Object.entries(userData).forEach(([key, value]) => {
       if (key === "profile_picture" && value instanceof File) {
         convertedData.append(key, value as File);
@@ -45,14 +60,14 @@ export const authService = {
         convertedData.append(key, value as string);
       }
     });
-    
+
     const response = await axios.put("http://localhost:3000/users/profile", convertedData, {
       headers: {
         "Content-Type": "multipart/form-data",
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
     });
-    
+
     return response.data;
-  }
+  },
 };

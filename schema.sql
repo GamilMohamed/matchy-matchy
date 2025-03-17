@@ -137,3 +137,10 @@ CREATE TRIGGER check_for_match
 AFTER INSERT ON "_Like"
 FOR EACH ROW
 EXECUTE FUNCTION create_match();
+
+ALTER TABLE "User" ADD COLUMN is_verified BOOLEAN DEFAULT TRUE;
+ALTER TABLE "User" ADD COLUMN verification_token TEXT;
+
+-- Add password reset columns to User table
+ALTER TABLE "User" ADD COLUMN reset_password_token TEXT;
+ALTER TABLE "User" ADD COLUMN reset_password_expires TIMESTAMP;

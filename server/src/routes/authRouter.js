@@ -1,59 +1,43 @@
-var express = require("express");
-var router = express.Router();
-const authController = require("../controllers/authController");
+const express = require('express');
+const router = express.Router();
 const { body } = require("express-validator");
-const { validateBody } = require("../middlewares/authMiddleware");
+const authController = require('../controllers/authController');
 
-async function checkDouble(column, value, res) {
-  const client = await pool.connect();
-  try {
-    const query = `
-      SELECT * 
-      FROM "User"
-      WHERE ${column} = $1
-    `;
-    const result = await client.query(query, [value]);
-    if (result.rowCount !== 0) {
-      return res.status(400).json({ message: `${column} already in use` });
-    }
-  } catch (e) {
-    console.error("Error while checking if the user exists:", e);
-    return res.status(500).json({ message: "Internal server error" });
-  } finally {
-    client.release();
-  }
-}
+// Login route
+router.post('/signin', [
+  body('email').isEmail().withMessage('Valid email is required'),
+  body('password').notEmpty().withMessage('Password is required')
+], authController.signIn);
 
+// Register route
+router.post('/signup', [
+  body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
+  body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
+  body('firstname').notEmpty().trim().escape().withMessage('First name is required'),
+  body('lastname').notEmpty().trim().escape().withMessage('Last name is required'),
+  body('username').notEmpty().trim().escape().withMessage('Username is required'),
+  body('birth_date').isISO8601().toDate().withMessage('Valid birth date is required')
+], authController.signUp);
 
-router.get("/", function (req, res, next) {
-  res.send("respond with MSSDASDSDSD");
-});
+// Email verification route
+router.post('/verify-email', [
+  body('token').notEmpty().withMessage('Token is required')
+], authController.verifyEmail);
 
-router.get("/double/:username", async function (req, res, next) {
-  await checkDouble("username", req.params.username, res);
-  res.status(200).json({ message: "Username available" });
-});
+// Forgot password route
+router.post('/forgot-password', [
+  body('email').isEmail().normalizeEmail().withMessage('Valid email is required')
+], authController.forgotPassword);
 
+// Reset password route
+router.post('/reset-password', [
+  body('token').notEmpty().withMessage('Token is required'),
+  body('newPassword').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long')
+], authController.resetPassword);
 
-router.get("/double/:email", async function (req, res, next) {
-  await checkDouble("email", req.params.email, res);
-  res.status(200).json({ message: "Email available" });
-});
-
-router.post("/signup",
-  body("email").isEmail().normalizeEmail(),
-  body("password").isString().notEmpty(),
-  body("firstname").isString().notEmpty(),
-  body("lastname").isString().notEmpty(),
-  body("username").isString().notEmpty(),
-  body("birth_date").isDate(),
-  validateBody,
-  authController.signUp);
-
-router.post("/signin", 
-  body("email").isEmail().normalizeEmail(),
-  body("password").isString().notEmpty(),
-  validateBody,
-  authController.signIn);
+// Resend verification email route
+router.post('/resend-verification', [
+  body('email').isEmail().normalizeEmail().withMessage('Valid email is required')
+], authController.resendVerification);
 
 module.exports = router;

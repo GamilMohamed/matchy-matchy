@@ -8,6 +8,7 @@ DB_NAME = matchy-matchy-db
 # List all tables in the database
 apply:
 	docker exec -i $(DB_CONTAINER) psql -U $(DB_USER) -d $(DB_NAME) < schema.sql
+
 tables:
 	docker exec -it $(DB_CONTAINER) psql -U $(DB_USER) -d $(DB_NAME) -c "\d"
 
@@ -146,14 +147,14 @@ add-view:
 	docker exec -it $(DB_CONTAINER) psql -U $(DB_USER) -d $(DB_NAME) -c "INSERT INTO \"_Views\" (\"A\", \"B\") VALUES ('$(VIEWED)', '$(VIEWER)') ON CONFLICT DO NOTHING RETURNING *;"
 
 delete:
- docker system prune -af
- docker stop `docker ps -q`
- docker rm `docker ps -aq`
- docker rmi `docker image -aq`
- docker volume rm `docker volume ls -q`
- docker network rm `docker network ls -q`
- docker system prune -af%      
-# Help command that lists all available commands
+	docker system prune -af
+	docker stop `docker ps -q`
+	docker rm `docker ps -aq`
+	docker rmi `docker image -aq`
+	docker volume rm `docker volume ls -q`
+	docker network rm `docker network ls -q`
+	docker system prune -af  
+
 help:
 	@echo "Available commands:"
 	@echo "  make tables              - List all tables in the database"
