@@ -8,23 +8,22 @@ import { useAuth } from "@/context/auth-context";
 import { useNavigate } from "react-router-dom";
 
 
-const Navbar = ({ isGlobePage=false }: { isGlobePage?: boolean }) => {
+const Navbar = ({ isGlobePage=false }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showNavbar, setShowNavbar] = useState(false);
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  
   if (!user) {
     return null;
   }
-  // Mock user data - replace with your actual user data
 
   const handleLogout = () => {
-	logout();
-    // Add your logout logic here
+    logout();
   };
 
-  const handleNavigate = (path: string) => {
+  const handleNavigate = (path) => {
     navigate(path);
-    // Add your navigation logic here
     setIsMobileMenuOpen(false);
   };
 
@@ -79,6 +78,7 @@ const Navbar = ({ isGlobePage=false }: { isGlobePage?: boolean }) => {
           <div className="flex items-center p-2 mb-3">
             <Avatar className="h-10 w-10 mr-3 border-2 border-indigo-100">
               <AvatarImage src={user.profile_picture} alt={user.firstname} />
+              <AvatarFallback>{user.firstname?.charAt(0)}</AvatarFallback>
             </Avatar>
             <div>
               <p className="font-medium text-slate-800">{user.firstname}</p>
@@ -96,6 +96,7 @@ const Navbar = ({ isGlobePage=false }: { isGlobePage?: boolean }) => {
           <Button variant="ghost" size="icon" className={`rounded-full h-10 w-10 p-0 ml-2 ${isGlobePage ? "hover:bg-white/10" : ""}`}>
             <Avatar className={`h-9 w-9 ${isGlobePage ? "border-2 border-white/30" : "border-2 border-indigo-100"}`}>
               <AvatarImage src={user.profile_picture} alt={user.firstname} />
+              <AvatarFallback>{user.firstname?.charAt(0)}</AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
@@ -103,6 +104,7 @@ const Navbar = ({ isGlobePage=false }: { isGlobePage?: boolean }) => {
           <div className="flex items-center p-2 mb-1">
             <Avatar className="h-10 w-10 mr-3">
               <AvatarImage src={user.profile_picture} alt={user.firstname} />
+              <AvatarFallback>{user.firstname?.charAt(0)}</AvatarFallback>
             </Avatar>
             <div>
               <p className="font-medium text-slate-800">{user.firstname}</p>
@@ -143,29 +145,52 @@ const Navbar = ({ isGlobePage=false }: { isGlobePage?: boolean }) => {
   );
 
   return (
-    <nav className={`${isGlobePage ? "absolute top-0 left-0 right-0 z-50 bg-transparent" : "sticky top-0 z-50 bg-white shadow-sm border-b"}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <MobileMenu />
-            <div className="flex-shrink-0 flex items-center">
-              <Heart className="h-6 w-6 text-pink-500 mr-2 hidden md:block" />
-              <span className={`text-xl font-bold ${isGlobePage ? "text-white drop-shadow-md" : "bg-gradient-to-r from-indigo-500 to-pink-500 bg-clip-text text-transparent"}`}>
-                Matchy-matchy
-              </span>
+    <>
+      {/* Hover trigger area that spans the top of the screen */}
+      <div 
+        className="fixed top-0 left-0 right-0 h-4 z-50 cursor-pointer"
+        onMouseEnter={() => setShowNavbar(true)}
+      />
+      
+      <nav 
+        className={`transition-transform duration-300 transform ${showNavbar ? 'translate-y-0' : '-translate-y-full'} ${isGlobePage ? "absolute top-0 left-0 right-0 z-40 bg-transparent" : "fixed top-0 left-0 right-0 z-40 bg-white shadow-sm border-b"}`}
+        onMouseLeave={() => setShowNavbar(false)}
+        onMouseEnter={() => setShowNavbar(true)}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex items-center">
+              <MobileMenu />
+              <div className="flex-shrink-0 flex items-center">
+                <Heart className="h-6 w-6 text-pink-500 mr-2 hidden md:block" />
+                <span className={`text-xl font-bold ${isGlobePage ? "text-white drop-shadow-md" : "bg-gradient-to-r from-indigo-500 to-pink-500 bg-clip-text text-transparent"}`}>
+                  Matchy-matchy
+                </span>
+              </div>
+              <div className="hidden md:ml-10 md:flex md:space-x-4">
+                <NavLinks />
+              </div>
             </div>
-            <div className="hidden md:ml-10 md:flex md:space-x-4">
-              <NavLinks />
-            </div>
-          </div>
-          <div className="flex items-center">
-            <div className="block">
-              <UserMenu />
+            <div className="flex items-center">
+              <div className="block">
+                <UserMenu />
+              </div>
             </div>
           </div>
         </div>
+      </nav>
+      
+      {/* Indicator that shows when navbar is hidden */}
+      <div 
+        className={`fixed top-0 left-1/2 transform -translate-x-1/2 bg-white/90 rounded-b-lg shadow-md px-4 py-1 z-30 transition-opacity duration-300 ${showNavbar ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        onMouseEnter={() => setShowNavbar(true)}
+      >
+        <div className="flex items-center">
+          <Heart className="h-4 w-4 text-pink-500 mr-2" />
+          <span className="text-sm font-medium">Menu</span>
+        </div>
       </div>
-    </nav>
+    </>
   );
 };
 

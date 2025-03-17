@@ -144,8 +144,8 @@ def load_user_profiles(users):
             continue
             
         # Create profile data using information from RandomUser API
-        interests = ['coding', 'hiking', 'movies', 'music', 'reading', 'travel', 'photography', 
-                    'cooking', 'sports', 'gaming', 'art', 'fashion', 'technology']
+        interests = ['#coding', '#hiking', '#movies', '#music', '#reading', '#travel', '#photography', 
+                    '#cooking', '#sports', '#gaming', '#art', '#fashion', '#technology']
         
         profile = {
             'gender': user.get('gender', random.choice(["male", "female", "other"])),

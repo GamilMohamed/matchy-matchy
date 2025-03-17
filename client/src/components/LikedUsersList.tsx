@@ -156,7 +156,7 @@ const LikedUsersList: React.FC<LikedUsersListProps> = ({
   // Desktop view
   return (
     <aside
-      className={`hidden md:block fixed top-16 right-0 bottom-0 w-80 bg-white border-l border-gray-200 overflow-y-auto transition-transform duration-300 ${
+      className={`hidden md:block absolute top-16 right-0 bottom-0 w-80 bg-white border-l border-gray-200 overflow-y-auto transition-transform duration-300 ${
         isVisible ? "translate-x-0" : "translate-x-full"
       }`}
     >

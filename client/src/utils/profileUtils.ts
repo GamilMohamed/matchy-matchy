@@ -88,4 +88,4 @@ export const checkSexualPreferenceMatch = (
     profile1.sexual_preferences.includes(profile2.gender) && 
     profile2.sexual_preferences.includes(profile1.gender)
   );
-};
+};	
