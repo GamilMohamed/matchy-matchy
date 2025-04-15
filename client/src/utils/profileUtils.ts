@@ -1,4 +1,4 @@
-import { UserProfile, MatchProfile } from "@/components/Home";
+import { UserProfile, MatchProfile } from "@/components/home";
 
 /**
  * Calculate age from birth date

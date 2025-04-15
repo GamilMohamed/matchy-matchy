@@ -19,7 +19,7 @@ function PreferencesForms() {
   const [profileComplete, setProfileComplete] = useState(false);
   const [activeTab, setActiveTab] = useState("basic-info");
   const [profileData, setProfileData] = useState<UpdateProfileData>({
-    gender: "male",
+    gender: "men",
     sexual_preferences: ["women", "other"],
     authorize_location: false,
     location: { latitude: 0, longitude: 0, city: "", country: "" },

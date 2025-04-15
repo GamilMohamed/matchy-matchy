@@ -6,8 +6,8 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 
 const sex: { [key: string]: string } = {
-  male: "homme",
-  female: "femme",
+  men: "homme",
+  women: "femme",
   other: "autre",
 };
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, Heart, X } from 'lucide-react';
-import { formatDistance, set } from 'date-fns';
-import { fr } from 'date-fns/locale';
+// import { formatDistance, set } from 'date-fns';
+// import { fr } from 'date-fns/locale';
 import api from '@/services/api';
 // Import shadcn components
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -20,13 +20,7 @@ interface LikedUser {
 
 interface LikedUsersProps {
   username: string;
-  // onUnlike?: (username: string) => void;
 }
-
-// interface UnlikeRequestData {
-//   liker: string;
-//   liked: string;
-// }
 
 const LikedUsers: React.FC<LikedUsersProps> = ({ username }) => {
   const [likedUsers, setLikedUsers] = useState<LikedUser[]>([]);
@@ -40,11 +34,10 @@ const LikedUsers: React.FC<LikedUsersProps> = ({ username }) => {
       try {
         setIsLoading(true);
         const response = await api.get(`/like/${username}/sent`);
-		    const res = Array.isArray(response.data) ? response.data : [];
-        
-		    setLikedUsers(res);
-		    console.log(res);
-        
+
+		    setLikedUsers(response.data);
+		    console.log(response.data);
+
       } catch (err) {
         setError('Impossible de charger les utilisateurs likés');
         console.error(err);
@@ -70,7 +63,7 @@ const LikedUsers: React.FC<LikedUsersProps> = ({ username }) => {
     } finally {
       setIsLoading(false);
     }
-  } 
+  }
 
   return (
     <Card className={`transition-all duration-300 overflow-hidden ${isExpanded ? 'w-64' : 'w-16'}`}>

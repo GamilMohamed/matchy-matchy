@@ -8,11 +8,11 @@ import { useToast } from "@/hooks/use-toast";
 import api from "@/services/api";
 import { useAuth } from "@/context/auth-context";
 import Navbar from "./Nav";
-import MatchCard from "./MatchCard";
+import MatchCard from "./MatchesList";
 import LikedUsersList from "./LikedUsersList";
 import FilterDrawer from "./FilterDrawer";
 import { SAMPLE_INTERESTS } from "@/constants/interests";
-import { calculateAge, calculateDistance, calculateCommonInterestsScore } from "@/utils/profileUtils";
+import { calculateAge, calculateDistance, calculateCommonInterestsScore, checkSexualPreferenceMatch } from "@/utils/profileUtils";
 
 // Type definitions
 export interface Location {
@@ -126,6 +126,9 @@ const Home: React.FC = () => {
 
           if (!(nameMatch || usernameMatch || interestsMatch)) return false;
         }
+
+        // Check sexual preference
+        // if (!checkSexualPreferenceMatch(userProfile, profile)) return false;
 
         // Check distance if coordinates are available and filter is active
         if (userProfile.location?.latitude && userProfile.location?.longitude && profile.location?.latitude && profile.location?.longitude && userProfile.maxDistance) {

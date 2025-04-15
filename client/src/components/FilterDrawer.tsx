@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { SAMPLE_INTERESTS } from "@/constants/interests";
-import { UserProfile, TempFilters } from "./Home";
+import { UserProfile, TempFilters } from "./home";
 
 interface FilterDrawerProps {
   showFilterDrawer: boolean;
