@@ -8,11 +8,11 @@ import { useToast } from "@/hooks/use-toast";
 import api from "@/services/api";
 import { useAuth } from "@/context/auth-context";
 import Navbar from "./Nav";
-import MatchCard from "./MatchesList";
+import MatchesUser from "./MatchesList";
 import LikedUsersList from "./LikedUsersList";
 import FilterDrawer from "./FilterDrawer";
 import { SAMPLE_INTERESTS } from "@/constants/interests";
-import { calculateAge, calculateDistance, calculateCommonInterestsScore, checkSexualPreferenceMatch } from "@/utils/profileUtils";
+import { calculateAge, calculateDistance, calculateCommonInterestsScore } from "@/utils/profileUtils";
 
 // Type definitions
 export interface Location {
@@ -92,6 +92,7 @@ const Home: React.FC = () => {
     ageRange: { min: 18, max: 100 },
     interests: [],
   });
+  const [showMatchesSidebar, setShowMatchesSidebar] = useState<boolean>(false);
 
   // Get current profile being displayed
   const currentProfile = matchedProfiles[currentProfileIndex];
@@ -126,9 +127,6 @@ const Home: React.FC = () => {
 
           if (!(nameMatch || usernameMatch || interestsMatch)) return false;
         }
-
-        // Check sexual preference
-        // if (!checkSexualPreferenceMatch(userProfile, profile)) return false;
 
         // Check distance if coordinates are available and filter is active
         if (userProfile.location?.latitude && userProfile.location?.longitude && profile.location?.latitude && profile.location?.longitude && userProfile.maxDistance) {
@@ -460,17 +458,15 @@ const Home: React.FC = () => {
               isMobile={true}
             />
           </div>
-          {/* Match card */}
-          <MatchCard
-            isLoading={isLoading}
-            currentProfile={currentProfile}
-            userProfile={userProfile}
-            matchedProfiles={matchedProfiles}
-            currentProfileIndex={currentProfileIndex}
-            handleSwipeLeft={handleSwipeLeft}
-            handleSwipeRight={handleSwipeRight}
-            resetFilters={resetFilters}
-          />
+
+          {/* Match list */}
+          <div className="fixed left-4 bottom-4 z-30">
+            <MatchesUser
+              username={user?.username || ""}
+              isExpanded={showMatchesSidebar}
+              setIsExpanded={setShowMatchesSidebar}
+            />
+          </div>
 
           {/* Desktop toggle button for likes sidebar */}
           <button

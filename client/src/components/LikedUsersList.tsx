@@ -3,7 +3,7 @@ import { X, Heart, MapPin, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { UserProfile, MatchProfile } from "./Home";
+import { UserProfile, MatchProfile } from "./home";
 import { calculateAge, calculateDistance } from "@/utils/profileUtils";
 
 interface LikedUsersListProps {

@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, Heart, X } from 'lucide-react';
-// import { formatDistance, set } from 'date-fns';
-// import { fr } from 'date-fns/locale';
 import api from '@/services/api';
-// Import shadcn components
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -20,14 +17,21 @@ interface MatchesUser {
 
 interface MatchesUserProps {
   username: string;
+  isExpanded?: boolean;
+  setIsExpanded?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const MatchesUser: React.FC<MatchesUserProps> = ({ username }) => {
+const MatchesUser: React.FC<MatchesUserProps> = ({ username, isExpanded = true, setIsExpanded }) => {
   const [matchesUser, setMatchesUser] = useState<MatchesUser[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [isExpanded, setIsExpanded] = useState<boolean>(true);
   const navigate = useNavigate();
+
+  const toggleExpanded = () => {
+    if (setIsExpanded) {
+      setIsExpanded(!isExpanded);
+    }
+  };
 
   useEffect(() => {
     const fetchMatchesUser = async () => {
@@ -57,13 +61,13 @@ const MatchesUser: React.FC<MatchesUserProps> = ({ username }) => {
           <Button 
             variant="ghost" 
             size="icon" 
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={toggleExpanded}
             className="rounded-full hover:bg-purple-200 p-2"
-            title={isExpanded ? 'Réduire' : 'Voir mes likes'}
+            title={isExpanded ? 'Réduire' : 'Voir mes matches'}
           >
             <Heart size={20} className="text-purple-600" />
           </Button>
-          {isExpanded && <Badge variant="secondary" className="bg-purple-200 text-purple-800">Mes Likes</Badge>}
+          {isExpanded && <Badge variant="secondary" className="bg-purple-200 text-purple-800">Mes Matches</Badge>}
         </CardHeader>
   
         {isExpanded && (
