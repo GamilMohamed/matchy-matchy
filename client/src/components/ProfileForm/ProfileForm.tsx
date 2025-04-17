@@ -19,8 +19,8 @@ function PreferencesForms() {
   const [profileComplete, setProfileComplete] = useState(false);
   const [activeTab, setActiveTab] = useState("basic-info");
   const [profileData, setProfileData] = useState<UpdateProfileData>({
-    gender: "men",
-    sexual_preferences: ["women", "other"],
+    gender: "male",
+    sexual_preferences: ["female", "other"],
     authorize_location: false,
     location: { latitude: 0, longitude: 0, city: "", country: "" },
     biography: "Pitié pour moi, je suis un(e) flemmard(e) et je n'ai pas écrit de biographie. 😅",

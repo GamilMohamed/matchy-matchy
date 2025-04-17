@@ -12,7 +12,7 @@ import MatchesUser from "./MatchesList";
 import LikedUsersList from "./LikedUsersList";
 import FilterDrawer from "./FilterDrawer";
 import { SAMPLE_INTERESTS } from "@/constants/interests";
-import { calculateAge, calculateDistance, calculateCommonInterestsScore } from "@/utils/profileUtils";
+import { calculateAge, calculateDistance, calculateCommonInterestsScore, checkSexualPreferenceMatch } from "@/utils/profileUtils";
 
 // Type definitions
 export interface Location {
@@ -126,6 +126,11 @@ const Home: React.FC = () => {
           const interestsMatch = profile.interests?.some((i) => i.toLowerCase().includes(searchLower)) || false;
 
           if (!(nameMatch || usernameMatch || interestsMatch)) return false;
+        }
+
+        // Check sexual preferences
+        if (!checkSexualPreferenceMatch(userProfile, profile)) {
+          return false;
         }
 
         // Check distance if coordinates are available and filter is active

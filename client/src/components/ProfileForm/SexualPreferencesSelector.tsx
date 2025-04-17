@@ -21,7 +21,7 @@ const SexualPreferencesSelector = ({ profileData, setProfileData }: { profileDat
     <div className="space-y-3">
       <Label className="text-base font-semibold">Sexual Preferences</Label>
       <div className="flex flex-col sm:flex-row gap-4">
-        {["men", "women", "other"].map((option) => (
+        {["male", "female", "other"].map((option) => (
           <div key={option} className="flex items-center space-x-2">
             <Checkbox 
               id={`preference-${option}`} 

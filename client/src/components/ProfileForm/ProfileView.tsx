@@ -6,14 +6,14 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 
 const sex: { [key: string]: string } = {
-  men: "homme",
-  women: "femme",
+  male: "homme",
+  female: "femme",
   other: "autre",
 };
 
 const sexual_preferences: { [key: string]: string } = {
-  men: "hommes",
-  women: "lydia",
+  male: "hommes",
+  female: "lydia",
   other: "autres",
 };
 

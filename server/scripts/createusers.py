@@ -17,7 +17,7 @@ def random_human_picture(sex):
     """
     Generate a random picture for the user
     """
-    sex = "women" if sex == "female" else "men" 
+    sex = "female" if sex == "female" else "men" 
     return f"https://randomuser.me/api/portraits/{sex}/{random.randint(0, 99)}.jpg"
 
 def mock_users(num_users=10):
@@ -149,7 +149,7 @@ def load_user_profiles(users):
         
         profile = {
             'gender': user.get('gender', random.choice(["male", "female", "other"])),
-            'sexual_preferences': random.sample(['men', 'women', 'other'], random.randint(1, 3)), 
+            'sexual_preferences': random.sample(['male', 'female', 'other'], random.randint(1, 3)), 
             'biography': f"Hi, I'm {user.get('firstname')} from {user.get('location', {}).get('city', 'somewhere beautiful')}. I enjoy exploring new places and meeting interesting people.",
             'interests': random.sample(interests, random.randint(2, 5)),
             'authorize_location': 'true',
