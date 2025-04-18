@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Filter, Heart, ArrowLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -456,24 +456,28 @@ const Home: React.FC = () => {
               {/* Profile image */}
               <div className="aspect-[4/5] bg-gray-100 relative">
                 {currentProfile.profile_picture ? (
-                  <img 
-                    src={currentProfile.profile_picture} 
-                    alt={`${currentProfile.firstname}'s profile`} 
-                    className="w-full h-full object-cover"
-                  />
+                  <Link to={`/user/${currentProfile.username}`}>
+                    <img 
+                      src={currentProfile.profile_picture} 
+                      alt={`${currentProfile.firstname}'s profile`} 
+                      className="w-full h-full object-cover"
+                    />
+                  </Link>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gray-200">
                     <span className="text-gray-400 text-xl">{currentProfile.firstname.charAt(0)}</span>
                   </div>
-                )}
+          )}
       
           {/* Profile info overlay */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
-            <h2 className="text-2xl font-bold">{currentProfile.firstname}, {calculateAge(currentProfile.birth_date || "")}</h2>
-            {currentProfile.location?.city && (
-              <p className="text-sm opacity-90 mb-1">{currentProfile.location.city}, {currentProfile.location.country}</p>
-            )}
-          </div>
+          <Link to={`/user/${currentProfile.username}`}>
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
+              <h2 className="text-2xl font-bold">{currentProfile.firstname}, {calculateAge(currentProfile.birth_date || "")}</h2>
+              {currentProfile.location?.city && (
+                <p className="text-sm opacity-90 mb-1">{currentProfile.location.city}, {currentProfile.location.country}</p>
+              )}
+            </div>
+          </Link>
           </div>
 
           {/* Profile details */}

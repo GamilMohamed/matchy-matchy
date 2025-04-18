@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { HeartIcon, MessageCircleIcon, MapPinIcon, CalendarIcon, SendIcon } from "lucide-react";
 import { useSocketContext } from "@/context/socket-context";
 import Navbar from "./Nav";
+import { calculateAge } from "@/utils/profileUtils";
 
 const UserPage = () => {
   const { username} = useParams();
@@ -135,19 +136,6 @@ const UserPage = () => {
   if (error) return <div className="text-red-500">{error}</div>;
   if (!userData) return <div>No user data found</div>;
 
-  const calculateAge = (birthDate: string) => {
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-
-    return age;
-  };
-
   const canChat = userData.is_liked && userData.is_likedback;
   const isRecipientOnline = username ? connectedUsers.includes(username) : false;
 
@@ -202,6 +190,9 @@ const UserPage = () => {
           <CardContent>
             <div className="mb-4 text-gray-600">{userData.biography}</div>
 
+            <h3 className="mb-4 text-lg font-medium mb-2">Username : {userData.username}</h3>
+            {/* <div className="mb-4 text-gray-600">{userData.username}</div> */}
+            
             <div className="mb-6">
               <h3 className="text-lg font-medium mb-2">Interests</h3>
               <div className="flex flex-wrap gap-2">
@@ -213,11 +204,24 @@ const UserPage = () => {
 
               </div>
             </div>
-                {userData.sexual_preferences && (
-                  <Badge variant="outline" className="capitalize py-1 px-2 text-sm">
-                    {userData.sexual_preferences.join(", ")}
-                  </Badge>
-                )}
+            <div className="flex justify-start gap-8">
+              <div>
+                <h3 className="text-lg font-medium mb-2">Sexual preferences</h3>
+                  {userData.sexual_preferences && (
+                    <Badge variant="outline" className="capitalize py-1 px-2 text-sm">
+                      {userData.sexual_preferences.join(", ")}
+                    </Badge>
+                  )}
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2">Gender</h3>
+                  {userData.gender && (
+                    <Badge variant="outline" className="capitalize py-1 px-2 text-sm">
+                      {userData.gender}
+                    </Badge>
+                  )}
+              </div>
+            </div>
           </CardContent>
         </Card>
 
