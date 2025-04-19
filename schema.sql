@@ -5,6 +5,9 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+-- Type énuméré pour les statuts de fame
+CREATE TYPE fame_status AS ENUM ('Membre', 'Apprecier', 'Reconnu', 'Famous', 'Star', 'Legende');
+
 -- Create Location table
 CREATE TABLE "Location" (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -32,7 +35,9 @@ CREATE TABLE "User" (
   interests VARCHAR[] NOT NULL,
   location_id UUID UNIQUE REFERENCES "Location" (id),
   authorize_location BOOLEAN NOT NULL DEFAULT false,
-  pictures VARCHAR[] NOT NULL DEFAULT '{}'::VARCHAR[]
+  pictures VARCHAR[] NOT NULL DEFAULT '{}'::VARCHAR[],
+  fame_score INTEGER NOT NULL DEFAULT 0,
+  fame fame_status NOT NULL DEFAULT 'Membre'
 );
 
 -- Create junction table for the self-relation (Views)
@@ -144,3 +149,84 @@ ALTER TABLE "User" ADD COLUMN verification_token TEXT;
 -- Add password reset columns to User table
 ALTER TABLE "User" ADD COLUMN reset_password_token TEXT;
 ALTER TABLE "User" ADD COLUMN reset_password_expires TIMESTAMP;
+
+-- Fonction pour supprimer un match lorsqu'un des utilisateurs unlike l'autre
+CREATE OR REPLACE FUNCTION delete_match_on_unlike()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Supprimer le match si un des deux utilisateurs unlike l'autre
+  DELETE FROM "Match"
+  WHERE (user1 = OLD.liker AND user2 = OLD.liked) OR
+        (user1 = OLD.liked AND user2 = OLD.liker);
+        
+  RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger qui se déclenche lors de la suppression d'un like
+CREATE TRIGGER remove_match_on_unlike
+BEFORE DELETE ON "_Like"
+FOR EACH ROW
+EXECUTE FUNCTION delete_match_on_unlike();
+
+-- Fonction pour incrémenter le fame_score lorsqu'un utilisateur reçoit un like
+CREATE OR REPLACE FUNCTION increment_fame_score_on_like()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Incrémenter le fame_score de l'utilisateur qui a reçu le like
+  UPDATE "User"
+  SET fame_score = fame_score + 1
+  WHERE username = NEW.liked;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger qui se déclenche après l'insertion d'un like
+CREATE TRIGGER increase_fame_score
+AFTER INSERT ON "_Like"
+FOR EACH ROW
+EXECUTE FUNCTION increment_fame_score_on_like();
+
+-- Fonction pour décrémenter le fame_score lorsqu'un utilisateur perd un like
+CREATE OR REPLACE FUNCTION decrement_fame_score_on_unlike()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Décrémenter le fame_score de l'utilisateur qui perd le like
+  UPDATE "User"
+  SET fame_score = GREATEST(0, fame_score - 1)  -- Empêcher que le score descende en dessous de 0
+  WHERE username = OLD.liked;
+  
+  RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger qui se déclenche avant la suppression d'un like
+CREATE TRIGGER decrease_fame_score
+BEFORE DELETE ON "_Like"
+FOR EACH ROW
+EXECUTE FUNCTION decrement_fame_score_on_unlike();
+
+-- Fonction pour mettre à jour le statut de fame en fonction du fame_score
+CREATE OR REPLACE FUNCTION update_fame_status()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Déterminer le statut de fame en fonction du fame_score
+  NEW.fame := CASE
+    WHEN NEW.fame_score < 5 THEN 'Membre'::fame_status
+    WHEN NEW.fame_score < 10 THEN 'Apprecier'::fame_status
+    WHEN NEW.fame_score < 25 THEN 'Reconnu'::fame_status
+    WHEN NEW.fame_score < 50 THEN 'Famous'::fame_status
+    WHEN NEW.fame_score < 100 THEN 'Star'::fame_status
+    ELSE 'Legende'::fame_status
+  END;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger pour mettre à jour automatiquement le statut de fame quand le fame_score change
+CREATE TRIGGER update_user_fame_status
+BEFORE INSERT OR UPDATE OF fame_score ON "User"
+FOR EACH ROW
+EXECUTE FUNCTION update_fame_status();

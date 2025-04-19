@@ -43,6 +43,7 @@ const UserPage = () => {
       try {
         setIsLoading(true);
         const res = await api.get(`/users/${username}`);
+        console.log(res.data);
         setUserData(res.data);
         setError(null);
       } catch (err) {
@@ -218,6 +219,14 @@ const UserPage = () => {
                   {userData.gender && (
                     <Badge variant="outline" className="capitalize py-1 px-2 text-sm">
                       {userData.gender}
+                    </Badge>
+                  )}
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2">Fame</h3>
+                  {userData.fame && (
+                    <Badge variant="outline" className="capitalize py-1 px-2 text-sm">
+                      {userData.fame}
                     </Badge>
                   )}
               </div>

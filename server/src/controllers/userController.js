@@ -45,7 +45,7 @@ exports.getUser = async function (req, res) {
   // console.log("username", username);
   try {
     const query = `
-    SELECT username, firstname, lastname, sexual_preferences, gender, birth_date, biography, profile_picture, interests, location_id, authorize_location, pictures
+    SELECT username, firstname, lastname, sexual_preferences, gender, birth_date, biography, profile_picture, interests, location_id, authorize_location, pictures, fame
       FROM "User"
       WHERE username = $1
     `;
