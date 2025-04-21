@@ -48,6 +48,7 @@ export interface UserProfile {
   maxDistance: number;
   ageRange: AgeRange;
   activeFilters: ActiveFilters;
+  fame?: string;
 }
 
 export interface MatchProfile extends UserProfile {
@@ -58,6 +59,7 @@ export interface TempFilters {
   maxDistance: number;
   ageRange: AgeRange;
   interests: string[];
+  fameRating: "Membre" | "Apprecier" | "Reconnu" | "Famous" | "Star" | "Legende";
 }
 
 const Home: React.FC = () => {
@@ -76,6 +78,7 @@ const Home: React.FC = () => {
     maxDistance: 500,
     ageRange: { min: 18, max: 100 },
     activeFilters: { interests: [] },
+    fame: "Membre",
   });
 
   const [allUsers, setAllUsers] = useState<MatchProfile[]>([]);
@@ -91,6 +94,7 @@ const Home: React.FC = () => {
     maxDistance: 500,
     ageRange: { min: 18, max: 100 },
     interests: [],
+    fameRating: "Membre",
   });
   const [showMatchesSidebar, setShowMatchesSidebar] = useState<boolean>(false);
 
@@ -133,16 +137,24 @@ const Home: React.FC = () => {
           return false;
         }
 
+        // Check age range if filter is active
+        const profileAge = calculateAge(profile.birth_date || "");
+        if (userProfile.ageRange && (profileAge < userProfile.ageRange.min || profileAge > userProfile.ageRange.max)) {
+          return false;
+        }
+
         // Check distance if coordinates are available and filter is active
         if (userProfile.location?.latitude && userProfile.location?.longitude && profile.location?.latitude && profile.location?.longitude && userProfile.maxDistance) {
           const distance = calculateDistance(userProfile.location.latitude, userProfile.location.longitude, profile.location.latitude, profile.location.longitude);
           if (distance > userProfile.maxDistance) return false;
         }
 
-        // Check age range if filter is active
-        const profileAge = calculateAge(profile.birth_date || "");
-        if (userProfile.ageRange && (profileAge < userProfile.ageRange.min || profileAge > userProfile.ageRange.max)) {
-          return false;
+        // Check fame rating if filter is active
+        if (tempFilters.fameRating && tempFilters.fameRating !== "Membre") {
+          const fameRatings = ["Membre", "Apprecier", "Reconnu", "Famous", "Star", "Legende"];
+          const profileFameRatingIndex = fameRatings.indexOf(profile.fame || "Membre");
+          const filterFameRatingIndex = fameRatings.indexOf(tempFilters.fameRating);
+          if (profileFameRatingIndex < filterFameRatingIndex) return false;
         }
 
         // Check interest filters if any are selected

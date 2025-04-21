@@ -37,7 +37,12 @@ CREATE TABLE "User" (
   authorize_location BOOLEAN NOT NULL DEFAULT false,
   pictures VARCHAR[] NOT NULL DEFAULT '{}'::VARCHAR[],
   fame_score INTEGER NOT NULL DEFAULT 0,
-  fame fame_status NOT NULL DEFAULT 'Membre'
+  fame fame_status NOT NULL DEFAULT 'Membre',
+  age_min INTEGER,
+  age_max INTEGER,
+  max_distance INTEGER,
+  fame_rating fame_status NOT NULL DEFAULT 'Membre',
+  interests_filter VARCHAR[]
 );
 
 -- Create junction table for the self-relation (Views)

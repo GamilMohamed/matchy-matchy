@@ -74,4 +74,6 @@ router.post("/view/:username", isAuthenticated, userController.viewUser);
 
 router.get("/:username", isAuthenticated, userController.getUser);
 
+router.put("/filter", isAuthenticated, userController.updateUserFilter);
+
 module.exports = router;

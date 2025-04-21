@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { SAMPLE_INTERESTS } from "@/constants/interests";
 import { UserProfile, TempFilters } from "./home";
+import { toast } from "@/hooks/use-toast";
+import api from "@/services/api";
 
 interface FilterDrawerProps {
   showFilterDrawer: boolean;
@@ -28,15 +30,67 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
   resetFilters,
   userProfile,
 }) => {
-  // Toggle interest in filter
+  // Toggle interest in filter avec limite de 5 intérêts
   const toggleInterestFilter = (interest: string): void => {
     setTempFilters((prev) => {
-      const interests = prev.interests.includes(interest)
-        ? prev.interests.filter((i) => i !== interest)
-        : [...prev.interests, interest];
-
-      return { ...prev, interests };
+      // Si l'intérêt est déjà sélectionné, le retirer
+      if (prev.interests.includes(interest)) {
+        return {
+          ...prev,
+          interests: prev.interests.filter((i) => i !== interest)
+        };
+      } 
+      // Sinon, vérifier si on atteint la limite de 5 intérêts
+      else if (prev.interests.length < 5) {
+        return {
+          ...prev,
+          interests: [...prev.interests, interest]
+        };
+      } 
+      // Si déjà 5 intérêts sélectionnés, ne rien ajouter et afficher un toast
+      else {
+        toast({
+          title: "Limite atteinte",
+          description: "Vous ne pouvez pas sélectionner plus de 5 intérêts",
+          variant: "destructive"
+        });
+        return prev;
+      }
     });
+  };
+
+  // Fonction pour envoyer les filtres au backend
+  const sendFiltersToBackend = async () => {
+    // Préparer les données à envoyer
+    const filtersData = {
+      ageRange: tempFilters.ageRange,
+      maxDistance: tempFilters.maxDistance,
+      fameRating: tempFilters.fameRating,
+      interests: tempFilters.interests
+    };
+    
+    console.log("Données à envoyer au backend:", filtersData);
+    
+    // Exemple avec fetch:
+    await api.put('users/filter', {
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(filtersData)
+    })
+      .catch(error => {
+        toast({
+          title: "Erreur",
+          description: "Impossible d'enregistrer vos préférences",
+          variant: "destructive"
+        });
+      });
+    
+      toast({
+        title: "Filtres appliqués",
+        description: "Vos préférences ont été enregistrées",
+      });
+
+    // Appliquer les filtres localement
+    applyFilters();
   };
 
   return (
@@ -54,16 +108,16 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
       <DrawerContent>
         <div className="mx-auto w-full max-w-sm">
           <DrawerHeader>
-            <DrawerTitle>Filter Matches</DrawerTitle>
-            <DrawerDescription>Adjust your preferences to find better matches</DrawerDescription>
+            <DrawerTitle>Filtrer les correspondances</DrawerTitle>
+            <DrawerDescription>Ajustez vos préférences pour trouver de meilleures correspondances</DrawerDescription>
           </DrawerHeader>
 
           <div className="px-4 py-2">
             <div className="mb-6">
-              <Label className="text-base font-semibold mb-2 block">Age Range</Label>
+              <Label className="text-base font-semibold mb-2 block">Tranche d'âge</Label>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-500">{tempFilters.ageRange.min} years</span>
-                <span className="text-sm text-gray-500">{tempFilters.ageRange.max} years</span>
+                <span className="text-sm text-gray-500">{tempFilters.ageRange.min} ans</span>
+                <span className="text-sm text-gray-500">{tempFilters.ageRange.max} ans</span>
               </div>
               <div className="flex gap-4 items-center">
                 <Input
@@ -115,7 +169,7 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
             </div>
 
             <div className="mb-6">
-              <Label className="text-base font-semibold mb-2 block">Maximum Distance</Label>
+              <Label className="text-base font-semibold mb-2 block">Distance maximale</Label>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-gray-500">0 km</span>
                 <span className="text-sm text-gray-500">{tempFilters.maxDistance} km</span>
@@ -135,8 +189,47 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
             </div>
 
             <div className="mb-6">
-              <Label className="text-base font-semibold mb-2 block">Interests</Label>
-              <p className="text-sm text-gray-500 mb-3">Select interests to filter by</p>
+              <Label className="text-base font-semibold mb-2 block">Cote de popularité</Label>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-500">Membre</span>
+                <span className="text-sm text-gray-500">{tempFilters.fameRating}</span>
+              </div>
+              <Slider
+                min={0}
+                max={5}
+                step={1}
+                value={[tempFilters.fameRating === "Membre" ? 0 :
+                       tempFilters.fameRating === "Apprecier" ? 1 :
+                       tempFilters.fameRating === "Reconnu" ? 2 :
+                       tempFilters.fameRating === "Famous" ? 3 :
+                       tempFilters.fameRating === "Star" ? 4 : 5]}
+                onValueChange={(values) =>
+                  setTempFilters((prev) => ({
+                    ...prev,
+                    fameRating: values[0] === 0 ? "Membre" :
+                               values[0] === 1 ? "Apprecier" :
+                               values[0] === 2 ? "Reconnu" :
+                               values[0] === 3 ? "Famous" :
+                               values[0] === 4 ? "Star" : "Legende",
+                  }))
+                }
+              />
+              <div className="flex justify-between mt-1">
+                <span className="text-xs">Membre</span>
+                <span className="text-xs">Apprecier</span>
+                <span className="text-xs">Reconnu</span>
+                <span className="text-xs">Famous</span>
+                <span className="text-xs">Star</span>
+                <span className="text-xs">Legende</span>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <Label className="text-base font-semibold mb-2 flex justify-between items-center">
+                <span>Intérêts</span>
+                <span className="text-sm text-gray-500">{tempFilters.interests.length}/5</span>
+              </Label>
+              <p className="text-sm text-gray-500 mb-3">Sélectionnez des intérêts pour filtrer</p>
 
               <div className="flex flex-wrap gap-2 mb-4">
                 {tempFilters.interests.map((interest) => (
@@ -151,7 +244,7 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
                 ))}
               </div>
 
-              <p className="text-sm font-medium mb-2">Suggested interests:</p>
+              <p className="text-sm font-medium mb-2">Intérêts suggérés:</p>
               <div className="flex flex-wrap gap-2">
                 {SAMPLE_INTERESTS.filter((i) => !tempFilters.interests.includes(i))
                   .slice(0, 12)
@@ -170,16 +263,16 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
           </div>
 
           <DrawerFooter>
-            <Button onClick={applyFilters}>Apply Filters</Button>
+            <Button onClick={sendFiltersToBackend}>Appliquer les filtres</Button>
             <DrawerClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline">Annuler</Button>
             </DrawerClose>
             <Button
               variant="ghost"
               onClick={resetFilters}
               className="text-red-500 hover:text-red-600 hover:bg-red-50"
             >
-              Reset All Filters
+              Réinitialiser les filtres
             </Button>
           </DrawerFooter>
         </div>

@@ -551,3 +551,87 @@ exports.updateUser = async function (req, res) {
     client.release();
   }
 };
+
+exports.updateUserFilter = async (req, res) => {
+  try {
+    // Récupérer les données envoyées depuis le frontend
+    const { ageRange, maxDistance, fameRating, interests } = req.body;
+    
+    // Récupérer le nom d'utilisateur de l'utilisateur connecté
+    const username = req.user.username;
+    
+    // Vérifier si au moins un champ à mettre à jour est fourni
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.status(400).json({ success: false, message: "Aucune donnée fournie" });
+    }
+    
+    // Récupérer les valeurs actuelles pour ne mettre à jour que les champs fournis
+    const { rows: currentUser } = await pool.query(
+      'SELECT age_min, age_max, max_distance, fame_rating, interests_filter FROM "User" WHERE username = $1',
+      [username]
+    );
+    
+    if (currentUser.length === 0) {
+      return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
+    }
+    
+    // Préparer les valeurs pour la mise à jour
+    const ageMin = ageRange ? ageRange.min : currentUser[0].age_min;
+    const ageMax = ageRange ? ageRange.max : currentUser[0].age_max;
+    const newMaxDistance = maxDistance !== undefined ? maxDistance : currentUser[0].max_distance;
+    
+    // Vérifier le fameRating seulement s'il est fourni
+    if (fameRating) {
+      const validFameRatings = ["Membre", "Apprecier", "Reconnu", "Famous", "Star", "Legende"];
+      if (!validFameRatings.includes(fameRating)) {
+        return res.status(400).json({ success: false, message: "Statut de popularité invalide" });
+      }
+    }
+    const newFameRating = fameRating || currentUser[0].fame_rating;
+    
+    // Vérifier les intérêts seulement s'ils sont fournis
+    if (interests) {
+      if (interests.length > 5) {
+        return res.status(400).json({ success: false, message: "Vous ne pouvez pas avoir plus de 5 intérêts" });
+      }
+    }
+    const interestsArray = interests ? JSON.stringify(interests) : currentUser[0].interests_filter;
+    
+    // Requête SQL pour mettre à jour les filtres de l'utilisateur
+    const updateQuery = `
+      UPDATE "User" 
+      SET 
+        age_min = $1,
+        age_max = $2,
+        max_distance = $3,
+        fame_rating = $4,
+        interests_filter = $5
+      WHERE username = $6
+      RETURNING age_min, age_max, max_distance, fame_rating, interests_filter
+    `;
+    
+    // Exécuter la requête
+    const { rows } = await pool.query(updateQuery, [
+      ageMin,
+      ageMax,
+      newMaxDistance,
+      newFameRating,
+      interestsArray,
+      username
+    ]);
+    
+    return res.status(200).json({
+      success: true,
+      message: "Filtres mis à jour avec succès",
+      data: rows[0]
+    });
+    
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour des filtres:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Une erreur est survenue lors de la mise à jour des filtres",
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};

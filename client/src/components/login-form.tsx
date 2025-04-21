@@ -12,8 +12,6 @@ import { Card } from "./ui/card";
 import { Alert, AlertDescription } from "./ui/alert";
 import { authService } from "@/services";
 
-import axios from "axios";
-
 const LoginForm = () => {
   const location = useLocation();
   const { login } = useAuth();
