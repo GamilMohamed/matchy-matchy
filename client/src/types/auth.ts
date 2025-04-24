@@ -7,6 +7,7 @@ export interface User  extends UpdateProfileData {
   createdAt: string;
   profile_complete: boolean;
   username: string;
+  fame: string;
 }
 
 interface LoginCredentials {

@@ -11,6 +11,8 @@ interface LikedUsersListProps {
   onClose: () => void;
   isLoading: boolean;
   likedProfiles: MatchProfile[];
+  receivedLikeProfiles: MatchProfile[]; // Data for received likes
+  isLoadingReceived: boolean; // Loading indicator for received likes
   userProfile: UserProfile;
   handleProfileClick: (username: string) => void;
   handleRemoveLike: (profile: MatchProfile) => Promise<void>;
@@ -22,6 +24,8 @@ const LikedUsersList: React.FC<LikedUsersListProps> = ({
   onClose,
   isLoading,
   likedProfiles,
+  receivedLikeProfiles,
+  isLoadingReceived,
   userProfile,
   handleProfileClick,
   handleRemoveLike,
@@ -29,9 +33,9 @@ const LikedUsersList: React.FC<LikedUsersListProps> = ({
 }) => {
   // If this is the desktop version and not visible, don't render anything
   if (!isMobile && !isVisible) return null;
-
-  const renderLikedUsers = () => {
-    if (isLoading) {
+  
+  const renderProfiles = (profiles: MatchProfile[], isProfilesLoading: boolean, emptyMessage: string) => {
+    if (isProfilesLoading) {
       return (
         <div className="flex items-center justify-center h-32">
           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
@@ -39,21 +43,25 @@ const LikedUsersList: React.FC<LikedUsersListProps> = ({
       );
     }
 
-    if (likedProfiles.length === 0) {
+    if (profiles.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center text-center p-6 h-64">
           <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
             <Heart className="h-6 w-6 text-gray-400" />
           </div>
-          <h3 className="text-base font-medium mb-1">No likes yet</h3>
-          <p className="text-sm text-gray-500">When you like someone, they'll appear here</p>
+          <h3 className="text-base font-medium mb-1">{emptyMessage}</h3>
+          <p className="text-sm text-gray-500">
+            {emptyMessage === "No likes yet" 
+              ? "When you like someone, they'll appear here" 
+              : "When someone likes you, they'll appear here"}
+          </p>
         </div>
       );
     }
 
     return (
       <div className="divide-y">
-        {likedProfiles.map((profile) => (
+        {profiles.map((profile) => (
           <div key={profile.username || profile.email} className="p-4 hover:bg-gray-50 transition-colors relative group">
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => handleProfileClick(profile.username)}>
               <Avatar className="h-12 w-12 border-2 border-indigo-100">
@@ -112,18 +120,20 @@ const LikedUsersList: React.FC<LikedUsersListProps> = ({
               <ChevronRight className="h-4 w-4 text-gray-400" />
             </div>
 
-            {/* Remove like button - appears on hover */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 bg-white/80 text-red-500 hover:bg-red-50 hover:text-red-600"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRemoveLike(profile);
-              }}
-            >
-              <X className="h-3 w-3" />
-            </Button>
+            {/* Remove like button - appears on hover - only for profiles user has liked */}
+            {likedProfiles.includes(profile) && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 bg-white/80 text-red-500 hover:bg-red-50 hover:text-red-600"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemoveLike(profile);
+                }}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            )}
           </div>
         ))}
       </div>
@@ -146,8 +156,16 @@ const LikedUsersList: React.FC<LikedUsersListProps> = ({
           </Button>
         </div>
         
-        <div className="overflow-y-auto h-[calc(100vh-4rem-64px)]"> {/* Account for navbar + header */}
-          {renderLikedUsers()}
+        <div className="overflow-y-auto">
+          {renderProfiles(likedProfiles, isLoading, "No likes yet")}
+        </div>
+
+        <div className="flex items-center justify-between border-b p-4 sticky bg-white z-10">
+          <h2 className="text-lg font-bold">People Who Liked You</h2>
+        </div>
+
+        <div className="overflow-y-auto h-[calc(100vh-8rem-64px)]">
+          {renderProfiles(receivedLikeProfiles, isLoadingReceived, "No likes received yet")}
         </div>
       </div>
     );
@@ -169,7 +187,15 @@ const LikedUsersList: React.FC<LikedUsersListProps> = ({
         </div>
       </div>
 
-      {renderLikedUsers()}
+      {renderProfiles(likedProfiles, isLoading, "No likes yet")}
+
+      <div className="p-4 border-b sticky bg-white z-10">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold">People Who Liked You</h2>
+        </div>
+      </div>
+
+      {renderProfiles(receivedLikeProfiles, isLoadingReceived, "No likes received yet")}
     </aside>
   );
 };

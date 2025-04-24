@@ -13,6 +13,7 @@ import LikedUsersList from "./LikedUsersList";
 import FilterDrawer from "./FilterDrawer";
 import { SAMPLE_INTERESTS } from "@/constants/interests";
 import { calculateAge, calculateDistance, calculateCommonInterestsScore, checkSexualPreferenceMatch } from "@/utils/profileUtils";
+import { set } from "date-fns";
 
 // Type definitions
 export interface Location {
@@ -87,6 +88,8 @@ const Home: React.FC = () => {
   const [currentProfileIndex, setCurrentProfileIndex] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isLoadingLikes, setIsLoadingLikes] = useState<boolean>(true);
+  const [receivedLikeProfiles, setReceivedLikeProfiles] = useState<MatchProfile[]>([]);
+  const [isLoadingReceivedLikes, setIsLoadingReceivedLikes] = useState<boolean>(true);
   const [showFilterDrawer, setShowFilterDrawer] = useState<boolean>(false);
   const [showLikesSidebar, setShowLikesSidebar] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -222,7 +225,7 @@ const Home: React.FC = () => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.response?.data?.error || "Failed to like this user. Please try again.",
+        description: "Failed to like this user. Please try again.",
         duration: 3000,
       });
     }
@@ -341,33 +344,52 @@ const Home: React.FC = () => {
   // Fetch liked users
   useEffect(() => {
     const fetchLikedUsers = async (): Promise<void> => {
+    try {
+      setIsLoadingLikes(true);
+      setIsLoadingReceivedLikes(true);
+
+      // Try to fetch liked users from API
       try {
-        setIsLoadingLikes(true);
-
-        // Try to fetch liked users from API
-        try {
-          const response = await api.get(`/like/sent`);
-          setLikedProfiles(response.data);
-        } catch (error) {
-          console.error("Error fetching liked users from API, using mock data:", error);
-
-          // For development: use first 5 users as likes
-          if (allUsers.length > 0) {
-            const mockLikedProfiles = allUsers.slice(0, 5);
-            setLikedProfiles(mockLikedProfiles);
-          }
-        }
+        const response = await api.get(`/like/sent`);
+        setLikedProfiles(response.data);
       } catch (error) {
-        console.error("Error in liked users setup:", error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load liked profiles.",
-        });
+        console.error("Error fetching liked users from API, using mock data:", error);
+
+        // For development: use first 5 users as likes
+        if (allUsers.length > 0) {
+          const mockLikedProfiles = allUsers.slice(0, 5);
+          setLikedProfiles(mockLikedProfiles);
+        }
       } finally {
         setIsLoadingLikes(false);
       }
-    };
+
+      try {
+        const response = await api.get(`/like/received`);
+        setReceivedLikeProfiles(response.data);
+      } catch (error) {
+        console.error("Error fetching received likes:", error);
+
+        // For development: use first 5 users as likes
+        if (allUsers.length > 0) {
+          const mockLikedProfiles = allUsers.slice(0, 5);
+          setReceivedLikeProfiles(mockLikedProfiles);
+        }
+      } finally {
+        setIsLoadingReceivedLikes(false);
+      }
+
+    } catch (error) {
+      console.error("Error in liked users setup:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load liked profiles.",
+      });
+      setIsLoadingLikes(false);
+      setIsLoadingReceivedLikes(false);
+    }
+  };
 
     if (allUsers.length > 0 && user) {
       fetchLikedUsers();
@@ -551,6 +573,8 @@ const Home: React.FC = () => {
               onClose={() => setShowLikesSidebar(false)}
               isLoading={isLoadingLikes}
               likedProfiles={likedProfiles}
+              receivedLikeProfiles={receivedLikeProfiles}
+              isLoadingReceived={isLoadingReceivedLikes}
               userProfile={userProfile}
               handleProfileClick={handleProfileClick}
               handleRemoveLike={handleRemoveLike}
@@ -592,6 +616,8 @@ const Home: React.FC = () => {
           onClose={() => setShowLikesSidebar(false)}
           isLoading={isLoadingLikes}
           likedProfiles={likedProfiles}
+          receivedLikeProfiles={receivedLikeProfiles}
+          isLoadingReceived={isLoadingReceivedLikes}
           userProfile={userProfile}
           handleProfileClick={handleProfileClick}
           handleRemoveLike={handleRemoveLike}

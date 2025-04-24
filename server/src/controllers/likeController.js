@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   likeController.js                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mgamil <mgamil@42.student.fr>              +#+  +:+       +#+        */
+/*   By: mvachera <mvachera@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/13 21:48:41 by mvachera          #+#    #+#             */
-/*   Updated: 2025/03/17 02:42:35 by mgamil           ###   ########.fr       */
+/*   Updated: 2025/04/24 18:37:24 by mvachera         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,27 +101,50 @@ exports.unlikeUser = async (req, res) => {
 
 exports.getLikesReceived = async (req, res) => {
   const username = req.user.username;
-
+  
   try {
+    // D'abord, récupérons les utilisateurs qui ont liké l'utilisateur actuel
     const query = `
-		SELECT liker, created_at
-		FROM "_Like"
-		WHERE liked = $1
-		ORDER BY created_at DESC
-	  `;
-
+      SELECT liker, created_at
+      FROM "_Like"
+      WHERE liked = $1
+      ORDER BY created_at DESC
+    `;
     const { rows } = await pool.query(query, [username]);
-
-    res.json({
-      total: rows.length,
-      likes: rows.map((row) => ({
-        liker_user: row.liker,
-        created_at: row.created_at,
-      })),
-    });
+    
+    // Récupérons les détails de chaque utilisateur qui a liké
+    const usersWithDetails = [];
+    
+    for (const row of rows) {
+      try {
+        const userQuery = `
+          SELECT *
+          FROM "User" 
+          WHERE username = $1
+        `;
+        
+        const userResult = await pool.query(userQuery, [row.liker]);
+        
+        if (userResult.rows.length > 0) {
+          usersWithDetails.push(userResult.rows[0]);
+        } else {
+          // Si l'utilisateur n'est pas trouvé, ajoutons au moins le username
+          usersWithDetails.push({
+            username: row.liker,
+            firstname: row.liker,
+            profile_picture: null,
+            birth_date: null,
+          });
+        }
+      } catch (userError) {
+        console.error(`Erreur pour l'utilisateur ${row.liker}:`, userError);
+      }
+    }
+    
+    res.json(usersWithDetails);
   } catch (error) {
     console.error("Erreur lors de la récupération des likes reçus:", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    res.status(500).json({ error: "Erreur serveur", details: error.message });
   }
 };
 

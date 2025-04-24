@@ -14,6 +14,9 @@ import { HeartIcon, MessageCircleIcon, MapPinIcon, CalendarIcon, SendIcon } from
 import { useSocketContext } from "@/context/socket-context";
 import Navbar from "./Nav";
 import { calculateAge } from "@/utils/profileUtils";
+import { XCircle } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const UserPage = () => {
   const { username} = useParams();
@@ -37,6 +40,31 @@ const UserPage = () => {
   } = useSocketContext();
 
   const [conversationMessages, setConversationMessages] = useState<any[]>([]);
+
+  const navigate = useNavigate();
+
+  const blockUser = async () => {
+    try {
+      await api.post(`/block`, { username: username });
+  
+      toast({
+        title: "Block created!",
+        description: `You blocked ${username}`,
+        duration: 3000,
+      });
+  
+      // Redirection vers la page d'accueil
+      navigate('/');
+    } catch (error) {
+      console.error("Error blocking user:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to block this user. Please try again.",
+        duration: 3000,
+      });
+    }
+  };
 
   useEffect(() => {
     async function fetchUser() {
@@ -229,6 +257,21 @@ const UserPage = () => {
                       {userData.fame}
                     </Badge>
                   )}
+              </div>
+              <div className="relative group flex items-center justify-center">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => blockUser(userData.username)}
+                  className="rounded-full transform transition duration-200 group-hover:scale-110"
+                >
+                  <XCircle className="h-8 w-8 text-red-500" />
+                  
+                </Button>
+
+                <div className="absolute -top-10 bg-black text-white text-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 scale-90 group-hover:scale-100 transform pointer-events-none">
+                  Block user ?
+                </div>
               </div>
             </div>
           </CardContent>

@@ -1,0 +1,123 @@
+const pool = require("../config/database");
+
+exports.addBlock = async (req, res) => {
+	const blocker = req.user.username;
+	const blocked = req.body.username;
+
+  	// Validation des données reçues
+  	if (!blocker || !blocked) {
+		return res.status(400).json({ error: "Invalid data" });
+  	}
+
+  	try {
+	// Vérification si le blocage existe déjà
+	const checkQuery = `
+	  SELECT * FROM "Block"
+	  WHERE blocker = $1 AND blocked = $2
+	`;
+	const { rows: existingBlocks } = await pool.query(checkQuery, [blocker, blocked]);
+
+	if (existingBlocks.length > 0) {
+	  return res.status(400).json({ error: "Already blocked" });
+	}
+
+	// Insertion du blocage dans la base de données
+	const insertQuery = `
+	  INSERT INTO "Block" (blocker, blocked)
+	  VALUES ($1, $2)
+	  RETURNING *
+	`;
+	const { rows: newBlock } = await pool.query(insertQuery, [blocker, blocked]);
+
+	res.status(201).json(newBlock[0]);
+  	} catch (error) {
+		console.error("Error while blocking user:", error);
+		res.status(500).json({ error: "Server error", details: error.message });
+  	}
+}
+
+exports.deleteBlock = async (req, res) => {
+	blocker = req.user.username;
+	blocked = req.params.username;
+
+  	// Validation des données reçues
+  	if (!blocker || !blocked) {
+		return res.status(400).json({ error: "Invalid data" });
+  	}
+
+  	try {
+	// Vérification si le blocage existe
+	const checkQuery = `
+	  SELECT * FROM "Block"
+	  WHERE blocker = $1 AND blocked = $2
+	`;
+
+	const { rows: existingBlocks } = await pool.query(checkQuery, [blocker, blocked]);
+
+	if (existingBlocks.length === 0) {
+	  return res.status(404).json({ error: "Block not found" });
+	}
+	// Suppression du blocage
+	const deleteQuery = `
+	  DELETE FROM "Block"
+	  WHERE blocker = $1 AND blocked = $2
+	`;
+
+	await pool.query(deleteQuery, [blocker, blocked]);
+
+	res.status(200).json({ message: "Block removed successfully" });
+  	}
+	catch (error) {
+		console.error("Error while removing block:", error);
+		res.status(500).json({ error: "Server error", details: error.message });
+  	}
+}
+
+exports.getBlockedUsers = async (req, res) => {
+	const username = req.user.username;
+  
+  try {
+    // D'abord, récupérons les utilisateurs qui ont liké l'utilisateur actuel
+    const query = `
+      SELECT blocker, created_at
+      FROM "Block"
+      WHERE blocked = $1
+      ORDER BY created_at DESC
+    `;
+    const { rows } = await pool.query(query, [username]);
+    
+    // Récupérons les détails de chaque utilisateur qui a liké
+    const usersWithDetails = [];
+    
+    for (const row of rows) {
+      try {
+        const userQuery = `
+          SELECT *
+          FROM "User" 
+          WHERE username = $1
+        `;
+        
+        const userResult = await pool.query(userQuery, [row.liker]);
+        
+        if (userResult.rows.length > 0) {
+          usersWithDetails.push(userResult.rows[0]);
+        } else {
+          // Si l'utilisateur n'est pas trouvé, ajoutons au moins le username
+          usersWithDetails.push({
+            username: row.liker,
+            firstname: row.liker,
+            profile_picture: null,
+            birth_date: null,
+          });
+        }
+      } catch (userError) {
+        console.error(`Erreur pour l'utilisateur ${row.liker}:`, userError);
+      }
+    }
+    
+    res.json(usersWithDetails);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des blocks reçus:", error);
+    res.status(500).json({ error: "Erreur serveur", details: error.message });
+  }
+}

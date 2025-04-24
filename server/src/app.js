@@ -9,6 +9,7 @@ var usersRouter = require('./routes/userRouter');
 var authRouter = require('./routes/authRouter');
 var matchRouter = require('./routes/matchRouter');
 var likeRouter = require('./routes/likeRouter');
+var blockRouter = require('./routes/blockRouter');
 var cors = require('cors')
 const nodemailer = require('nodemailer');
 
@@ -40,6 +41,7 @@ app.use('/users', usersRouter);
 app.use('/auth', authRouter);
 app.use('/match', matchRouter);
 app.use('/like', likeRouter);
+app.use('/block', blockRouter);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', socketConnections: io.engine.clientsCount });

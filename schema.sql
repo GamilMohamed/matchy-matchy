@@ -64,6 +64,35 @@ CREATE TABLE "_Like" (
 CREATE INDEX "Views_A_index" ON "_Views" ("A");
 CREATE INDEX "Views_B_index" ON "_Views" ("B");
 
+CREATE TABLE "Block" (
+  blocker VARCHAR NOT NULL REFERENCES "User" (username),
+  blocked VARCHAR NOT NULL REFERENCES "User" (username),  -- Corrected column name from liked_username
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (blocker, blocked)
+);
+
+-- Fonction pour supprimer les likes dans les deux sens quand un utilisateur en bloque un autre
+CREATE OR REPLACE FUNCTION delete_likes_on_block()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Supprimer les likes où l'utilisateur bloqué a liké le bloqueur
+  DELETE FROM "_Like"
+  WHERE liker = NEW.blocked AND liked = NEW.blocker;
+  
+  -- Supprimer les likes où le bloqueur a liké l'utilisateur bloqué
+  DELETE FROM "_Like"
+  WHERE liker = NEW.blocker AND liked = NEW.blocked;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger qui se déclenche après l'insertion d'un blocage
+CREATE TRIGGER remove_likes_on_block
+AFTER INSERT ON "Block"
+FOR EACH ROW
+EXECUTE FUNCTION delete_likes_on_block();
+
 -- Create trigger to automatically update the updated_at field
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$
