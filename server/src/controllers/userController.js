@@ -282,6 +282,7 @@ exports.getUsers = async function (req, res) {
   const client = await pool.connect();
 
   try {
+    const username = req.user.username;
     const usersQuery = `
       SELECT 
         u.username, u.email, u.firstname, u.lastname, 
@@ -296,9 +297,16 @@ exports.getUsers = async function (req, res) {
       FROM "User" u
       LEFT JOIN "Location" l ON u.location_id = l.id
       WHERE u.profile_complete = true
+      AND u.username NOT IN (
+        -- Utilisateurs que l'utilisateur actuel a bloqués
+        SELECT blocked FROM "Block" WHERE blocker = $1
+        UNION
+        -- Utilisateurs qui ont bloqué l'utilisateur actuel
+        SELECT blocker FROM "Block" WHERE blocked = $1
+      )
     `;
 
-    const usersResult = await client.query(usersQuery);
+    const usersResult = await client.query(usersQuery, [username]);
 
     // Format user data
     const users = usersResult.rows.map((user) => {

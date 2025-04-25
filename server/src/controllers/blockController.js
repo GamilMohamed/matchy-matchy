@@ -75,49 +75,49 @@ exports.deleteBlock = async (req, res) => {
 
 exports.getBlockedUsers = async (req, res) => {
 	const username = req.user.username;
-  
-  try {
-    // D'abord, récupérons les utilisateurs qui ont liké l'utilisateur actuel
-    const query = `
-      SELECT blocker, created_at
-      FROM "Block"
-      WHERE blocked = $1
-      ORDER BY created_at DESC
-    `;
-    const { rows } = await pool.query(query, [username]);
-    
-    // Récupérons les détails de chaque utilisateur qui a liké
-    const usersWithDetails = [];
-    
-    for (const row of rows) {
-      try {
-        const userQuery = `
-          SELECT *
-          FROM "User" 
-          WHERE username = $1
-        `;
-        
-        const userResult = await pool.query(userQuery, [row.liker]);
-        
-        if (userResult.rows.length > 0) {
-          usersWithDetails.push(userResult.rows[0]);
-        } else {
-          // Si l'utilisateur n'est pas trouvé, ajoutons au moins le username
-          usersWithDetails.push({
-            username: row.liker,
-            firstname: row.liker,
-            profile_picture: null,
-            birth_date: null,
-          });
-        }
-      } catch (userError) {
-        console.error(`Erreur pour l'utilisateur ${row.liker}:`, userError);
-      }
-    }
-    
-    res.json(usersWithDetails);
-  } catch (error) {
-    console.error("Erreur lors de la récupération des blocks reçus:", error);
-    res.status(500).json({ error: "Erreur serveur", details: error.message });
-  }
-}
+	
+	try {
+	  // Récupérons les utilisateurs que l'utilisateur actuel a bloqués
+	  const query = `
+		SELECT blocked, created_at
+		FROM "Block"
+		WHERE blocker = $1
+		ORDER BY created_at DESC
+	  `;
+	  const { rows } = await pool.query(query, [username]);
+	  
+	  // Récupérons les détails de chaque utilisateur bloqué
+	  const usersWithDetails = [];
+	  
+	  for (const row of rows) {
+		try {
+		  const userQuery = `
+			SELECT *
+			FROM "User" 
+			WHERE username = $1
+		  `;
+		  
+		  const userResult = await pool.query(userQuery, [row.blocked]);
+		  
+		  if (userResult.rows.length > 0) {
+			usersWithDetails.push(userResult.rows[0]);
+		  } else {
+			// Si l'utilisateur n'est pas trouvé, ajoutons au moins le username
+			usersWithDetails.push({
+			  username: row.blocked,
+			  firstname: row.blocked,
+			  profile_picture: null,
+			  birth_date: null,
+			});
+		  }
+		} catch (userError) {
+		  console.error(`Erreur pour l'utilisateur ${row.blocked}:`, userError);
+		}
+	  }
+	  
+	  res.json(usersWithDetails);
+	} catch (error) {
+	  console.error("Erreur lors de la récupération des utilisateurs bloqués:", error);
+	  res.status(500).json({ error: "Erreur serveur", details: error.message });
+	}
+  };

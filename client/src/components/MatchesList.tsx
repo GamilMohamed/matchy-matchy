@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { calculateAge } from "./utils/dateUtils";
 
 interface MatchesUser {
@@ -25,7 +25,6 @@ const MatchesUser: React.FC<MatchesUserProps> = ({ username, isExpanded = true, 
   const [matchesUser, setMatchesUser] = useState<MatchesUser[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
 
   const toggleExpanded = () => {
     if (setIsExpanded) {
@@ -37,7 +36,7 @@ const MatchesUser: React.FC<MatchesUserProps> = ({ username, isExpanded = true, 
     const fetchMatchesUser = async () => {
       try {
         setIsLoading(true);
-        const response = await api.get(`/match/${username}`);
+        const response = await api.get(`/match`);
 
         setMatchesUser(response.data);
         console.log(response.data);
@@ -106,7 +105,7 @@ const MatchesUser: React.FC<MatchesUserProps> = ({ username, isExpanded = true, 
                     )}
                   </Avatar>
                   <div>
-                    <p className="font-medium text-sm">{user.firstname}, {calculateAge(user.birth_date)}ans</p>
+                    <p className="font-medium text-sm">{user.firstname} {calculateAge(user.birth_date)} ans</p>
                   </div>
                 </div>
               </Link>

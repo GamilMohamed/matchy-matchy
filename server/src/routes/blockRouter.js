@@ -7,8 +7,8 @@ const router = express.Router();
 
 router.post("/", body("username").isString().notEmpty(), isAuthenticated, blockController.addBlock);
 
-router.delete("/delete", isAuthenticated, blockController.deleteBlock);
+router.delete("/delete/:username", isAuthenticated, blockController.deleteBlock);
 
-router.get("/blocked/:username", isAuthenticated, blockController.getBlockedUsers);
+router.get("/", isAuthenticated, blockController.getBlockedUsers);
 
 module.exports = router;

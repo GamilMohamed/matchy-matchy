@@ -9,6 +9,7 @@ import api from "@/services/api";
 import { useAuth } from "@/context/auth-context";
 import Navbar from "./Nav";
 import MatchesUser from "./MatchesList";
+import BlocksUser from "./BlocksList";
 import LikedUsersList from "./LikedUsersList";
 import FilterDrawer from "./FilterDrawer";
 import { SAMPLE_INTERESTS } from "@/constants/interests";
@@ -92,6 +93,7 @@ const Home: React.FC = () => {
   const [isLoadingReceivedLikes, setIsLoadingReceivedLikes] = useState<boolean>(true);
   const [showFilterDrawer, setShowFilterDrawer] = useState<boolean>(false);
   const [showLikesSidebar, setShowLikesSidebar] = useState<boolean>(false);
+  const [showBlocksSidebar, setShowBlocksSidebar] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [tempFilters, setTempFilters] = useState<TempFilters>({
     maxDistance: 500,
@@ -588,6 +590,15 @@ const Home: React.FC = () => {
               username={user?.username || ""}
               isExpanded={showMatchesSidebar}
               setIsExpanded={setShowMatchesSidebar}
+            />
+          </div>
+
+          {/* Blocks list */}
+          <div className="fixed left-4 top-12 z-30">
+            <BlocksUser
+              username={user?.username || ""}
+              isExpanded={showBlocksSidebar}
+              setIsExpanded={setShowBlocksSidebar}
             />
           </div>
 
