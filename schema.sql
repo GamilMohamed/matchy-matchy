@@ -71,6 +71,18 @@ CREATE TABLE "Block" (
   PRIMARY KEY (blocker, blocked)
 );
 
+-- Create Signal table
+CREATE TABLE "Signal" (
+  signaler VARCHAR NOT NULL REFERENCES "User" (username),
+  signaled VARCHAR NOT NULL REFERENCES "User" (username),
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (signaler, signaled)
+);
+
+-- Create index to improve query performance
+CREATE INDEX "Signal_signaler_index" ON "Signal" (signaler);
+CREATE INDEX "Signal_signaled_index" ON "Signal" (signaled);
+
 -- Fonction pour supprimer les likes dans les deux sens quand un utilisateur en bloque un autre
 CREATE OR REPLACE FUNCTION delete_likes_on_block()
 RETURNS TRIGGER AS $$

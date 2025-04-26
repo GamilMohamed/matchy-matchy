@@ -14,7 +14,7 @@ import { HeartIcon, MessageCircleIcon, MapPinIcon, CalendarIcon, SendIcon } from
 import { useSocketContext } from "@/context/socket-context";
 import Navbar from "./Nav";
 import { calculateAge } from "@/utils/profileUtils";
-import { XCircle } from "lucide-react";
+import { XCircle, Flag } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
@@ -56,7 +56,6 @@ const UserPage = () => {
       // Redirection vers la page d'accueil
       navigate('/');
     } catch (error) {
-      console.error("Error blocking user:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -65,6 +64,26 @@ const UserPage = () => {
       });
     }
   };
+
+  const signalUser = async () => {
+    try {
+      await api.post(`/block/signal`, { username: username });
+  
+      toast({
+        title: "User reported!",
+        description: `You reported ${username}`,
+        duration: 3000,
+      });
+
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to report this user. Please try again.",
+        duration: 3000,
+      });
+    }
+  }
 
   useEffect(() => {
     async function fetchUser() {
@@ -258,21 +277,40 @@ const UserPage = () => {
                     </Badge>
                   )}
               </div>
-              <div className="relative group flex items-center justify-center">
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => blockUser(userData.username)}
-                  className="rounded-full transform transition duration-200 group-hover:scale-110"
-                >
-                  <XCircle className="h-8 w-8 text-red-500" />
-                  
-                </Button>
+              <div className="relative flex items-center justify-center gap-4">
+                {/* Block User */}
+                <div className="relative group flex flex-col items-center">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => blockUser(userData.username)}
+                    className="rounded-full transform transition duration-200 group-hover:scale-110"
+                  >
+                    <XCircle className="h-8 w-8 text-red-500" />
+                  </Button>
 
-                <div className="absolute -top-10 bg-black text-white text-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 scale-90 group-hover:scale-100 transform pointer-events-none">
-                  Block user ?
+                  <div className="absolute -top-10 bg-black text-white text-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-all duration-200 scale-90 group-hover:scale-100 transform pointer-events-none">
+                    Block user ?
+                  </div>
+                </div>
+
+                {/* Signal Fake Account */}
+                <div className="relative group flex flex-col items-center">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => signalUser(userData.username)}
+                    className="rounded-full transform transition duration-200 group-hover:scale-110"
+                  >
+                    <Flag className="h-8 w-8 text-yellow-500" />
+                  </Button>
+
+                  <div className="absolute -top-10 bg-black text-white text-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-all duration-200 scale-90 group-hover:scale-100 transform pointer-events-none">
+                    Signal fake account ?
+                  </div>
                 </div>
               </div>
+
             </div>
           </CardContent>
         </Card>

@@ -9,6 +9,10 @@ exports.addBlock = async (req, res) => {
 		return res.status(400).json({ error: "Invalid data" });
   	}
 
+	if (blocker === blocked) {
+		return res.status(400).json({ error: "You cannot block yourself" });
+	}
+
   	try {
 	// Vérification si le blocage existe déjà
 	const checkQuery = `
@@ -32,6 +36,46 @@ exports.addBlock = async (req, res) => {
 	res.status(201).json(newBlock[0]);
   	} catch (error) {
 		console.error("Error while blocking user:", error);
+		res.status(500).json({ error: "Server error", details: error.message });
+  	}
+}
+
+exports.addSignalement = async (req, res) => {
+	const signaler = req.user.username;
+	const signaled = req.body.username;
+
+  	// Validation des données reçues
+  	if (!signaler || !signaled) {
+		return res.status(400).json({ error: "Invalid data" });
+  	}
+
+	if (signaler === signaled) {
+		return res.status(400).json({ error: "You cannot signal yourself" });
+	}
+
+  	try {
+	// Vérification si le blocage existe déjà
+	const checkQuery = `
+	  SELECT * FROM "Signal"
+	  WHERE signaler = $1 AND signaled = $2
+	`;
+	const { rows: existingSignals } = await pool.query(checkQuery, [signaler, signaled]);
+
+	if (existingSignals.length > 0) {
+	  return res.status(400).json({ error: "Already signaled" });
+	}
+
+	// Insertion du blocage dans la base de données
+	const insertQuery = `
+	  INSERT INTO "Signal" (signaler, signaled)
+	  VALUES ($1, $2)
+	  RETURNING *
+	`;
+	const { rows: newSignal } = await pool.query(insertQuery, [signaler, signaled]);
+
+	res.status(201).json(newSignal[0]);
+  	} catch (error) {
+		console.error("Error while signaling user:", error);
 		res.status(500).json({ error: "Server error", details: error.message });
   	}
 }

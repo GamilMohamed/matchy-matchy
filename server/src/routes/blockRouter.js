@@ -6,6 +6,7 @@ const { isAuthenticated } = require("../middlewares/authMiddleware");
 const router = express.Router();
 
 router.post("/", body("username").isString().notEmpty(), isAuthenticated, blockController.addBlock);
+router.post("/signal", body("username").isString().notEmpty(), isAuthenticated, blockController.addSignalement);
 
 router.delete("/delete/:username", isAuthenticated, blockController.deleteBlock);
 
